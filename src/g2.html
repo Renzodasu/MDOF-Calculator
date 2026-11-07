@@ -8,8 +8,8 @@
       <span class="byline"><i>·</i> by Nezzar</span>
     </div>
     <nav class="nav">
-      <a href="#answers" class="on">Answers</a>
-      <a href="#tour">Tour</a>
+      <a href="#tour" class="on">Tour</a>
+      <a href="#answers">Answers</a>
       <a href="#build">Build</a>
       <a href="#method">Method</a>
     </nav>
@@ -40,6 +40,53 @@
     <div class="card3d"><div id="hero-svg"></div></div>
     <div class="float f1"><i style="width:7px;height:7px;border-radius:99px;background:#4f46e5;display:block"></i> ω₁ <b id="h-w1">—</b> rad/s</div>
     <div class="float f2"><i style="width:7px;height:7px;border-radius:99px;background:#0d9488;display:block"></i> roof moves <b id="h-roof">—</b>× floor 1</div>
+  </div>
+</section>
+
+<section class="sec" id="tour">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="l">
+        <div class="eyebrow">The walkthrough</div>
+        <h2>Watch the solution build itself</h2>
+        <p><span id="chap-count">Ten</span> short chapters, one idea each. Press play and it advances on its own, or step through with the arrows. Everything on screen is computed from the numbers in the model — nothing is hard-coded.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="chip mint"><i></i><span id="tour-live-chip">live model</span></span>
+      </div>
+    </div>
+
+    <div class="tour-shell rv">
+      <div class="tour-top">
+        <div class="chapters" id="chapters"></div>
+        <div class="tour-prog"><i id="prog"></i></div>
+        <div class="seg" id="view-seg" aria-label="Figure view"><button data-v="2d">2D</button><button data-v="3d">3D</button><button data-v="both">Both</button></div>
+      </div>
+      <div class="tour-body">
+        <div class="stage" id="stage">
+          <div class="stage-views" id="stage-views"><div id="stage-svg"></div><div id="stage-3d" hidden><span class="v3-hint">drag to orbit · sway exaggerated</span></div></div>
+          <div class="stage-cap"><span id="stage-k">Figure</span><span class="v3n" id="v3-note" hidden>flat figure · 3D returns for the frame &amp; motion</span><span class="live" id="stage-live" hidden><i></i>live animation</span></div>
+        </div>
+        <div class="narr">
+          <div class="kicker"><span id="n-kicker">Step</span></div>
+          <h3 id="n-title"></h3>
+          <div class="body" id="n-body"></div>
+          <div class="formula" id="n-formula" hidden></div>
+          <div class="note" id="n-note" hidden><span class="ic">✳</span><span id="n-note-t"></span></div>
+          <div class="spacer"></div>
+          <div class="controls">
+            <button class="btn btn-icon" id="prev" aria-label="Previous frame" data-tip="Previous step&nbsp; ←">←</button>
+            <button class="btn btn-primary" id="play" aria-label="Play or pause" data-tip="Play / pause&nbsp; Space"><span id="play-ic">▶</span><span id="play-tx">Play</span></button>
+            <button class="btn btn-icon" id="next" aria-label="Next frame" data-tip="Next step&nbsp; →">→</button>
+            <button class="btn btn-icon" id="replay" aria-label="Replay this step" data-tip="Replay the animation&nbsp; R">↻</button>
+            <button class="btn btn-ghost btn-sm" id="tspeed" aria-pressed="false" data-tip="Real period vs. readable slow motion" hidden>Slowed</button>
+            <div class="seg" id="speed"><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div>
+            <span class="fr" id="frame-count"></span>
+          </div>
+          <div class="kbdhint"><kbd>Space</kbd> play <span>·</span> <kbd>←</kbd><kbd>→</kbd> step <span>·</span> <kbd>R</kbd> replay</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -90,53 +137,6 @@
       <h3>On your calculator</h3>
       <div class="hint">Casio fx-991ES PLUS or fx-991EX — the characteristic equation in B = ω², ready to type</div>
       <div id="ans-calc"></div>
-    </div>
-  </div>
-</section>
-
-<section class="sec" id="tour">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="l">
-        <div class="eyebrow">The walkthrough</div>
-        <h2>Watch the solution build itself</h2>
-        <p><span id="chap-count">Ten</span> short chapters, one idea each. Press play and it advances on its own, or step through with the arrows. Everything on screen is computed from the numbers in the model — nothing is hard-coded.</p>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <span class="chip mint"><i></i><span id="tour-live-chip">live model</span></span>
-      </div>
-    </div>
-
-    <div class="tour-shell rv">
-      <div class="tour-top">
-        <div class="chapters" id="chapters"></div>
-        <div class="tour-prog"><i id="prog"></i></div>
-        <div class="seg" id="view-seg" aria-label="Figure view"><button data-v="2d">2D</button><button data-v="3d">3D</button><button data-v="both">Both</button></div>
-      </div>
-      <div class="tour-body">
-        <div class="stage" id="stage">
-          <div class="stage-views" id="stage-views"><div id="stage-svg"></div><div id="stage-3d" hidden><span class="v3-hint">drag to orbit · sway exaggerated</span></div></div>
-          <div class="stage-cap"><span id="stage-k">Figure</span><span class="v3n" id="v3-note" hidden>flat figure · 3D returns for the frame &amp; motion</span><span class="live" id="stage-live" hidden><i></i>live animation</span></div>
-        </div>
-        <div class="narr">
-          <div class="kicker"><span id="n-kicker">Step</span></div>
-          <h3 id="n-title"></h3>
-          <div class="body" id="n-body"></div>
-          <div class="formula" id="n-formula" hidden></div>
-          <div class="note" id="n-note" hidden><span class="ic">✳</span><span id="n-note-t"></span></div>
-          <div class="spacer"></div>
-          <div class="controls">
-            <button class="btn btn-icon" id="prev" aria-label="Previous frame" data-tip="Previous step&nbsp; ←">←</button>
-            <button class="btn btn-primary" id="play" aria-label="Play or pause" data-tip="Play / pause&nbsp; Space"><span id="play-ic">▶</span><span id="play-tx">Play</span></button>
-            <button class="btn btn-icon" id="next" aria-label="Next frame" data-tip="Next step&nbsp; →">→</button>
-            <button class="btn btn-icon" id="replay" aria-label="Replay this step" data-tip="Replay the animation&nbsp; R">↻</button>
-            <button class="btn btn-ghost btn-sm" id="tspeed" aria-pressed="false" data-tip="Real period vs. readable slow motion" hidden>Slowed</button>
-            <div class="seg" id="speed"><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div>
-            <span class="fr" id="frame-count"></span>
-          </div>
-          <div class="kbdhint"><kbd>Space</kbd> play <span>·</span> <kbd>←</kbd><kbd>→</kbd> step <span>·</span> <kbd>R</kbd> replay</div>
-        </div>
-      </div>
     </div>
   </div>
 </section>

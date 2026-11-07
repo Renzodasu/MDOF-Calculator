@@ -451,8 +451,8 @@ footer .credit .soft a:hover{color:var(--muted);border-color:var(--muted)}
       <span class="byline"><i>·</i> by Nezzar</span>
     </div>
     <nav class="nav">
-      <a href="#answers" class="on">Answers</a>
-      <a href="#tour">Tour</a>
+      <a href="#tour" class="on">Tour</a>
+      <a href="#answers">Answers</a>
       <a href="#build">Build</a>
       <a href="#method">Method</a>
     </nav>
@@ -483,6 +483,53 @@ footer .credit .soft a:hover{color:var(--muted);border-color:var(--muted)}
     <div class="card3d"><div id="hero-svg"></div></div>
     <div class="float f1"><i style="width:7px;height:7px;border-radius:99px;background:#4f46e5;display:block"></i> ω₁ <b id="h-w1">—</b> rad/s</div>
     <div class="float f2"><i style="width:7px;height:7px;border-radius:99px;background:#0d9488;display:block"></i> roof moves <b id="h-roof">—</b>× floor 1</div>
+  </div>
+</section>
+
+<section class="sec" id="tour">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="l">
+        <div class="eyebrow">The walkthrough</div>
+        <h2>Watch the solution build itself</h2>
+        <p><span id="chap-count">Ten</span> short chapters, one idea each. Press play and it advances on its own, or step through with the arrows. Everything on screen is computed from the numbers in the model — nothing is hard-coded.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="chip mint"><i></i><span id="tour-live-chip">live model</span></span>
+      </div>
+    </div>
+
+    <div class="tour-shell rv">
+      <div class="tour-top">
+        <div class="chapters" id="chapters"></div>
+        <div class="tour-prog"><i id="prog"></i></div>
+        <div class="seg" id="view-seg" aria-label="Figure view"><button data-v="2d">2D</button><button data-v="3d">3D</button><button data-v="both">Both</button></div>
+      </div>
+      <div class="tour-body">
+        <div class="stage" id="stage">
+          <div class="stage-views" id="stage-views"><div id="stage-svg"></div><div id="stage-3d" hidden><span class="v3-hint">drag to orbit · sway exaggerated</span></div></div>
+          <div class="stage-cap"><span id="stage-k">Figure</span><span class="v3n" id="v3-note" hidden>flat figure · 3D returns for the frame &amp; motion</span><span class="live" id="stage-live" hidden><i></i>live animation</span></div>
+        </div>
+        <div class="narr">
+          <div class="kicker"><span id="n-kicker">Step</span></div>
+          <h3 id="n-title"></h3>
+          <div class="body" id="n-body"></div>
+          <div class="formula" id="n-formula" hidden></div>
+          <div class="note" id="n-note" hidden><span class="ic">✳</span><span id="n-note-t"></span></div>
+          <div class="spacer"></div>
+          <div class="controls">
+            <button class="btn btn-icon" id="prev" aria-label="Previous frame" data-tip="Previous step&nbsp; ←">←</button>
+            <button class="btn btn-primary" id="play" aria-label="Play or pause" data-tip="Play / pause&nbsp; Space"><span id="play-ic">▶</span><span id="play-tx">Play</span></button>
+            <button class="btn btn-icon" id="next" aria-label="Next frame" data-tip="Next step&nbsp; →">→</button>
+            <button class="btn btn-icon" id="replay" aria-label="Replay this step" data-tip="Replay the animation&nbsp; R">↻</button>
+            <button class="btn btn-ghost btn-sm" id="tspeed" aria-pressed="false" data-tip="Real period vs. readable slow motion" hidden>Slowed</button>
+            <div class="seg" id="speed"><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div>
+            <span class="fr" id="frame-count"></span>
+          </div>
+          <div class="kbdhint"><kbd>Space</kbd> play <span>·</span> <kbd>←</kbd><kbd>→</kbd> step <span>·</span> <kbd>R</kbd> replay</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -533,53 +580,6 @@ footer .credit .soft a:hover{color:var(--muted);border-color:var(--muted)}
       <h3>On your calculator</h3>
       <div class="hint">Casio fx-991ES PLUS or fx-991EX — the characteristic equation in B = ω², ready to type</div>
       <div id="ans-calc"></div>
-    </div>
-  </div>
-</section>
-
-<section class="sec" id="tour">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="l">
-        <div class="eyebrow">The walkthrough</div>
-        <h2>Watch the solution build itself</h2>
-        <p><span id="chap-count">Ten</span> short chapters, one idea each. Press play and it advances on its own, or step through with the arrows. Everything on screen is computed from the numbers in the model — nothing is hard-coded.</p>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <span class="chip mint"><i></i><span id="tour-live-chip">live model</span></span>
-      </div>
-    </div>
-
-    <div class="tour-shell rv">
-      <div class="tour-top">
-        <div class="chapters" id="chapters"></div>
-        <div class="tour-prog"><i id="prog"></i></div>
-        <div class="seg" id="view-seg" aria-label="Figure view"><button data-v="2d">2D</button><button data-v="3d">3D</button><button data-v="both">Both</button></div>
-      </div>
-      <div class="tour-body">
-        <div class="stage" id="stage">
-          <div class="stage-views" id="stage-views"><div id="stage-svg"></div><div id="stage-3d" hidden><span class="v3-hint">drag to orbit · sway exaggerated</span></div></div>
-          <div class="stage-cap"><span id="stage-k">Figure</span><span class="v3n" id="v3-note" hidden>flat figure · 3D returns for the frame &amp; motion</span><span class="live" id="stage-live" hidden><i></i>live animation</span></div>
-        </div>
-        <div class="narr">
-          <div class="kicker"><span id="n-kicker">Step</span></div>
-          <h3 id="n-title"></h3>
-          <div class="body" id="n-body"></div>
-          <div class="formula" id="n-formula" hidden></div>
-          <div class="note" id="n-note" hidden><span class="ic">✳</span><span id="n-note-t"></span></div>
-          <div class="spacer"></div>
-          <div class="controls">
-            <button class="btn btn-icon" id="prev" aria-label="Previous frame" data-tip="Previous step&nbsp; ←">←</button>
-            <button class="btn btn-primary" id="play" aria-label="Play or pause" data-tip="Play / pause&nbsp; Space"><span id="play-ic">▶</span><span id="play-tx">Play</span></button>
-            <button class="btn btn-icon" id="next" aria-label="Next frame" data-tip="Next step&nbsp; →">→</button>
-            <button class="btn btn-icon" id="replay" aria-label="Replay this step" data-tip="Replay the animation&nbsp; R">↻</button>
-            <button class="btn btn-ghost btn-sm" id="tspeed" aria-pressed="false" data-tip="Real period vs. readable slow motion" hidden>Slowed</button>
-            <div class="seg" id="speed"><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div>
-            <span class="fr" id="frame-count"></span>
-          </div>
-          <div class="kbdhint"><kbd>Space</kbd> play <span>·</span> <kbd>←</kbd><kbd>→</kbd> step <span>·</span> <kbd>R</kbd> replay</div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -2004,6 +2004,7 @@ function v3Apply(){
   var el=$('#stage-3d'),sv=$('#stage-svg'),want=VIEW!=='2d'&&v3Eligible(FI.ch,FI.fr);
   $('#v3-note').hidden=!(VIEW!=='2d'&&!want);
   $('#stage-views').classList.toggle('both',want&&VIEW==='both');
+  $('.tour-body').classList.toggle('wide',want&&VIEW==='both');
   if(!want){el.hidden=true;sv.hidden=false;v3Stop();return;}
   sv.hidden=VIEW==='3d';
   el.hidden=false;
@@ -2053,7 +2054,8 @@ function v3Build(){
   var H=ys[n];
   var ground=new T.Mesh(new T.BoxGeometry(L+5,0.3,W+5),new T.MeshStandardMaterial({color:0xececf2,roughness:1}));
   ground.position.y=-0.15;root.add(ground);
-  var colMat=new T.MeshStandardMaterial({color:0xa3a8b5,roughness:.75});
+  var colMat=new T.MeshStandardMaterial({color:0x8b90a0,roughness:.7});
+  var ghost=new T.LineBasicMaterial({color:0x9aa1ab,transparent:true,opacity:.55});
   var columns=[],slabs=[];
   for(i=0;i<n;i++){
     for(j=0;j<xs.length;j++){
@@ -2064,11 +2066,11 @@ function v3Build(){
     var slab=new T.Mesh(new T.BoxGeometry(L+1.4,0.32,W+1.4),
       new T.MeshStandardMaterial({color:new T.Color(MC[i%MC.length]),roughness:.5,transparent:true,opacity:.92}));
     slab.position.set(0,ys[i+1]+0.16,0);root.add(slab);slabs.push(slab);
+    slab.add(new T.LineSegments(new T.EdgesGeometry(slab.geometry),new T.LineBasicMaterial({color:new T.Color(MC[i%MC.length]).multiplyScalar(.6)})));
+    var rest=new T.LineSegments(new T.EdgesGeometry(slab.geometry),ghost);rest.position.copy(slab.position);root.add(rest);   /* where the floor sits at rest */
   }
-  var lg=new T.BufferGeometry();lg.setAttribute('position',new T.BufferAttribute(new Float32Array((n+1)*3),3));
-  var shape=new T.Line(lg,new T.LineBasicMaterial({color:0x0d0f14}));shape.frustumCulled=false;root.add(shape);
   V3.sc.add(root);
-  V3.p={root:root,columns:columns,slabs:slabs,shape:shape,ys:ys,H:H,lz:W/2+0.72,dist:Math.max(H,L+2)*2.5};
+  V3.p={root:root,columns:columns,slabs:slabs,ys:ys,H:H,R:0.5*Math.sqrt(Math.pow(L+5,2)+H*H+Math.pow(W+5,2))};
 }
 function v3Disp(now){
   var n=model.N,d=[],i,c=CHAPTERS[FI.ch];
@@ -2088,8 +2090,10 @@ function v3Tick(now){
   var el=$('#stage-3d'),w=el.clientWidth,h=el.clientHeight,P=V3.p;
   if(!w||!h||!P)return;
   if(V3.w!==w||V3.h!==h){V3.r.setSize(w,h,false);V3.cam.aspect=w/h;V3.cam.updateProjectionMatrix();V3.w=w;V3.h=h;}
+  /* fit the whole frame in the canvas whatever its shape */
+  var hv=V3.cam.fov*Math.PI/360,hh=Math.atan(Math.tan(hv)*V3.cam.aspect),dist=P.R/Math.sin(Math.min(hv,hh))*0.68;
   if(V3.spin&&!reduced())V3.az+=0.0022;
-  var d=v3Disp(now-V3.t0),A=0.09*P.H,n=P.slabs.length,i;   /* sway exaggerated to 9% of the height */
+  var d=v3Disp(now-V3.t0),A=0.05*P.H,n=P.slabs.length,i;   /* sway exaggerated to 5% of the height */
   P.columns.forEach(function(c){
     var db=c.f?d[c.f-1]*A:0,dt=d[c.f]*A,pos=c.g.attributes.position.array,k,s;
     c.mesh.position.x=c.bx+db;
@@ -2097,10 +2101,7 @@ function v3Tick(now){
     c.g.attributes.position.needsUpdate=true;
   });
   for(i=0;i<n;i++)P.slabs[i].position.x=d[i]*A;
-  var lp=P.shape.geometry.attributes.position.array;
-  for(i=0;i<=n;i++){lp[i*3]=i?d[i-1]*A:0;lp[i*3+1]=P.ys[i]+(i?0.16:0);lp[i*3+2]=P.lz;}
-  P.shape.geometry.attributes.position.needsUpdate=true;
-  var R=P.dist,cam=V3.cam;
+  var R=dist,cam=V3.cam;
   cam.position.set(R*Math.cos(V3.el)*Math.sin(V3.az),P.H*0.5+R*Math.sin(V3.el),R*Math.cos(V3.el)*Math.cos(V3.az));
   cam.lookAt(0,P.H*0.5,0);
   V3.r.render(V3.sc,cam);
@@ -2769,15 +2770,17 @@ function boot(){
   +'.storeys .hd,.storeys .sr{grid-template-columns:52px 1fr 1fr 74px}'
   +'.storeys .sk{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right}'
   +'.chapters{overflow-x:auto;scrollbar-width:none}.chapters::-webkit-scrollbar{display:none}'
-  +'.stage-views{position:relative;display:flex;gap:14px;align-items:center}.stage-views>div{flex:1 1 0;min-width:0}'
-  +'#stage-3d{position:relative;align-self:stretch;min-height:430px;border-radius:18px;overflow:hidden;background:radial-gradient(90% 80% at 50% 30%,#fff,#f1f1f7)}'
+  +'html{overflow-anchor:none}@media (min-width:981px){.narr .controls{position:sticky;bottom:-26px;margin-bottom:-26px;padding:12px 0 26px;background:linear-gradient(transparent,#fff 14px)}.narr .kbdhint{display:none}}.tour-body{height:640px}.stage{min-height:0;overflow:hidden}.narr{min-height:0;overflow-y:auto}.tour-body.wide{grid-template-columns:1.55fr .8fr}'
+  +'.stage-views{position:relative;flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}.stage-views.both{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}'
+  +'#stage-svg{min-height:0;display:flex;align-items:center;justify-content:center}#stage-svg svg{width:100%;height:100%;max-height:100%}#stage-svg[hidden],#stage-3d[hidden]{display:none}'
+  +'#stage-3d{position:relative;min-height:0;border-radius:18px;overflow:hidden;background:radial-gradient(90% 80% at 50% 30%,#fff,#f1f1f7)}'
   +'#stage-3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}#stage-3d canvas:active{cursor:grabbing}'
   +'#stage-3d .v3-hint{position:absolute;left:12px;bottom:10px;z-index:1;font-size:11px;color:var(--faint);pointer-events:none}'
   +'.stage-cap .v3n{text-transform:none;letter-spacing:0;font-weight:500}.stage-cap .v3n[hidden]{display:none}'
   +'#ans-calc kbd{display:inline-block;min-width:26px;padding:2px 7px;border:1px solid var(--line);border-bottom-width:2px;border-radius:7px;background:#fff;font:650 11.5px/1.4 var(--mono);text-align:center;color:var(--ink)}'
   +'.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.calc-h{font-size:12.5px;font-weight:700;margin-bottom:4px}'
   +'.calc-steps{margin:0;padding-left:18px;line-height:2.2;font-size:13px}.calc-steps span{color:var(--muted);font-size:12px}'
-  +'@media (max-width:980px){.stage-views.both{flex-direction:column}#stage-3d{min-height:300px}.stage-views.both #stage-3d{min-height:260px;width:100%}}'
+  +'@media (max-width:980px){.tour-body,.tour-body.wide{height:auto;grid-template-columns:1fr}.stage{height:380px}.narr{overflow:visible}.stage-views.both{gap:8px}}@media (max-width:560px){.stage{height:350px}}'
   +'@media (max-width:560px){.calc-grid{grid-template-columns:1fr}}'
   +'</style>');
   S=freshState();

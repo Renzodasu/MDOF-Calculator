@@ -28,6 +28,7 @@ function v3Apply(){
   var el=$('#stage-3d'),sv=$('#stage-svg'),want=VIEW!=='2d'&&v3Eligible(FI.ch,FI.fr);
   $('#v3-note').hidden=!(VIEW!=='2d'&&!want);
   $('#stage-views').classList.toggle('both',want&&VIEW==='both');
+  $('.tour-body').classList.toggle('wide',want&&VIEW==='both');
   if(!want){el.hidden=true;sv.hidden=false;v3Stop();return;}
   sv.hidden=VIEW==='3d';
   el.hidden=false;
@@ -77,7 +78,8 @@ function v3Build(){
   var H=ys[n];
   var ground=new T.Mesh(new T.BoxGeometry(L+5,0.3,W+5),new T.MeshStandardMaterial({color:0xececf2,roughness:1}));
   ground.position.y=-0.15;root.add(ground);
-  var colMat=new T.MeshStandardMaterial({color:0xa3a8b5,roughness:.75});
+  var colMat=new T.MeshStandardMaterial({color:0x8b90a0,roughness:.7});
+  var ghost=new T.LineBasicMaterial({color:0x9aa1ab,transparent:true,opacity:.55});
   var columns=[],slabs=[];
   for(i=0;i<n;i++){
     for(j=0;j<xs.length;j++){
@@ -88,11 +90,11 @@ function v3Build(){
     var slab=new T.Mesh(new T.BoxGeometry(L+1.4,0.32,W+1.4),
       new T.MeshStandardMaterial({color:new T.Color(MC[i%MC.length]),roughness:.5,transparent:true,opacity:.92}));
     slab.position.set(0,ys[i+1]+0.16,0);root.add(slab);slabs.push(slab);
+    slab.add(new T.LineSegments(new T.EdgesGeometry(slab.geometry),new T.LineBasicMaterial({color:new T.Color(MC[i%MC.length]).multiplyScalar(.6)})));
+    var rest=new T.LineSegments(new T.EdgesGeometry(slab.geometry),ghost);rest.position.copy(slab.position);root.add(rest);   /* where the floor sits at rest */
   }
-  var lg=new T.BufferGeometry();lg.setAttribute('position',new T.BufferAttribute(new Float32Array((n+1)*3),3));
-  var shape=new T.Line(lg,new T.LineBasicMaterial({color:0x0d0f14}));shape.frustumCulled=false;root.add(shape);
   V3.sc.add(root);
-  V3.p={root:root,columns:columns,slabs:slabs,shape:shape,ys:ys,H:H,lz:W/2+0.72,dist:Math.max(H,L+2)*2.5};
+  V3.p={root:root,columns:columns,slabs:slabs,ys:ys,H:H,R:0.5*Math.sqrt(Math.pow(L+5,2)+H*H+Math.pow(W+5,2))};
 }
 function v3Disp(now){
   var n=model.N,d=[],i,c=CHAPTERS[FI.ch];
@@ -112,8 +114,10 @@ function v3Tick(now){
   var el=$('#stage-3d'),w=el.clientWidth,h=el.clientHeight,P=V3.p;
   if(!w||!h||!P)return;
   if(V3.w!==w||V3.h!==h){V3.r.setSize(w,h,false);V3.cam.aspect=w/h;V3.cam.updateProjectionMatrix();V3.w=w;V3.h=h;}
+  /* fit the whole frame in the canvas whatever its shape */
+  var hv=V3.cam.fov*Math.PI/360,hh=Math.atan(Math.tan(hv)*V3.cam.aspect),dist=P.R/Math.sin(Math.min(hv,hh))*0.68;
   if(V3.spin&&!reduced())V3.az+=0.0022;
-  var d=v3Disp(now-V3.t0),A=0.09*P.H,n=P.slabs.length,i;   /* sway exaggerated to 9% of the height */
+  var d=v3Disp(now-V3.t0),A=0.05*P.H,n=P.slabs.length,i;   /* sway exaggerated to 5% of the height */
   P.columns.forEach(function(c){
     var db=c.f?d[c.f-1]*A:0,dt=d[c.f]*A,pos=c.g.attributes.position.array,k,s;
     c.mesh.position.x=c.bx+db;
@@ -121,10 +125,7 @@ function v3Tick(now){
     c.g.attributes.position.needsUpdate=true;
   });
   for(i=0;i<n;i++)P.slabs[i].position.x=d[i]*A;
-  var lp=P.shape.geometry.attributes.position.array;
-  for(i=0;i<=n;i++){lp[i*3]=i?d[i-1]*A:0;lp[i*3+1]=P.ys[i]+(i?0.16:0);lp[i*3+2]=P.lz;}
-  P.shape.geometry.attributes.position.needsUpdate=true;
-  var R=P.dist,cam=V3.cam;
+  var R=dist,cam=V3.cam;
   cam.position.set(R*Math.cos(V3.el)*Math.sin(V3.az),P.H*0.5+R*Math.sin(V3.el),R*Math.cos(V3.el)*Math.cos(V3.az));
   cam.lookAt(0,P.H*0.5,0);
   V3.r.render(V3.sc,cam);
