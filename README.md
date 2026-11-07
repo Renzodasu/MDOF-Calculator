@@ -1,3 +1,28 @@
+<div align="center">
+
+<img src="og.png" alt="MDOF Calculator — free vibration of a 2–3 storey frame, step by step" width="100%">
+
+# 🧮 MDOF Calculator
+
+**Free vibration of a 2–3 storey shear frame, solved step by step.**
+Storey stiffness · eigenvalues · mode shapes · animated 2D / 3D sway.
+
+[**▶ Open the calculator**](https://mdof-calculator.vercel.app) · [Source](https://github.com/Renzodasu/MDOF-Calculator) · works offline
+
+</div>
+
+## 📸 Screenshots
+
+| 3D + 2D, both views | Motion of all modes | Phone |
+|:--:|:--:|:--:|
+| ![3D and 2D](screenshots/80-3d-both.png) | ![All modes at once](screenshots/84-both-motion.png) | ![Phone view](screenshots/85-phone-motion.png) |
+
+| Step-by-step walkthrough | Calculator keys |
+|:--:|:--:|
+| ![Walkthrough frame](screenshots/86-both-frame.png) | ![Calculator card](screenshots/82-calc.png) |
+
+---
+
 # MDOF Calculator — free vibration of a shear frame, step by step
 
 An interactive, self-contained solution of the MDOF problem on the exam sheet
