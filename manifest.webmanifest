@@ -1,0 +1,16 @@
+{
+  "name": "MDOF Calculator",
+  "short_name": "MDOF Calc",
+  "description": "Free vibration of a 2- or 3-storey shear frame, solved step by step: storey stiffness, the eigenvalue problem, mode shapes and the sway.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fafafb",
+  "theme_color": "#111114",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

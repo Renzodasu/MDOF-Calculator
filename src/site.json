@@ -1,0 +1,6 @@
+{
+  "url": "https://mdof-calculator.vercel.app",
+  "name": "MDOF Calculator",
+  "title": "MDOF Calculator — free vibration of a 2–3 storey shear frame, step by step",
+  "description": "MDOF (multiple degree of freedom) calculator for a 2- or 3-storey shear frame: storey stiffness, natural frequencies and periods, the mode shapes, and the animated free-vibration response — solved step by step."
+}

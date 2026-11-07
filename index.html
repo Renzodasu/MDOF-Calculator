@@ -1,0 +1,2889 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MDOF Calculator — free vibration of a 2–3 storey frame</title>
+<meta name="description" content="MDOF calculator for a 2–3 storey shear frame: storey stiffness, natural frequencies, mode shapes and the animated free-vibration response, step by step.">
+<meta name="theme-color" content="#111114">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://mdof-calculator.vercel.app/">
+<meta property="og:site_name" content="MDOF Calculator">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://mdof-calculator.vercel.app/">
+<meta property="og:title" content="MDOF Calculator — free vibration, step by step">
+<meta property="og:description" content="Storey stiffness, eigenvalues, mode shapes and the sway — animated one frame at a time.">
+<meta property="og:image" content="https://mdof-calculator.vercel.app/og.png">
+<meta property="og:image:secure_url" content="https://mdof-calculator.vercel.app/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MDOF Calculator — a three-storey shear frame drawn in its first mode shape, with f1 = 5.315 Hz, T1 = 0.1881 s and three modes.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MDOF Calculator — free vibration, step by step">
+<meta name="twitter:description" content="Storey stiffness, eigenvalues, mode shapes and the sway — animated one frame at a time.">
+<meta name="twitter:image" content="https://mdof-calculator.vercel.app/og.png">
+<meta name="twitter:image:alt" content="MDOF Calculator — a three-storey shear frame drawn in its first mode shape.">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111114'/%3E%3Cpath d='M8 24V14M16 24V8M24 24v-6' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#fafafb; --bg-tint:#f3f4f8; --surface:#ffffff; --surface-2:#fbfbfd;
+  --ink:#0d0f14; --ink-2:#3c414b; --muted:#6b7280; --faint:#9aa1ab;
+  --line:#e9e9ee; --line-2:#f1f1f5;
+  --accent:#4f46e5; --accent-soft:#eef0ff; --accent-ink:#3730a3;
+  --mint:#0d9488; --mint-soft:#e6f6f3;
+  --amber:#d97706; --amber-soft:#fdf3e3;
+  --rose:#e11d48;
+  --r-lg:24px; --r-md:16px; --r-sm:10px;
+  --sh-1:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.04);
+  --sh-2:0 1px 2px rgba(16,24,40,.05), 0 14px 34px -18px rgba(16,24,40,.22);
+  --sh-3:0 2px 6px rgba(16,24,40,.06), 0 30px 60px -30px rgba(16,24,40,.28);
+  --sans:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","SF Mono",Menlo,Consolas,monospace;
+  --math:"Cambria Math","Latin Modern Math","STIX Two Math",Cambria,"Palatino Linotype",Georgia,serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(760px 420px at 12% -8%, rgba(79,70,229,.075), transparent 62%),
+    radial-gradient(680px 420px at 92% 2%, rgba(13,148,136,.06), transparent 60%);
+}
+.wrap{max-width:1160px;margin:0 auto;padding:0 26px;position:relative;z-index:1}
+a{color:var(--accent-ink);text-decoration:none}
+::selection{background:#dedbff}
+
+/* ---------- type ---------- */
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:650}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.028em;line-height:1.1}
+h1{font-size:clamp(34px,5vw,58px);letter-spacing:-.04em}
+h2{font-size:clamp(26px,3.2vw,38px)}
+h3{font-size:19px;letter-spacing:-.015em;line-height:1.3}
+p{margin:0}
+.lede{font-size:18px;color:var(--ink-2);line-height:1.65}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- buttons / chips ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);font:600 14.5px/1 var(--sans);padding:13px 18px;border-radius:12px;cursor:pointer;
+  transition:transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
+  box-shadow:var(--sh-1);white-space:nowrap;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--sh-2)}
+.btn:active{transform:translateY(0) scale(.99)}
+.btn-primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-primary:hover{background:#1d2129}
+.btn-ghost{background:transparent;box-shadow:none;border-color:transparent;color:var(--ink-2)}
+#tspeed{border-color:var(--line);background:#fff;color:var(--ink-2);font-weight:600}
+#tspeed[hidden],.btn[hidden]{display:none}
+#tspeed:hover{border-color:#d6d6e2;background:#fff}
+#tspeed[aria-pressed="true"]{border-color:transparent;background:var(--accent-soft);color:var(--accent-ink)}
+.nw{white-space:nowrap}
+.only-true{display:none}
+.only-static{display:none}
+@media (prefers-reduced-motion:reduce){.only-static{display:inline}.only-slow{display:none}}
+body.truespeed .only-slow{display:none}
+body.truespeed .only-true{display:inline}
+.btn-ghost:hover{background:#efeff4;box-shadow:none}
+.btn-sm{padding:9px 13px;font-size:13px;border-radius:10px}
+.btn-icon{width:42px;height:42px;padding:0;justify-content:center;border-radius:12px}
+.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);
+  border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);box-shadow:var(--sh-1);
+  flex:0 0 auto;white-space:nowrap;
+}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--accent);display:block}
+.chip.mint i{background:var(--mint)}
+.chip.amber i{background:var(--amber)}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(250,250,251,.82);backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid rgba(233,233,238,.9)}
+.topbar .in{display:flex;align-items:center;gap:18px;height:64px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.02em;font-size:15px}
+.brand .mark{width:30px;height:30px;border-radius:9px;background:var(--ink);display:grid;place-items:center;flex:0 0 auto}
+.brand .byline{font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:0;white-space:nowrap}
+.brand .byline i{font-style:normal;color:#c9ccd4;margin-right:5px}
+.brand .mark svg{display:block}
+.nav{display:flex;gap:2px;margin-left:auto}
+.nav a{font-size:13.5px;font-weight:600;color:var(--muted);padding:8px 12px;border-radius:9px;transition:background .15s,color .15s}
+.nav a:hover{background:#efeff4;color:var(--ink)}
+.nav a.on{color:var(--ink);background:#efeff4}
+.topmeta{display:flex;gap:8px;align-items:center}
+
+/* ---------- hero ---------- */
+.hero{padding:72px 0 40px;display:grid;grid-template-columns:1.06fr .94fr;gap:56px;align-items:center}
+.hero .eyebrow{margin-bottom:18px}
+.hero h1{margin-bottom:20px}
+.hero h1 em{font-style:normal;background:linear-gradient(96deg,#4f46e5,#0d9488 110%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{max-width:52ch;margin-bottom:28px}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:34px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:520px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 15px;box-shadow:var(--sh-1)}
+.stat .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:650;margin-bottom:6px}
+.stat .v{font-size:23px;font-weight:700;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
+.stat .u{font-size:12px;color:var(--muted);margin-top:3px}
+.hero-fig{position:relative}
+.hero-fig .card3d{background:var(--surface);border:1px solid var(--line);border-radius:28px;box-shadow:var(--sh-3);padding:10px;overflow:hidden}
+.hero-fig svg{display:block;width:100%;height:auto;border-radius:20px}
+.float{position:absolute;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-2);padding:9px 13px;font-size:12px;font-weight:650;display:flex;gap:8px;align-items:center;animation:float 6s ease-in-out infinite}
+.float b{font-family:var(--mono);font-weight:650}
+.float.f1{top:26px;left:-18px}
+.float.f2{bottom:34px;right:-14px;animation-delay:-3s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* ---------- sections ---------- */
+section{position:relative;z-index:1}
+.sec{padding:76px 0}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px}
+.sec-head .l{max-width:64ch}
+.sec-head h2{margin-top:10px}
+.sec-head p{margin-top:10px;color:var(--muted);font-size:16px}
+
+/* ---------- tour ---------- */
+.tour-shell{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-2);overflow:hidden}
+.tour-top{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.chapters{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;position:relative}
+.chapters::-webkit-scrollbar{display:none}
+.chapters button{
+  border:1px solid transparent;background:transparent;color:var(--muted);font:600 12.5px/1 var(--sans);
+  padding:9px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center;transition:.15s;
+}
+.chapters button .n{font-family:var(--mono);font-size:11px;opacity:.7}
+.chapters button:hover{background:#f3f3f7;color:var(--ink)}
+.chapters button.on{background:transparent;color:#fff;border-color:transparent}
+.chapters button.on:hover{background:transparent;color:#fff}
+.chapters button.on .n{opacity:.65}
+.chapters .pill{
+  position:absolute;top:0;left:0;width:0;height:30px;border-radius:999px;background:var(--ink);z-index:0;opacity:0;pointer-events:none;
+  transition:left .4s cubic-bezier(.3,1.08,.3,1),width .4s cubic-bezier(.3,1.08,.3,1),opacity .18s ease;
+}
+.chapters button{position:relative;z-index:1}
+
+/* ---------- tooltips ---------- */
+[data-tip]{position:relative}
+[data-tip]:after,[data-tip]:before{display:none;position:absolute;left:50%;bottom:100%;z-index:90;pointer-events:none}
+[data-tip]:after{content:attr(data-tip);margin-bottom:10px;background:#111318;color:#fff;
+  font:600 11.5px/1.4 var(--sans);padding:7px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 10px 26px -8px rgba(13,15,20,.55)}
+[data-tip]:before{content:"";width:0;height:0;margin-bottom:2px;border:5px solid transparent;border-top-color:#111318}
+[data-tip]:hover:after,[data-tip]:focus-visible:after{padding:7px 9px;display:block;animation:tipIn .18s ease .3s both}
+[data-tip]:hover:before,[data-tip]:focus-visible:before{width:0;height:0;padding:0;border:5px solid transparent;border-top-color:#111318;display:block;animation:tipIn .18s ease .3s both}
+@keyframes tipIn{from{opacity:0;transform:translate(-50%,4px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ---------- toasts ---------- */
+.toast-wrap{position:fixed;right:18px;bottom:18px;z-index:200;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:9px;max-width:min(86vw,380px);background:#111318;color:#fff;
+  border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:11px 14px;font:600 13px/1.35 var(--sans);
+  box-shadow:0 22px 46px -14px rgba(13,15,20,.55);opacity:0;transform:translateY(14px) scale(.98);
+  transition:opacity .28s ease,transform .32s cubic-bezier(.2,.9,.3,1)}
+.toast.in{opacity:1;transform:none}
+.toast .tic{flex:0 0 auto;width:18px;height:18px;border-radius:50%;background:#128a5a;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff}
+.toast.bad .tic{background:#b45309}
+
+/* ---------- keyboard hints ---------- */
+.kbdhint{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--faint);margin-top:-6px}
+.kbdhint kbd{font:600 10.5px/1 var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;
+  padding:3px 5px;background:#fff;color:var(--muted)}
+
+/* ---------- spotlight cards ---------- */
+.stat{position:relative;overflow:hidden;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.stat:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .24s ease;
+  background:radial-gradient(210px circle at var(--mx,50%) var(--my,0%),rgba(79,70,229,.16),transparent 64%)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--sh-2);border-color:#dcdcf0}
+.stat:hover:before{opacity:1}
+.stat>*{position:relative}
+.tour-prog{flex:1;min-width:120px;height:4px;background:#eeeef3;border-radius:99px;overflow:hidden}
+.tour-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4f46e5,#0d9488);border-radius:99px;transition:width .45s cubic-bezier(.3,.8,.3,1)}
+.tour-body{display:grid;grid-template-columns:1.16fr .84fr;min-height:470px}
+.stage{
+  position:relative;padding:26px 26px 18px;display:flex;flex-direction:column;justify-content:center;
+  background:
+    radial-gradient(520px 300px at 18% 0%, rgba(79,70,229,.055), transparent 70%),
+    radial-gradient(420px 260px at 100% 100%, rgba(13,148,136,.05), transparent 70%),
+    #fcfcfe;
+  border-right:1px solid var(--line-2);min-height:470px;
+}
+.stage:before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(#d9d9e6 1px, transparent 1px);background-size:22px 22px;
+  mask-image:radial-gradient(120% 100% at 50% 40%, #000 30%, transparent 78%);
+}
+.stage svg{position:relative;display:block;width:100%;height:auto;max-height:430px}
+.stage-cap{
+  position:relative;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  font-size:11.5px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;font-weight:650;margin-top:10px
+}
+.stage-cap .live{display:flex;align-items:center;gap:6px;color:var(--mint)}
+.stage-cap .live i{width:6px;height:6px;border-radius:50%;background:var(--mint);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+.narr{padding:26px 28px;display:flex;flex-direction:column;gap:14px}
+.narr .kicker{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.narr h3{font-size:24px;letter-spacing:-.025em;line-height:1.2}
+.narr .body{font-size:15px;color:var(--ink-2);line-height:1.68}
+.narr .body b{color:var(--ink)}
+/* --- equation panel: two skins, plain code and typeset maths --- */
+.narr .formula{
+  font-family:var(--mono);font-size:13.5px;line-height:1.7;background:#0d0f14;color:#e8e9f2;
+  border-radius:12px;padding:13px 15px;overflow-x:auto;white-space:pre-wrap;
+}
+.narr .formula .g{color:#8ff0d8}.narr .formula .o{color:#ffb37a}.narr .formula .b{color:#a9b4ff}
+
+.narr .formula.math{
+  font-family:var(--math);font-size:16.5px;line-height:1.5;background:#fcfcfe;color:var(--ink);
+  border:1px solid var(--line);box-shadow:inset 0 1px 0 #fff, 0 1px 2px rgba(16,24,40,.03);
+  white-space:normal;padding:13px 16px 15px;
+}
+.formula.math .eq{display:flex;flex-direction:column;gap:9px}
+.formula.math .eq-row{display:flex;flex-wrap:wrap;align-items:center;gap:.14em;min-height:1em}
+.formula.math i{font-style:italic;font-family:var(--math);padding-right:.02em}
+.formula.math .op{color:#5b6273;margin:0 .28em;font-family:var(--math)}
+.formula.math sup{font-size:.6em;line-height:0;vertical-align:.55em;margin-left:.03em}
+.formula.math sub{font-size:.6em;line-height:0;vertical-align:-.24em}
+.formula.math .fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+  margin:0 .1em;font-size:.95em;line-height:1.16}
+.formula.math .fr>.fn{display:block;padding:0 .32em .08em;white-space:nowrap;text-align:center}
+.formula.math .fr>.fd{display:block;border-top:1.4px solid currentColor;padding:.08em .34em 0;
+  white-space:nowrap;text-align:center}
+.formula.math .rt{white-space:nowrap;display:inline-block}
+.formula.math .hint-inline{font:500 11.5px/1.45 var(--sans);letter-spacing:.005em;color:var(--faint);
+  margin-left:.9em;flex:0 1 auto;min-width:0}
+.formula.math .tag{font:700 9.5px/1 var(--sans);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--faint);margin-right:.85em;align-self:center;white-space:nowrap}
+.formula.math .rs{font-size:1.2em;line-height:1;vertical-align:-.08em;margin-right:-.1em}
+.formula.math .rb{border-top:1.4px solid currentColor;padding:.04em .26em 0 .1em}
+.formula.math .gq{display:inline-block;border-radius:7px;padding:0 .12em;margin:0 -.03em;
+  animation:gqSweep 1.6s cubic-bezier(.4,0,.2,1) both}
+@keyframes gqSweep{
+  0%{background-color:rgba(217,119,6,0);box-shadow:0 0 0 0 rgba(217,119,6,0)}
+  16%{background-color:#fff0b8;box-shadow:0 0 0 4px rgba(217,119,6,.16)}
+  58%{background-color:#fff0b8;box-shadow:0 0 0 4px rgba(217,119,6,.16)}
+  100%{background-color:rgba(217,119,6,0);box-shadow:0 0 0 0 rgba(217,119,6,0)}
+}
+.formula.math .pin{display:inline-block;animation:pinIn .46s cubic-bezier(.2,.75,.3,1) both}
+.formula.math .pin.flow{display:inline;word-break:break-word}
+@keyframes pinIn{from{opacity:0;transform:translateY(5px) scale(.97)}to{opacity:1;transform:none}}
+.formula.math .c1{color:#4338ca}.formula.math .c2{color:#0f766e}.formula.math .c3{color:#b45309}
+.formula.math .res{color:var(--accent-ink);font-weight:600}
+.formula.math .tag{font:700 10px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);margin-right:.35em;align-self:center}
+.narr .note{
+  display:flex;gap:10px;font-size:13px;line-height:1.55;color:var(--ink-2);
+  background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:11px 13px;
+}
+.narr .note .ic{flex:0 0 auto;color:var(--accent)}
+.narr .spacer{flex:1}
+.controls{display:flex;align-items:center;gap:8px;padding-top:4px;flex-wrap:wrap}
+.controls .fr{font-size:12px;color:var(--muted);font-family:var(--mono);margin-left:auto}
+.seg{display:inline-flex;background:#f1f1f6;border-radius:10px;padding:3px;gap:2px;position:relative}
+.seg .thumb{position:absolute;top:3px;left:0;height:calc(100% - 6px);border-radius:8px;background:#fff;box-shadow:var(--sh-1);z-index:0;transition:left .34s cubic-bezier(.3,1.1,.3,1),width .34s cubic-bezier(.3,1.1,.3,1)}
+.seg button{position:relative;z-index:1}
+.seg button{border:0;background:transparent;font:600 12.5px/1 var(--sans);color:var(--muted);padding:8px 11px;border-radius:8px;cursor:pointer}
+.seg button.on{background:transparent;color:var(--ink);box-shadow:none}
+
+/* ---------- generic cards ---------- */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-1);padding:22px}
+.card h3{margin-bottom:4px}
+.card .hint{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+table.t{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+table.t th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700;text-align:right;padding:8px 8px;border-bottom:1px solid var(--line)}
+table.t th:first-child{text-align:left}
+table.t td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line-2)}
+table.t td:first-child{text-align:left;color:var(--ink-2)}
+table.t tr:last-child td{border-bottom:0}
+table.t td.hi{font-weight:700;color:var(--ink)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:1px}
+
+/* ---------- answers ---------- */
+.ans-big{display:flex;align-items:baseline;gap:10px}
+.ans-big .v{font-size:38px;font-weight:750;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.ans-big .u{font-size:13px;color:var(--muted);font-weight:600}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--muted)}
+.kv .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600}
+.pill-ok{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:650;color:#047857;background:#e7f7f0;border:1px solid #c9f0df;border-radius:999px;padding:4px 9px}
+
+/* ---------- builder ---------- */
+.builder{display:grid;grid-template-columns:.92fr 1.08fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-2);overflow:hidden}
+.builder .pane{padding:26px;min-width:0}
+.builder .pane + .pane{border-left:1px solid var(--line-2);background:var(--surface-2)}
+.field{display:grid;gap:6px;margin-bottom:14px}
+.field label{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.inp{
+  width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;
+  font:600 14.5px/1.2 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums;
+  transition:border-color .15s, box-shadow .15s;
+}
+.inp:hover{border-color:#d6d6e0}
+.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(79,70,229,.12)}
+.row-f{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.storeys{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.storeys .hd,.storeys .sr{display:grid;grid-template-columns:64px 1fr 1fr 38px;gap:8px;align-items:center;padding:9px 12px}
+.storeys .hd{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700;background:var(--surface-2);border-bottom:1px solid var(--line-2)}
+.storeys .sr{border-bottom:1px solid var(--line-2)}
+.storeys .sr:last-child{border-bottom:0}
+.storeys .sr .fl{font-weight:700;font-size:13px}
+.storeys .sr .x{border:0;background:transparent;color:var(--faint);cursor:pointer;font-size:16px;line-height:1;padding:6px;border-radius:8px}
+.storeys .sr .x:hover{background:#fee2e2;color:#b91c1c}
+.storeys .sr .inp{padding:7px 9px;font-size:13px}
+.addrow{display:flex;gap:8px;margin-top:12px}
+.pane-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.range{display:flex;align-items:center;gap:12px}
+.range input[type=range]{flex:1;accent-color:var(--accent)}
+.range .val{min-width:64px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:600}
+.preview{position:sticky;top:84px}
+.preview svg{width:100%;height:auto;display:block}
+.mini-tbl{font-size:12.5px}
+.mini-tbl .r{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-2)}
+.mini-tbl .r:last-child{border-bottom:0}
+.mini-tbl .r b{font-family:var(--mono);font-weight:600}
+
+/* ---------- method ---------- */
+details.mtd{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0;margin-bottom:10px;box-shadow:var(--sh-1)}
+details.mtd summary{cursor:pointer;padding:16px 18px;font-weight:650;font-size:15px;display:flex;align-items:center;gap:10px;list-style:none}
+details.mtd summary::-webkit-details-marker{display:none}
+details.mtd summary:before{content:"";width:7px;height:7px;border-right:2px solid var(--faint);border-bottom:2px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:0 0 auto}
+details.mtd[open] summary:before{transform:rotate(45deg)}
+details.mtd .mtd-body{padding:0 18px 18px;font-size:14px;color:var(--ink-2)}
+.matrix{display:inline-grid;gap:0;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:3px;padding:6px 10px;margin:8px 6px 8px 0;vertical-align:middle}
+.matrix span{padding:3px 8px;text-align:right;font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.matrix small{display:block;text-align:center;font-size:10px;color:var(--faint);letter-spacing:.08em;margin-bottom:2px}
+pre.code{background:#0d0f14;color:#dfe3f3;border-radius:12px;padding:14px 16px;overflow-x:auto;font:12.5px/1.65 var(--mono)}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);margin-top:60px;padding:34px 0 48px;color:var(--muted);font-size:13.5px}
+footer .in{display:flex;gap:20px;justify-content:space-between;flex-wrap:wrap}
+footer .fr{text-align:right}
+footer .credit{flex:1 0 100%;margin-top:24px;padding-top:18px;border-top:1px solid var(--line-2);
+  display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+footer .credit b{color:var(--ink);font-weight:650;letter-spacing:-.005em}
+footer .credit .soft{color:var(--faint);font-size:12.5px}
+footer .credit .soft a{color:var(--faint);text-decoration:none;border-bottom:1px solid #dcdce6}
+footer .credit .soft a:hover{color:var(--muted);border-color:var(--muted)}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0;transform:translateY(14px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
+.rv.in{opacity:1;transform:none}
+
+/* ---------- svg anim helpers ---------- */
+/* spotlight a matrix cell / vector entry so you can see which pair is being
+   multiplied right now (used by the determinant and dot-product figures) */
+.gl{animation:glPulse 1.6s cubic-bezier(.4,0,.2,1) both}
+@keyframes glPulse{
+  0%,100%{filter:none}
+  16%{filter:drop-shadow(0 0 7px rgba(217,119,6,.92))}
+  58%{filter:drop-shadow(0 0 7px rgba(217,119,6,.92))}
+}
+.pop{animation:pop .55s cubic-bezier(.2,.75,.3,1) both;transform-box:fill-box;transform-origin:center}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.fade{animation:fade .5s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1s cubic-bezier(.4,.1,.2,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.slide{animation:slide .6s cubic-bezier(.2,.75,.3,1) both}
+@keyframes slide{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .hero{grid-template-columns:1fr;gap:36px;padding-top:46px}
+  .hero-fig{order:-1;max-width:520px}
+  .tour-body{grid-template-columns:1fr}
+  .stage{border-right:0;border-bottom:1px solid var(--line-2);min-height:360px}
+  /* stacked layout: the figure keeps one height and the buttons sit above the
+     explanation, so stepping through frames never shifts what is under the thumb */
+  .stage svg{height:300px}
+  .narr .controls{order:-1;padding:0 0 2px}
+  .grid3{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .builder{grid-template-columns:1fr}
+  .builder .pane + .pane{border-left:0;border-top:1px solid var(--line-2)}
+  .nav{display:none}
+  .sec{padding:52px 0}
+}
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .stats{grid-template-columns:1fr 1fr}
+  .narr{padding:20px}
+  .stage{padding:18px 14px 12px}
+  .float{display:none}
+  .topmeta .chip{display:none}
+  .brand .byline{display:none}
+  .sec-head{flex-wrap:wrap;align-items:flex-start;gap:14px}
+  .btn{min-height:44px}
+  .btn-sm{min-height:40px}
+  .btn-icon{width:44px;height:44px}
+  .inp,.seg button{font-size:16px}
+  .chapters button{min-height:38px}
+  .tour-top{padding:10px 12px}
+  .controls{gap:8px}
+  .pane-actions{flex-direction:column}
+  footer .fr{text-align:left}
+  /* no hover on touch: the tooltip would stick over the figure caption */
+  [data-tip]:after,[data-tip]:before{display:none !important}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap in">
+    <div class="brand">
+      <span class="mark"><svg width="16" height="16" viewBox="0 0 32 32"><path d="M7 25V15M16 25V7M25 25v-7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg></span>
+      <span>MDOF&nbsp;Calculator</span>
+      <span class="byline"><i>·</i> by Nezzar</span>
+    </div>
+    <nav class="nav">
+      <a href="#answers" class="on">Answers</a>
+      <a href="#tour">Tour</a>
+      <a href="#build">Build</a>
+      <a href="#method">Method</a>
+    </nav>
+    <div class="topmeta">
+      <span class="chip" id="top-chip"><i></i><span>3 storeys</span></span>
+      <a class="btn btn-sm" href="#build">Change the model</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="wrap hero" id="top">
+  <div>
+    <div class="eyebrow">Structural dynamics · multiple degree of freedom</div>
+    <h1>A three-storey frame, <em>swaying in <span class="nw">slow motion.</span></em></h1>
+    <p class="lede">The MDOF (multiple degree of freedom) free-vibration problem, taken apart frame by frame: how stiff each storey is, why the eigenvalue problem appears, where the three mode shapes come from, and what the building actually does when you let go of it. Change any number below and the whole story re-solves.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#tour">▶&nbsp; Start the tour</a>
+      <a class="btn" href="#answers">Jump to the answers</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">First frequency</div><div class="v" id="h-f1">—</div><div class="u">Hz · f₁ = ω₁/2π</div></div>
+      <div class="stat"><div class="k">First period</div><div class="v" id="h-t1">—</div><div class="u" id="h-t1u">s per sway</div></div>
+      <div class="stat"><div class="k">Softest storey</div><div class="v" id="h-k1">—</div><div class="u">kN/m · k₁ = 4·12EI/h₁³</div></div>
+    </div>
+  </div>
+  <div class="hero-fig">
+    <div class="card3d"><div id="hero-svg"></div></div>
+    <div class="float f1"><i style="width:7px;height:7px;border-radius:99px;background:#4f46e5;display:block"></i> ω₁ <b id="h-w1">—</b> rad/s</div>
+    <div class="float f2"><i style="width:7px;height:7px;border-radius:99px;background:#0d9488;display:block"></i> roof moves <b id="h-roof">—</b>× floor 1</div>
+  </div>
+</section>
+
+<section class="sec" id="answers">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="l">
+        <div class="eyebrow">The answers</div>
+        <h2>Everything the question asks for</h2>
+        <p>Same numbers as the tour, in one place — the stiffness of a column and of each storey, the natural frequencies and periods, and the mode shapes. They update the moment you change the model.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-sm" id="share" data-tip="A link that opens with these exact numbers">↗ Share link</button>
+        <button class="btn btn-sm" id="copy" data-tip="Copy every number as plain text">⧉ Copy results</button>
+        <span class="chip"><i></i><span id="ans-tag">—</span></span>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="card rv">
+        <h3>Storey stiffness</h3>
+        <div class="hint">Each column is a fixed-fixed member: k = 12EI/h³</div>
+        <div id="ans-k"></div>
+      </div>
+      <div class="card rv">
+        <h3>Frequencies &amp; periods</h3>
+        <div class="hint">From the roots of the characteristic equation</div>
+        <div id="ans-f"></div>
+      </div>
+      <div class="card rv">
+        <h3>Mode shapes</h3>
+        <div class="hint">Roof normalised to 1.000 in every mode</div>
+        <div id="ans-modes"></div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="card rv">
+        <h3>Mass and stiffness matrices</h3>
+        <div class="hint">The two matrices the whole problem lives in</div>
+        <div id="ans-mat"></div>
+      </div>
+      <div class="card rv">
+        <h3>Checks</h3>
+        <div class="hint">Independent identities that catch arithmetic mistakes</div>
+        <div id="ans-check"></div>
+      </div>
+    </div>
+    <div class="card rv" style="margin-top:16px">
+      <h3>On your calculator</h3>
+      <div class="hint">Casio fx-991ES PLUS or fx-991EX — the characteristic equation in B = ω², ready to type</div>
+      <div id="ans-calc"></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="tour">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="l">
+        <div class="eyebrow">The walkthrough</div>
+        <h2>Watch the solution build itself</h2>
+        <p><span id="chap-count">Ten</span> short chapters, one idea each. Press play and it advances on its own, or step through with the arrows. Everything on screen is computed from the numbers in the model — nothing is hard-coded.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="chip mint"><i></i><span id="tour-live-chip">live model</span></span>
+      </div>
+    </div>
+
+    <div class="tour-shell rv">
+      <div class="tour-top">
+        <div class="chapters" id="chapters"></div>
+        <div class="tour-prog"><i id="prog"></i></div>
+        <div class="seg" id="view-seg" aria-label="Figure view"><button data-v="2d">2D</button><button data-v="3d">3D</button><button data-v="both">Both</button></div>
+      </div>
+      <div class="tour-body">
+        <div class="stage" id="stage">
+          <div class="stage-views" id="stage-views"><div id="stage-svg"></div><div id="stage-3d" hidden><span class="v3-hint">drag to orbit · sway exaggerated</span></div></div>
+          <div class="stage-cap"><span id="stage-k">Figure</span><span class="v3n" id="v3-note" hidden>flat figure · 3D returns for the frame &amp; motion</span><span class="live" id="stage-live" hidden><i></i>live animation</span></div>
+        </div>
+        <div class="narr">
+          <div class="kicker"><span id="n-kicker">Step</span></div>
+          <h3 id="n-title"></h3>
+          <div class="body" id="n-body"></div>
+          <div class="formula" id="n-formula" hidden></div>
+          <div class="note" id="n-note" hidden><span class="ic">✳</span><span id="n-note-t"></span></div>
+          <div class="spacer"></div>
+          <div class="controls">
+            <button class="btn btn-icon" id="prev" aria-label="Previous frame" data-tip="Previous step&nbsp; ←">←</button>
+            <button class="btn btn-primary" id="play" aria-label="Play or pause" data-tip="Play / pause&nbsp; Space"><span id="play-ic">▶</span><span id="play-tx">Play</span></button>
+            <button class="btn btn-icon" id="next" aria-label="Next frame" data-tip="Next step&nbsp; →">→</button>
+            <button class="btn btn-icon" id="replay" aria-label="Replay this step" data-tip="Replay the animation&nbsp; R">↻</button>
+            <button class="btn btn-ghost btn-sm" id="tspeed" aria-pressed="false" data-tip="Real period vs. readable slow motion" hidden>Slowed</button>
+            <div class="seg" id="speed"><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div>
+            <span class="fr" id="frame-count"></span>
+          </div>
+          <div class="kbdhint"><kbd>Space</kbd> play <span>·</span> <kbd>←</kbd><kbd>→</kbd> step <span>·</span> <kbd>R</kbd> replay</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="build">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="l">
+        <div class="eyebrow">Your turn</div>
+        <h2>Change anything, watch it re-solve</h2>
+        <p>The lesson only covers two- and three-storey frames, so those are the two you get — but every other number is yours: concrete strength, column size, number of columns, storey heights, floor masses, and how the building is set in motion.</p>
+      </div>
+      <div class="chip amber"><i></i><span>live recompute</span></div>
+    </div>
+    <div class="builder rv">
+      <div class="pane">
+        <div class="field">
+          <label>Storeys</label>
+          <div class="seg" id="floors-seg" style="width:100%">
+            <button data-n="2" style="flex:1">2 storeys</button>
+            <button data-n="3" class="on" style="flex:1">3 storeys</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>How are the storey stiffnesses given?</label>
+          <div class="seg" id="geom-seg" style="width:100%">
+            <button data-g="1" style="flex:1">From geometry</button>
+            <button data-g="0" style="flex:1">Enter k directly</button>
+          </div>
+        </div>
+
+        <div id="geom-block">
+          <div class="row-f">
+            <div class="field"><label>f′c (MPa)</label><input class="inp" id="in-fc" type="number" value="21" step="1" min="10"></div>
+            <div class="field"><label>Columns per floor</label><input class="inp" id="in-cols" type="number" value="4" step="1" min="1" max="12"></div>
+          </div>
+          <div class="row-f">
+            <div class="field"><label>Column side b = h (mm)</label><input class="inp" id="in-b" type="number" value="300" step="10" min="100"></div>
+            <div class="field"><label>E of concrete (MPa)</label><input class="inp" id="in-e" type="text" value="—" readonly style="color:#6b7280"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Floor by floor</label>
+          <div class="storeys" id="storey-tbl"></div>
+        </div>
+
+        <div class="row-f">
+          <div class="field"><label>Damping, all modes ζ (%)</label><input class="inp" id="in-zeta" type="number" value="0" step="0.5" min="0" max="20"></div>
+          <div class="field"><label>Release from</label>
+            <select class="inp" id="in-ic">
+              <option value="roof">Roof pulled sideways</option>
+              <option value="uniform">All floors pulled equally</option>
+              <option value="mode1">Shape of mode 1</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Release amplitude <span class="muted" id="amp-lab">50 mm</span></label>
+          <div class="range"><input type="range" id="in-amp" min="5" max="120" value="50" step="5"><span class="val" id="amp-val">50 mm</span></div>
+        </div>
+        <div class="pane-actions">
+          <button class="btn btn-sm" id="reset">Reset to the exam problem</button>
+          <button class="btn btn-sm btn-ghost" id="rerun">Restart the tour</button>
+        </div>
+      </div>
+      <div class="pane">
+        <div class="preview">
+          <div id="build-svg"></div>
+          <div class="mini-tbl" id="build-tbl"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="method">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="l">
+        <div class="eyebrow">The fine print</div>
+        <h2>Method, matrices and checks</h2>
+        <p>If you want to reproduce this by hand or in code, everything is here: the exact matrices, the polynomial, the back-substitution formulas and the identities used to verify the numbers.</p>
+      </div>
+    </div>
+    <div id="method-list"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap in">
+    <div>
+      <b style="color:var(--ink)">MDOF Calculator</b> · an interactive solution to the free-vibration MDOF problem.<br>
+      Single file, no dependencies: open it anywhere, even offline.
+    </div>
+    <div class="fr">
+      Precise numbers: <a href="detailed.html">the technical page</a> · <a href="mdof_solver.py">NumPy solver</a> · <a href="mdof_eigen.c">C reference</a>
+    </div>
+    <div class="credit">
+      <b>Created by Nezzar</b>
+      <span class="soft">with the help of DeepSeek Harness</span>
+    </div>
+  </div>
+</footer>
+</main>
+<script>
+
+/* ---- MDOF shear-frame engine (pure, no DOM) ---- */
+var UNS = "\u2212";
+
+function zeros(n){var a=[],i,j;for(i=0;i<n;i++){a.push([]);for(j=0;j<n;j++)a[i].push(0);}return a;}
+
+/* cyclic Jacobi for the symmetric N x N problem, A = M^-1/2 K M^-1/2 */
+function eigSym(K,M){
+  var n=K.length,i,j,k,p,q,A=zeros(n),V=zeros(n),s=[];
+  for(i=0;i<n;i++)s[i]=1/Math.sqrt(M[i][i]);
+  for(i=0;i<n;i++)for(j=0;j<n;j++)A[i][j]=K[i][j]*s[i]*s[j];
+  for(i=0;i<n;i++)V[i][i]=1;
+  for(var sweep=0;sweep<200;sweep++){
+    var off=0,nn=0;
+    for(i=0;i<n;i++){nn+=Math.abs(A[i][i]);for(j=i+1;j<n;j++)off+=Math.abs(A[i][j]);}
+    if(off<1e-15*nn||off<1e-300)break;
+    for(p=0;p<n-1;p++)for(q=p+1;q<n;q++){
+      if(Math.abs(A[p][q])<1e-17*(Math.abs(A[p][p])+Math.abs(A[q][q])))continue;
+      var th=(A[q][q]-A[p][p])/(2*A[p][q]);
+      var tt=(th>=0?1:-1)/(Math.abs(th)+Math.sqrt(th*th+1));
+      var c=1/Math.sqrt(tt*tt+1),ss=tt*c;
+      for(k=0;k<n;k++){var akp=A[k][p],akq=A[k][q];A[k][p]=c*akp-ss*akq;A[k][q]=ss*akp+c*akq;}
+      for(k=0;k<n;k++){var apk=A[p][k],aqk=A[q][k];A[p][k]=c*apk-ss*aqk;A[q][k]=ss*apk+c*aqk;}
+      for(k=0;k<n;k++){var vkp=V[k][p],vkq=V[k][q];V[k][p]=c*vkp-ss*vkq;V[k][q]=ss*vkp+c*vkq;}
+    }
+  }
+  var idx=[];for(i=0;i<n;i++)idx.push(i);
+  idx.sort(function(a,b){return A[a][a]-A[b][b];});
+  var vals=idx.map(function(z){return A[z][z];});
+  var vecs=idx.map(function(z){var v=[];for(k=0;k<n;k++)v.push(V[k][z]);return v;});
+  vecs.forEach(function(v){
+    var mx=Math.abs(v[0]),c0=0,ii;
+    for(ii=1;ii<v.length;ii++)if(Math.abs(v[ii])>mx){mx=Math.abs(v[ii]);c0=ii;}
+    if(v[c0]<0)for(ii=0;ii<v.length;ii++)v[ii]=-v[ii];
+  });
+  return {vals:vals,vecs:vecs};
+}
+
+function buildModel(P){
+  var n=P.n, i, hs=P.hs.slice(0,n), ms=P.ms.slice(0,n), cols=P.cols||4;
+  var Ec=4700*Math.sqrt(P.fc);
+  var b=P.b/1000, hc=P.h/1000, I=b*hc*hc*hc/12, EI=Ec*1000*I;
+  var kc=[],kf=[];
+  for(i=0;i<n;i++){kc[i]=12*EI/(hs[i]*hs[i]*hs[i]);kf[i]=kc[i]*cols;}
+  var k = P.geom ? kf.slice() : P.ks.slice(0,n).map(function(x){return x;});
+  var authK = P.geom ? kf.slice() : P.ks.slice(0,n);
+  var K=zeros(n), M=zeros(n);
+  for(i=0;i<n;i++){
+    M[i][i]=ms[i];
+    K[i][i]=1000*((i<n-1?k[i+1]:0)+k[i]);
+    if(i<n-1){K[i][i+1]=-1000*k[i+1];K[i+1][i]=-1000*k[i+1];}
+  }
+  var e=eigSym(K,M), lam=e.vals;
+  var phi=[];
+  for(var r=0;r<n;r++){
+    var v=[];
+    for(i=0;i<n;i++)v.push(e.vecs[r][i]/Math.sqrt(M[i][i]));
+    var roof=v[n-1]||1;
+    if(Math.abs(roof)<1e-12)roof=1;
+    phi.push(v.map(function(x){return x/roof;}));
+  }
+  var mu=phi.map(function(v){var s=0;for(i=0;i<n;i++)s+=M[i][i]*v[i]*v[i];return s;});
+  var phihat=phi.map(function(v,r){var q=1/Math.sqrt(mu[r]);return v.map(function(x){return x*q;});});
+  var omega=lam.map(function(L){return Math.sqrt(Math.max(L,0));});
+  var freq=omega.map(function(w){return w/(2*Math.PI);});
+  var per=freq.map(function(f){return f>0?1/f:Infinity;});
+  return {N:n,p:P,Ec:Ec,I:I,EI:EI,hs:hs,ms:ms,cols:cols,kc:kc,kf:kf,k:k,K:K,M:M,
+          lam:lam,omega:omega,freq:freq,per:per,phi:phi,mu:mu,phihat:phihat};
+}
+
+/* det of K - lam*M, generic (Gaussian elimination with partial pivoting) */
+function detOf(K,M,lam){
+  var n=K.length,A=zeros(n),i,j,k,d=1;
+  for(i=0;i<n;i++)for(j=0;j<n;j++)A[i][j]=K[i][j]-(i===j?lam*M[i][i]:0);
+  for(i=0;i<n;i++){
+    var piv=i;
+    for(k=i+1;k<n;k++)if(Math.abs(A[k][i])>Math.abs(A[piv][i]))piv=k;
+    if(Math.abs(A[piv][i])<1e-300)return 0;
+    if(piv!==i){var t=A[i];A[i]=A[piv];A[piv]=t;d=-d;}
+    d*=A[i][i];
+    for(k=i+1;k<n;k++){var f=A[k][i]/A[i][i];for(j=i;j<n;j++)A[k][j]-=f*A[i][j];}
+  }
+  return d;
+}
+
+/* monic characteristic polynomial from the roots, descending */
+function polyFromRoots(roots){
+  var p=[1],i,j;
+  for(i=0;i<roots.length;i++){
+    var q=[];
+    for(j=0;j<p.length+1;j++)q.push(0);
+    for(j=0;j<p.length;j++){q[j]+=p[j];q[j+1]-=roots[i]*p[j];}
+    p=q;
+  }
+  return p;
+}
+
+/* modal initial-condition solve, optional damping ratio zeta (per mode) */
+function modalState(m,x0,v0){
+  var out=[],r,i,n=m.N;
+  for(r=0;r<n;r++){
+    var ph=m.phihat[r],q0=0,qd0=0;
+    for(i=0;i<n;i++){q0+=ph[i]*m.M[i][i]*x0[i];qd0+=ph[i]*m.M[i][i]*v0[i];}
+    out.push({q0:q0,qd0:qd0});
+  }
+  return out;
+}
+function responseAt(m,x0,v0,zeta,t){
+  var st=modalState(m,x0,v0),out=[],r,i,n=m.N;
+  for(i=0;i<n;i++)out.push(0);
+  for(r=0;r<n;r++){
+    var w=m.omega[r], z=(zeta&&zeta[r])||0, q;
+    if(z>0){
+      var wd=w*Math.sqrt(Math.max(1-z*z,1e-12)), A=st[r].q0, B=(st[r].qd0+z*w*A)/wd;
+      q=Math.exp(-z*w*t)*(A*Math.cos(wd*t)+B*Math.sin(wd*t));
+    } else {
+      q=st[r].q0*Math.cos(w*t)+(w>1e-12?st[r].qd0/w*Math.sin(w*t):st[r].qd0*t);
+    }
+    for(i=0;i<n;i++)out[i]+=m.phihat[r][i]*q;
+  }
+  return out;
+}
+/* =========================================================================
+   math.js — a very small "typeset maths" kit.
+   Every helper returns an HTML string, so an equation can be set with real
+   stacked fractions (never "a / b"), radicals with an over-bar, italic
+   variables, and time-staggered highlights that show WHICH numbers are
+   being multiplied, in the order they are multiplied.
+   ========================================================================= */
+
+function OP(s){return '<span class="op">'+s+'</span>';}
+function I(s){return '<i>'+s+'</i>';}
+function SUB(s){return '<sub>'+s+'</sub>';}
+function SUP(s){return '<sup>'+s+'</sup>';}
+function TAG(s){return '<span class="tag">'+s+'</span>';}
+
+/* stacked fraction: numerator over denominator */
+function F(a,b,o){
+  o=o||{};
+  return '<span class="fr'+(o.lg?' lg':'')+'"><span class="fn">'+a+'</span><span class="fd">'+b+'</span></span>';
+}
+/* radical with an over-bar: SQ("x") -> sqrt(x) */
+function SQ(x){return '<span class="rt"><span class="rs">\u221A</span><span class="rb">'+x+'</span></span>';}
+/* highlight one piece of a formula at t seconds (sweeps, then fades) */
+function GL(h,d){return '<span class="gq" style="animation-delay:'+(d||0).toFixed(2)+'s">'+h+'</span>';}
+/* make a result appear at t seconds and stay */
+function PI(h,d,cls){return '<span class="pin'+(cls?' '+cls:'')+'" style="animation-delay:'+(d||0).toFixed(2)+'s">'+h+'</span>';}
+/* a block of equation rows; each row is a string or fn(rowIndex) -> string */
+function EQ(rows){
+  return '<div class="eq">'+rows.map(function(fn,i){
+    var h=(typeof fn==='function')?fn(i):fn;
+    return '<div class="eq-row">'+h+'</div>';
+  }).join('')+'</div>';
+}
+
+/* ================= helpers ================= */
+var UNS="\u2212";
+function $(s,r){return (r||document).querySelector(s);}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+function fmt(x,d){
+  if(x==null||!isFinite(x))return "\u2014";
+  d=(d==null)?2:d;
+  var s=Math.abs(x).toFixed(d),p=s.split("."),ip=p[0],o="",c=0,i;
+  for(i=ip.length-1;i>=0;i--){o=ip.charAt(i)+o;c++;if(c%3===0&&i>0)o=","+o;}
+  if(p.length>1)o+="."+p[1];
+  if(x<0&&parseFloat(s)!==0)o=UNS+o;
+  return o;
+}
+var SUPMAP={"-":"\u207B","0":"\u2070","1":"\u00B9","2":"\u00B2","3":"\u00B3","4":"\u2074","5":"\u2075","6":"\u2076","7":"\u2077","8":"\u2078","9":"\u2079"};
+function sup(n){var s=String(n),o="",i;for(i=0;i<s.length;i++)o+=SUPMAP[s.charAt(i)]||s.charAt(i);return o;}
+function sci(x,d){
+  if(!isFinite(x))return "\u2014";
+  if(x===0)return "0";
+  d=(d==null)?2:d;
+  var a=Math.abs(x),e=Math.floor(Math.log(a)/Math.LN10),m=x/Math.pow(10,e);
+  if(Math.abs(m)>=9.995){m/=10;e+=1;}
+  return fmt(m,d)+"\u00D710"+sup(e);
+}
+function sub(i){return "\u2081\u2082\u2083\u2084\u2085".charAt(i)||("_"+i);}
+function escapeHTML(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ================= palette ================= */
+var INK="#0d0f14", MUTED="#6b7280", FAINT="#9aa1ab", LINE="#e6e6ec", ACCENT="#4f46e5", MINT="#0d9488", AMBER="#d97706";
+var MC=["#4f46e5","#0d9488","#d97706","#7c3aed"];
+
+/* ================= state ================= */
+var DEFAULTS={n:3,geom:true,fc:21,b:300,cols:4,hs:[4,3.2,3],ms:[5000,2500,1250],ks:[10903.7,21296.2,25845.7],zeta:0,amp:50,ic:"roof"};
+var S=null, model=null, live=null;
+
+function freshState(){
+  return {n:3,geom:true,fc:21,b:300,cols:4,hs:[4,3.2,3],ms:[5000,2500,1250],
+          ks:[10903.7,21296.2,25845.7],zeta:0,amp:50,ic:"roof"};
+}
+function compute(){
+  model=buildModel({n:S.n,geom:S.geom,fc:S.fc,b:S.b,h:S.b,cols:S.cols,hs:S.hs.slice(0,S.n),ms:S.ms.slice(0,S.n),ks:S.ks.slice(0,S.n)});
+  return model;
+}
+function initials(){
+  var n=model.N,i,x0=[],v0=[];
+  for(i=0;i<n;i++){x0.push(0);v0.push(0);}
+  var a=S.amp/1000;
+  if(S.ic==="roof"){x0[n-1]=a;}
+  else if(S.ic==="uniform"){for(i=0;i<n;i++)x0[i]=a;}
+  else {var mx=Math.abs(model.phi[0][n-1])||1;for(i=0;i<n;i++)x0[i]=a*model.phi[0][i]/mx;}
+  var z=[];for(i=0;i<n;i++)z.push(S.zeta/100);
+  return {x0:x0,v0:v0,zeta:z};
+}
+
+/* ================= svg primitives ================= */
+function svgOpen(w,h,extra){return '<svg viewBox="0 0 '+w+' '+h+'" role="img" '+(extra||'')+'>';}
+function t(x,y,s,o){
+  o=o||{};
+  return '<text x="'+x+'" y="'+y+'" font-size="'+(o.fs||12)+'" fill="'+(o.fill||INK)+'"'+
+    (o.anchor?' text-anchor="'+o.anchor+'"':'')+
+    (o.weight?' font-weight="'+o.weight+'"':'')+
+    (o.mono?' font-family="ui-monospace,Consolas,monospace"':'')+
+    (o.op?' opacity="'+o.op+'"':'')+
+    (o.halo?' paint-order="stroke" stroke="#fbfbfd" stroke-width="3.4" stroke-linejoin="round"':'')+'>'+s+'</text>';
+}
+function dot(x,y,r,fill,op){return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'"'+(op?' opacity="'+op+'"':'')+'/>';}
+function line(x1,y1,x2,y2,o){
+  o=o||{};
+  return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+(o.stroke||INK)+'" stroke-width="'+(o.w||1.4)+'"'+
+    (o.dash?' stroke-dasharray="'+o.dash+'"':'')+(o.cap?' stroke-linecap="'+o.cap+'"':'')+(o.op?' opacity="'+o.op+'"':'')+'/>';
+}
+function rect(x,y,w,h,r,o){
+  o=o||{};
+  return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+r+'" fill="'+(o.fill||'none')+'"'+
+    (o.stroke?' stroke="'+o.stroke+'" stroke-width="'+(o.sw||1.2)+'"':'')+(o.op?' opacity="'+o.op+'"':'')+
+    (o.anim?' class="'+o.anim+'"'+(o.delay?' style="animation-delay:'+o.delay+'s"':''):'')+'/>';
+}
+function path(d,o){
+  o=o||{};
+  return '<path d="'+d+'" fill="'+(o.fill||'none')+'" stroke="'+(o.stroke||INK)+'" stroke-width="'+(o.w||1.6)+'"'+
+    (o.dash?' stroke-dasharray="'+o.dash+'"':'')+(o.cap?' stroke-linecap="round" stroke-linejoin="round"':'')+
+    (o.op?' opacity="'+o.op+'"':'')+
+    (o.draw?' pathLength="1" class="draw" style="animation-delay:'+(o.delay||0)+'s"':'')+'/>';
+}
+function badge(x,y,s,o){
+  o=o||{};
+  var w=o.w||(String(s).length*6.6+18);
+  return rect(x-w/2,y-11,w,22,11,{fill:o.fill||'#fff',stroke:o.stroke||LINE,sw:1,anim:'pop',delay:o.delay})+t(x,y+4,s,{fs:o.fs||11,anchor:'middle',fill:o.color||INK,weight:600});
+}
+
+/* ---- a building, optionally displaced: disp = per-floor displacement in px ---- */
+function buildingSVG(m,o){
+  o=o||{};
+  var n=m.N, W=520, H=400, baseY=348, topY=o.topY||86;
+  var step=(baseY-topY)/(n+0.18);
+  var xl=196, xr=322;
+  var disp=o.disp||[];
+  var s='<defs><pattern id="hatch" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'+
+        '<line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9d4" stroke-width="1.4"/></pattern></defs>';
+  s+=svgOpen(W,H);
+  /* ground */
+  s+=rect(96,baseY,330,12,0,{fill:'url(#hatch)',op:.9});
+  s+=line(92,baseY,428,baseY,{w:2.2});
+  var ys=[],i;
+  for(i=0;i<=n;i++)ys.push(baseY-i*step);
+  var d=[];for(i=0;i<n;i++)d.push(disp[i]||0);
+  /* columns */
+  for(i=0;i<n;i++){
+    var y1=baseY-i*step, y2=baseY-(i+1)*step;
+    var b1=(i===0?0:d[i-1]), b2=d[i];
+    var cx1=xl+b1, cx2=xl+b2, cx3=xr+b1, cx4=xr+b2;
+    var mid=(b1+b2)/2;
+    var col=o.highlight===i?'#c7c2ff':(o.structColor||'#c9c9d6');
+    var wdt=o.highlight===i?5.5:4.4;
+    s+=line(cx1,y1,cx2,y2,{w:wdt,stroke:col,cap:1});
+    s+=line(cx3,y1,cx4,y2,{w:wdt,stroke:col,cap:1});
+  }
+  /* slabs */
+  for(i=0;i<=n;i++){
+    var dy=ys[i], dx=i===0?0:d[i-1];
+    var isRoof=i===n;
+    s+=rect(xl+dx-14,dy-5,xr-xl+28,10,5,{fill:isRoof?'#0d0f14':'#ffffff',stroke:INK,sw:isRoof?0:1.6,anim:'pop',delay:(0.06*i).toFixed(2)});
+    if(!isRoof){
+      for(var k=1;k<=3;k++)s+=line(xl+dx-14+k*8,dy-5,xl+dx-14+k*8,dy+5,{w:.7,stroke:'#cfcfda',op:.8});
+    }
+  }
+  /* floor labels + mass labels */
+  for(i=0;i<=n;i++){
+    var yy=ys[i]+(i===0?16:4)*0+4;
+    var lbl=i===n?'R':('F'+i);
+    var lx=o.tags?96:Math.min(xr+26+Math.max(0,dx),402);
+    if(i>0)s+=t(lx,ys[i]+4,i===n?'roof':'floor '+i,{fs:10.5,fill:FAINT,weight:600,halo:!!o.tags});
+  }
+  if(o.masses!==false){
+    for(i=0;i<n;i++){
+      var mx=xl+(xr-xl)/2+(i===0?0:d[i-1]);
+      var my=(ys[i]+ys[i+1])/2;
+      s+=t(xl-18,my+2,'m'+sub(i),{fs:11,fill:MC[i%MC.length],anchor:'end',weight:700});
+      s+=t(xl-18,my+15,fmt(m.ms[i],0)+' kg',{fs:9.5,fill:FAINT,anchor:'end'});
+    }
+  }
+  if(o.columns){
+    s+=t(xr+26,ys[n]+22,'4 columns / floor',{fs:10,fill:FAINT});
+    s+=t(xr+26,ys[n]+36,'300 mm square',{fs:10,fill:FAINT});
+  }
+  if(o.modeShape){
+    var sc=o.modeScale||58;
+    var pts=[[xl+(xr-xl)/2,baseY]];
+    for(i=0;i<n;i++)pts.push([xl+(xr-xl)/2+o.modeShape[i]*sc, ys[i+1]]);
+    var dd=pts.map(function(p,ix){return (ix?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}).join(' ');
+    s+=path(dd,{stroke:o.modeColor||ACCENT,w:2.4,dash:'7 6',op:.95,draw:true,delay:.25});
+    for(i=0;i<n;i++){
+      var px=xl+(xr-xl)/2+o.modeShape[i]*sc;
+      s+=dot(px,ys[i+1],4.5,o.modeColor||ACCENT);
+    }
+  }
+  if(o.tags){
+    /* the displacement drawn beside the frame: one bar per floor, value at the end */
+    var gx=418, gm=20, mv=1, i2;
+    for(i2=0;i2<n;i2++)mv=Math.max(mv,Math.abs(o.tags[i2]));
+    s+=t(gx,ys[n]-22,'\u03C6 (roof = 1)',{fs:8.6,fill:FAINT,weight:700});
+    s+=line(gx,ys[n]-8,gx,ys[0],{stroke:'#e2e2ec',w:1,dash:'3 5'});
+    for(i2=0;i2<n;i2++){
+      var yg=ys[i2+1], vg=o.tags[i2]||0, dg=vg/mv*gm, cg=o.modeColor||ACCENT;
+      s+=line(gx,yg,gx+dg,yg,{w:2.8,stroke:cg,cap:1,op:.9});
+      s+=dot(gx+dg,yg,3,cg);
+      s+=t(gx+gm+12,yg+3.4,fmt(vg,4),{fs:8.6,mono:1,fill:MUTED,weight:600});
+    }
+  }
+  if(o.springs){
+    for(i=0;i<n;i++){
+      var ys1=ys[i], ys2=ys[i+1], sx=xl+(xr-xl)/2;
+      s+=springPath(sx,ys1-6,ys2+6,MC[i%MC.length]);
+    }
+  }
+  if(o.free){
+    for(i=0;i<n;i++){
+      var fx=xl+(xr-xl)/2+(d[i]||0);
+      s+=dot(fx,ys[i+1],6.5,'#fff');
+      s+=dot(fx,ys[i+1],4.5,INK);
+    }
+  }
+  s+='</svg>';
+  return s;
+}
+function springPath(x,y1,y2,col){
+  var h=y2-y1, segs=6, amp=9, d='M'+x+' '+y1, i;
+  for(i=0;i<segs;i++){
+    var yy=y1+h*(i+0.5)/segs;
+    d+=' L'+(x+(i%2?-amp:amp))+' '+yy.toFixed(1);
+  }
+  d+=' L'+x+' '+y2;
+  return path(d,{stroke:col,w:2.2,cap:1,draw:true,delay:.1});
+}
+
+/* ---- a single column bending under a top force ---- */
+function columnSVG(m,o){
+  o=o||{};
+  var W=520,H=380, bx=200, by=330, hpx=200, defl=o.defl||-58;
+  var s=svgOpen(W,H);
+  s+=rect(120,by,200,10,0,{fill:'url(#hatch2)'});
+  s+='<defs><pattern id="hatch2" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9d4" stroke-width="1.4"/></pattern></defs>';
+  s+=line(110,by,330,by,{w:2.2});
+  s+=path('M'+bx+' '+by+' C'+bx+' '+(by-hpx*0.45)+' '+(bx+defl*0.15)+' '+(by-hpx*0.7)+' '+(bx+defl)+' '+(by-hpx),{stroke:'#c9c9d6',w:6,cap:1});
+  s+=path('M'+bx+' '+by+' L'+bx+' '+(by-hpx),{stroke:'#d7d7e2',w:1.4,dash:'5 5'});
+  /* force */
+  s+=path('M'+(bx+defl+96)+' '+(by-hpx)+' L'+(bx+defl+18)+' '+(by-hpx),{stroke:ACCENT,w:2.6,cap:1,draw:true});
+  s+=path('M'+(bx+defl+18)+' '+(by-hpx)+' l10 -5 l0 10 z',{fill:ACCENT,stroke:ACCENT});
+  s+=t(bx+defl+104,by-hpx+4,'P',{fs:12,fill:ACCENT,weight:700});
+  /* dimension */
+  s+=line(bx+defl-18,by,bx+defl-18,by-hpx,{stroke:FAINT,w:1,dash:'3 4'});
+  s+=t(bx+defl-30,by-hpx/2,'h',{fs:12,fill:MUTED,anchor:'end',weight:600});
+  s+=t(30,46,'δ = P h³ / (12 EI)',{fs:12,fill:MUTED});
+  s+=t(30,66,'both ends fixed — no rotation',{fs:11,fill:FAINT});
+  s+='</svg>';
+  return s;
+}
+
+/* ---- matrix block ---- */
+function matBlock(x,y,rows,o){
+  o=o||{};
+  var n=rows.length, cw=o.cw||64, ch=o.ch||38, i, j, s='';
+  var W=n*cw, H=n*ch;
+  for(i=0;i<n;i++)for(j=0;j<n;j++){
+    var cell=rows[i][j];
+    var hot=o.hot&&o.hot(i,j);
+    var dim=o.dim&&o.dim(i,j);
+    var fill=hot?(o.hotFill||'#eef0ff'):'#fff';
+    var stroke=hot?(o.hotStroke||ACCENT):'#ececf2';
+    var delay=(o.stagger?(i*n+j)*o.stagger:0);
+    var open=o.stagger?'<g class="pop" style="animation-delay:'+delay.toFixed(3)+'s">':'';
+    var close=o.stagger?'</g>':'';
+    var gd=(o.glow?o.glow(i,j):null);
+    var gopen=(gd!=null)?'<g class="gl" style="animation-delay:'+gd.toFixed(2)+'s">':'';
+    var gclose=(gd!=null)?'</g>':'';
+    s+=gopen+open+rect(x+j*cw+2,y+i*ch+2,cw-4,ch-4,7,{fill:fill,stroke:stroke,sw:hot?1.8:1,op:dim?.32:1});
+    s+=t(x+j*cw+cw/2,y+i*ch+ch/2+4.5,cell,{fs:o.fs||12,anchor:'middle',fill:dim?FAINT:INK,mono:true,weight:hot?700:500,op:dim?.55:1})+close+gclose;
+  }
+  s+=path('M'+(x-9)+' '+y+' v'+H,{stroke:INK,w:2});
+  s+=path('M'+(x-9)+' '+y+' h6',{stroke:INK,w:2});
+  s+=path('M'+(x-9)+' '+(y+H)+' h6',{stroke:INK,w:2});
+  s+=path('M'+(x+W+9)+' '+y+' v'+H,{stroke:INK,w:2});
+  s+=path('M'+(x+W+9)+' '+y+' h-6',{stroke:INK,w:2});
+  s+=path('M'+(x+W+9)+' '+(y+H)+' h-6',{stroke:INK,w:2});
+  return s;
+}
+
+/* ---- curve of det(K - B M) against B ---- */
+function curveSVG(m,o){
+  o=o||{};
+  var W=520,H=340,x0=62,x1=464,yt=52,yb=258,yM=(yt+yb)/2;
+  var lmax=m.lam[m.N-1]*1.16, N=240, pts=[], i;
+  var vmax=0;
+  for(i=0;i<=N;i++){
+    var B=lmax*i/N, v=detOf(m.K,m.M,B);
+    pts.push([B,v]); vmax=Math.max(vmax,Math.abs(v));
+  }
+  var X=function(B){return x0+(x1-x0)*B/lmax;};
+  var Y=function(v){return yM-(v/vmax)*(yb-yt)/2*0.9;};
+  var d=pts.map(function(p,ix){return (ix?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);}).join(' ');
+  var s=svgOpen(W,H);
+  s+=line(x0,yM,x1,yM,{stroke:'#c8c8d6',w:1.6});
+  s+=t(x1,yM-9,'det = 0',{fs:9.5,fill:FAINT,anchor:'end'});
+  s+=t(x0,yM+16,'0',{fs:9.5,fill:FAINT});
+  s+=t(x1+4,yM+4,'B',{fs:10.5,fill:MUTED});
+  if(o.roots!==false){
+    for(i=0;i<m.N;i++){
+      var rx=X(m.lam[i]);
+      s+=line(rx,yt+10,rx,yb,{stroke:MC[i%3],w:1,dash:'3 4',op:.32});
+      s+=t(rx,yt+2,'\u03BB'+sub(i),{fs:9.5,fill:MC[i%3],anchor:'middle',weight:700});
+    }
+  }
+  s+=path(d,{stroke:ACCENT,w:2.6,draw:true,delay:.1});
+  if(o.roots!==false){
+    var lx=x0+2, ly=yb+30;
+    for(i=0;i<m.N;i++){
+      s+=dot(X(m.lam[i]),yM,5.5,MC[i%3]);
+      var txt='B'+sub(i)+' = '+fmt(m.lam[i],1), wid=txt.length*6.5+16;
+      s+=rect(lx,ly-12,wid,20,10,{fill:MC[i%3],op:.1});
+      s+=t(lx+8,ly+2,txt,{fs:10.5,fill:MC[i%3],weight:600,mono:1});
+      lx+=wid+8;
+    }
+  } else {
+    s+=t(x0,yb+26,'det(K \u2212 B M) is a cubic in B \u2014 the roots are the three mode frequencies squared',{fs:10,fill:FAINT});
+  }
+  s+='</svg>';
+  return s;
+}
+
+/* ---- deflection of a mode, scaled ---- */
+function modeSVG(m,r,o){
+  o=o||{};
+  var amp=o.amp||46;
+  var ph=m.phi[r], mx=Math.abs(ph[0]),i;
+  for(i=1;i<ph.length;i++)mx=Math.max(mx,Math.abs(ph[i]));
+  var disp=ph.map(function(v){return v/mx*amp;});
+  return buildingSVG(m,{disp:disp,masses:o.masses!==false,free:true,structColor:'#d5d5e0',modeShape:ph,modeScale:amp,modeColor:MC[r%MC.length],topY:o.topY,tags:o.tags});
+}
+
+/* ================= polynomial helpers (descending) ================= */
+function ptrim(a){var b=a.slice();while(b.length>1&&Math.abs(b[0])<1e-300)b.shift();return b;}
+function pnorm(a,b){var A=a.slice(),B=b.slice();while(A.length<B.length)A.unshift(0);while(B.length<A.length)B.unshift(0);return [A,B];}
+function padd(a,b){var z=pnorm(a,b),o=[],i;for(i=0;i<z[0].length;i++)o.push(z[0][i]+z[1][i]);return ptrim(o);}
+function psub(a,b){var z=pnorm(a,b),o=[],i;for(i=0;i<z[0].length;i++)o.push(z[0][i]-z[1][i]);return ptrim(o);}
+function pmul(a,b){var o=[],i,j;for(i=0;i<a.length+b.length-1;i++)o.push(0);for(i=0;i<a.length;i++)for(j=0;j<b.length;j++)o[i+j]+=a[i]*b[j];return ptrim(o);}
+function pnum(c,d){
+  var s="",i;
+  for(i=0;i<c.length;i++){
+    var p=c.length-1-i, v=c[i];
+    if(Math.abs(v)<1e-12)continue;
+    var sign=v<0?" \u2212 ":" + ";
+    var av=Math.abs(v), txt=(Math.abs(av-1)<1e-9&&p>0)?"":fmt(av,(av>=1e5?0:(av>=1000?2:3)));
+    var pw=p===0?"":p===1?"B":("B"+sup(p));
+    s+=(s?sign:(v<0?"\u2212":""))+txt+pw;
+  }
+  return s||"0";
+}
+function scaledMat(m){
+  var Kp=[],Mp=[],i,j,n=m.N;
+  for(i=0;i<n;i++){Kp.push([]);Mp.push([]);for(j=0;j<n;j++){Kp[i].push(m.K[i][j]/m.ms[0]);Mp[i].push(Mp[i][j]);}}
+  var M2=[];for(i=0;i<n;i++){M2.push([]);for(j=0;j<n;j++)M2[i].push(i===j?m.ms[i]/m.ms[0]:0);}
+  return {Kp:Kp,Mp:M2};
+}
+function detPolyN(Kp,Mp){
+  var n=Kp.length;
+  function a(i,j){return [-Mp[i][j],Kp[i][j]];}
+  if(n===2)return psub(pmul(a(0,0),a(1,1)),pmul(a(0,1),a(1,0)));
+  var t1=pmul(a(0,0),psub(pmul(a(1,1),a(2,2)),pmul(a(1,2),a(2,1))));
+  var t2=pmul(a(0,1),psub(pmul(a(1,0),a(2,2)),pmul(a(1,2),a(2,0))));
+  var t3=pmul(a(0,2),psub(pmul(a(1,0),a(2,1)),pmul(a(1,1),a(2,0))));
+  return psub(padd(t1,t3),t2);
+}
+/* Newton on the polynomial exactly as it would be typed into a calculator */
+function peval(c,x){var s=0,i;for(i=0;i<c.length;i++)s=s*x+c[i];return s;}
+function pder(c){var o=[],i;for(i=0;i<c.length-1;i++)o.push(c[i]*(c.length-1-i));return o;}
+function newtonRoot(c,x0){
+  var d=pder(c),x=x0,it=0,dx,f,fp;
+  for(;it<80;it++){
+    f=peval(c,x);fp=peval(d,x);
+    if(!fp||!isFinite(f))break;
+    dx=f/fp;x-=dx;
+    if(Math.abs(dx)<1e-11*Math.max(1,Math.abs(x))){it++;break;}
+  }
+  return {x:x,it:it};
+}
+
+/* ================= small figures ================= */
+function sectionSVG(m){
+  var s=svgOpen(520,340);
+  var x=190,y=90,sz=110;
+  s+=rect(x,y,sz,sz,4,{fill:'#fff',stroke:INK,sw:2});
+  s+=rect(x+8,y+8,sz-16,sz-16,2,{fill:'#f4f4fa',stroke:'#d7d7e2',sw:1});
+  for(var i=1;i<4;i++){
+    s+=line(x+i*sz/4,y,x+i*sz/4,y+sz,{stroke:'#e2e2ee',w:1});
+    s+=line(x,y+i*sz/4,x+sz,y+i*sz/4,{stroke:'#e2e2ee',w:1});
+  }
+  s+=line(x,y+sz+18,x+sz,y+sz+18,{stroke:MUTED,w:1});
+  s+=t(x+sz/2,y+sz+34,'b = 300 mm',{fs:11,anchor:'middle',fill:MUTED});
+  s+=line(x-18,y,x-18,y+sz,{stroke:MUTED,w:1});
+  s+=t(x-26,y+sz/2+4,'h = 300 mm',{fs:11,anchor:'end',fill:MUTED});
+  s+=t(360,110,'Ec = 4700\u221A f\u2032c',{fs:13,m:0});
+  s+=t(360,136,'= '+fmt(m.Ec,0)+' MPa',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+=t(360,180,'I = b h\u00B3 / 12',{fs:13});
+  s+=t(360,206,'= '+sci(m.I,3)+' m\u2074',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+=t(360,250,'EI = Ec I',{fs:13});
+  s+=t(360,276,'= '+fmt(m.EI,0)+' kN\u00B7m\u00B2',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+='</svg>';
+  return s;
+}
+function barsSVG(m){
+  var W=520,H=380, x0=120, baseY=300, hMax=190, n=m.N, i;
+  var kmax=Math.max.apply(null,m.kf);
+  var s=svgOpen(W,H);
+  s+=line(60,baseY,470,baseY,{stroke:'#d5d5e0',w:1.4});
+  var bw=52, gap=(m.N===2?110:64);
+  for(i=0;i<n;i++){
+    var h=hMax*m.kf[i]/kmax, x=x0+i*(bw+gap);
+    s+=rect(x,baseY-h,bw,h,9,{fill:MC[i%MC.length],op:.14,stroke:MC[i%MC.length],sw:1.6,anim:'pop',delay:(0.1*i).toFixed(2)});
+    s+=t(x+bw/2,baseY-h-12,'k'+sub(i)+' = '+fmt(m.kf[i],0),{fs:11,anchor:'middle',fill:MC[i%MC.length],weight:700});
+    s+=t(x+bw/2,baseY+20,'storey '+(i+1),{fs:11,anchor:'middle',fill:MUTED});
+    s+=t(x+bw/2,baseY+36,'h = '+fmt(m.hs[i],2)+' m',{fs:10,anchor:'middle',fill:FAINT});
+    s+=t(x+bw/2,baseY+52,'k_col = '+fmt(m.kc[i],0),{fs:10,anchor:'middle',fill:FAINT,mono:1});
+  }
+  s+=t(60,44,'storey stiffness k = 4 \u00D7 12EI/h\u00B3  (kN/m)',{fs:12,fill:MUTED});
+  s+='</svg>';
+  return s;
+}
+/* ---------- a curved arrow pairing two cells; its twin bows the other way ---------- */
+function pairArrow(x1,y1,x2,y2,col,delay,bow,halo,ta,tb){
+  var mx=(x1+x2)/2, my=(y1+y2)/2, dx=x2-x1, dy=y2-y1, L=Math.sqrt(dx*dx+dy*dy)||1;
+  var bw=bow||Math.max(18,Math.min(0.2*L,44));
+  var nx=-dy/L, ny=dx/L, qx=mx+nx*bw, qy=my+ny*bw;
+  var P=function(s){var u=1-s;return [u*u*x1+2*s*u*qx+s*s*x2,u*u*y1+2*s*u*qy+s*s*y2];};
+  var T=function(s){var u=1-s;return [2*u*(qx-x1)+2*s*(x2-qx),2*u*(qy-y1)+2*s*(y2-qy)];};
+  var d0=ta?Math.min(ta*0.7,0.30*L):0.14*L, d1=tb?Math.min(tb+7,0.42*L):0.14*L;
+  var s0=d0/L, s1=1-d1/L, d='', i, p;
+  for(i=0;i<=12;i++){p=P(s0+(s1-s0)*i/12);d+=(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}
+  var s=halo?path(d,{stroke:'#fff',w:7.5,cap:1,op:.98}):'';
+  s+=path(d,{stroke:col,w:2.6,cap:1,draw:true,delay:delay});
+  var e=P(s1), tv=T(s1), tl=Math.sqrt(tv[0]*tv[0]+tv[1]*tv[1])||1;
+  var ux=tv[0]/tl, uy=tv[1]/tl, sx=-uy*5.6, sy=ux*5.6;
+  var hx=e[0]+ux*3, hy=e[1]+uy*3;
+  s+='<g class="pin" style="animation-delay:'+(delay+0.42).toFixed(2)+'s">'+
+     path('M'+hx.toFixed(1)+' '+hy.toFixed(1)+
+       'L'+(hx-ux*12.5+sx).toFixed(1)+' '+(hy-uy*12.5+sy).toFixed(1)+
+       'L'+(hx-ux*12.5-sx).toFixed(1)+' '+(hy-uy*12.5-sy).toFixed(1)+'Z',{fill:col,stroke:col,w:1})+'</g>';
+  return s;
+}
+function cellText(Kp,Mp,i,k){
+  if(i!==k)return Kp[i][k]?fmt(Kp[i][k],0):'0';
+  return fmt(Kp[i][k],0)+' \u2212 '+(Math.abs(Mp[i][i]-1)<1e-9?'B':fmt(Mp[i][i],2)+'B');
+}
+/* ================= chapters ================= */
+var CHAPTERS=[], FI={ch:0,fr:0,playing:false,timer:null,speed:1,liveT:0,raf:null};
+
+function matRows(M,fn){
+  var out=[],i,j,n=M.length;
+  for(i=0;i<n;i++){out.push([]);for(j=0;j<n;j++)out[i].push(fn(M[i][j],i,j));}
+  return out;
+}
+
+function buildTour(){
+  var m=model, n=m.N, S2=scaledMat(m), Kp=S2.Kp, Mp=S2.Mp;
+  var co=detPolyN(Kp,Mp), lead=co[0], mono=co.map(function(c){return c/lead;});
+  var cls=[], i;
+
+  /* ---------- 1. the frame ---------- */
+  cls.push({id:"frame",name:"The frame",frames:[
+    {k:"01 \u00B7 the model",t:"A "+n+"-storey frame, four columns per floor",
+     b:"Before any maths: each floor can move sideways, so the building has <b>"+n+" unknown displacements</b> \u2014 one per floor. That is what \u201c"+n+"-DOF\u201d means, and it is the only thing we carry into the calculation.",
+     n:"The exam sheet fixes the geometry twice over: h\u2081 = 1.25h\u2082 = 1.3333h\u2083 = 4 m, which gives the column heights in the sketch.",
+     svg:buildingSVG(m,{columns:true,masses:true})},
+    {k:"01 \u00B7 the model",t:"Idealise it: masses on springs",
+     b:"Beams are stiff compared with columns, so each floor stays flat and moves as a rigid slab. A column then behaves exactly like a spring between the floor above and the floor below. The whole building becomes <b>"+n+" masses on "+n+" springs</b> \u2014 the shear-frame model.",
+     f:"x\u2081, x\u2082, x\u2083 = sideways displacement of each floor",
+     svg:buildingSVG(m,{springs:true,masses:true,free:true,structColor:'#e5e5ee'})}
+  ]});
+
+  /* ---------- 2. stiffness ---------- */
+  cls.push({id:"stiff",name:"Stiffness",frames:[
+    {k:"02 \u00B7 stiffness",t:"One column is a spring: k = 12EI / h\u00B3",
+     b:"Push the top of a column sideways and it pushes back. Both ends are held by beams, so the ends cannot rotate \u2014 that double fixity is where the <b>12</b> comes from. Watch the top of the fraction fill first, then the bottom.",
+     fx:EQ([
+       function(){var b=0;return GL('k'+SUB('col'),b)+OP('=')+F(GL('12',b+0.18)+OP('\u00B7')+GL('E',b+0.36)+OP('\u00B7')+GL('I',b+0.54),GL('h',b+0.78)+SUP('3'),{lg:1});},
+       function(){var b=0.85;return GL('\u03B4',b)+OP('=')+F(GL('P',b+0.16)+OP('\u00B7')+GL('h',b+0.32)+SUP('3'),GL('12',b+0.60)+OP('\u00B7')+GL('E',b+0.76)+OP('\u00B7')+GL('I',b+0.92),{lg:1});}
+     ]),
+     n:"A taller column is much softer: halve the height and it gets eight times stiffer, because h is cubed.",
+     svg:columnSVG(m,{})},
+    {k:"02 \u00B7 stiffness",t:"Get E from the concrete, I from the section",
+     b:"Concrete stiffness follows its strength, E\u1D9C = 4700\u221Af\u2032c. A square column has I = bh\u00B3/12. The three numbers you multiply are highlighted in order.",
+     fx:EQ([
+       function(){var b=0;return GL('E'+SUB('c'),b)+OP('=')+GL('4700',b+0.14)+SQ(GL('f\u2032'+SUB('c'),b+0.36))+OP('=')+GL('4700',b+0.58)+SQ(GL(fmt(m.p.fc,0),b+0.76))+OP('=')+PI(fmt(m.Ec,0)+' MPa',b+1.0,'res');},
+       function(){var b=0.95;return GL('I',b)+OP('=')+F(GL('b',b+0.16)+OP('\u00B7')+GL('h',b+0.34)+SUP('3'),GL('12',b+0.58),{lg:1})+OP('=')+F(GL('0.300',b+0.70)+OP('\u00D7')+GL('0.300',b+0.84)+SUP('3'),GL('12',b+1.02),{lg:1})+OP('=')+PI(sci(m.I,3)+' m'+SUP('4'),b+1.14,'res');},
+       function(){var b=1.95;return GL('EI',b)+OP('=')+GL(fmt(m.Ec,0),b+0.14)+OP('\u00D7')+GL(sci(m.I,3),b+0.34)+' MPa\u00B7m'+SUP('4')+OP('=')+PI(fmt(m.EI,0)+' kN\u00B7m'+SUP('2'),b+0.58,'res');}
+     ]),
+     svg:sectionSVG(m)},
+    {k:"02 \u00B7 stiffness",t:"Put the numbers in \u2014 this is the multiplication",
+     b:"Twelve times EI, divided by the cube of the height. Then four identical columns add up, and each storey gets its own value because the heights differ.",
+     fx:EQ((function(){
+       var rows=[];
+       rows.push(function(){var b=0;return GL('k'+SUB('col'),b)+OP('=')+F(GL('12',b+0.14)+OP('\u00B7')+GL(fmt(m.EI,1),b+0.32),GL(fmt(m.hs[0],3),b+0.54)+SUP('3'),{lg:1})+OP('=')+GL(fmt(Math.pow(m.hs[0],3),2),b+0.76)+OP('=')+PI(fmt(m.kc[0],1)+' kN/m',b+0.98,'res');});
+       m.kf.forEach(function(v,ix){
+         rows.push(function(){var b=0.75+ix*0.6;
+           return GL('k'+SUB(ix+1),b)+OP('=')+GL(fmt(m.cols,0),b+0.12)+OP('\u00D7')+GL(fmt(m.kc[ix],1),b+0.26)+OP('=')+PI(fmt(v,1)+' kN/m',b+0.46,'res')+'<span class="hint-inline">h'+SUB(ix+1)+' = '+fmt(m.hs[ix],2)+' m</span>';
+         });
+       });
+       return rows;
+     })()),
+     n:"Bottom storey: "+fmt(m.kc[0],0)+" kN/m per column. Top storey: "+fmt(m.kc[n-1],0)+" kN/m \u2014 "+fmt(m.kc[n-1]/m.kc[0],2)+"\u00D7 stiffer.",
+     svg:barsSVG(m)}
+  ]});
+
+  /* ---------- 3. matrices ---------- */
+  cls.push({id:"mats",name:"Matrices",frames:[
+    {k:"03 \u00B7 matrices",t:"Each spring writes into two corners",
+     b:"A spring between two floors puts <b>+k on both diagonal entries</b> and <b>\u2212k on the two off-diagonals joining them</b>. Read the diagonal: it collects every spring that touches that floor.",
+     fx:EQ([
+       function(){var b=0;return TAG('diagonal')+GL('K'+SUB(11),b)+OP('=')+GL('k'+SUB(1),b+0.16)+OP('+')+GL('k'+SUB(2),b+0.36)+OP('=')+GL(fmt(m.kf[0],1),b+0.56)+OP('+')+GL(fmt(m.kf[1],1),b+0.70)+OP('=')+PI(fmt(m.k[0]+m.k[1],1),b+0.94,'res');},
+       function(){var b=0.95;return TAG('off-diagonal')+GL('K'+SUB(12),b)+OP('=')+OP('\u2212')+GL('k'+SUB(2),b+0.16)+OP('=')+PI(fmt(-m.k[1],1),b+0.40,'res');},
+       function(){var b=1.9;return TAG('symmetry')+'every spring is shared by two floors, so '+GL('K = K'+SUP('T'),b+0.1);}
+     ]),
+     n:"Values in kN/m so the numbers stay readable; they become N/m inside the solver.",
+     svg:matBlockSVG(matRows(m.K,function(v){return v?fmt(v/1000,1):'0';}),{stagger:0.05})},
+    {k:"03 \u00B7 matrices",t:"The mass matrix is diagonal",
+     b:"Masses sit at the floors, not between them, so nothing off the diagonal. Multiply by M and a vector just scales each floor by its own mass.",
+     fx:EQ((function(){
+       var rows=[];
+       m.ms.forEach(function(v,ix){rows.push(function(){var b=ix*0.42;return GL('m'+SUB(ix+1),b)+OP('=')+GL(fmt(v,0),b+0.12)+' kg';});});
+       rows.push(function(){var b=m.ms.length*0.42;return TAG('all other entries')+GL('0',b);});
+       return rows;
+     })()),
+     svg:matBlockSVG(matRows(m.M,function(v){return v?fmt(v,0):'0';}),{stagger:0.05})},
+    {k:"03 \u00B7 matrices",t:"Equilibrium of the swinging building",
+     b:"Newton for each floor: inertia minus the springs pulling back equals zero. That gives the matrix equation. The zero vector on the right is why this is an eigenvalue problem and not a linear system.",
+     fx:EQ([
+       function(){var b=0;return GL('K',b)+GL('\u03C6',b+0.10)+OP('=')+GL('\u03C9'+SUP('2'),b+0.30)+GL('M',b+0.44)+GL('\u03C6',b+0.54);},
+       function(){var b=0.9;return OP('\u21D2')+GL('(K \u2212 \u03C9'+SUP('2')+'M)',b+0.10)+GL('\u03C6',b+0.36)+OP('=')+GL('0',b+0.46);},
+       function(){var b=1.8;return TAG('note')+'a nonzero \u03C6 exists only when the bracket '+GL('cannot be inverted',b);}
+     ]),
+     svg:matBlockSVG(matRows(m.K,function(v){return fmt(v/1000,0);}),{stagger:0.05})},
+    {k:"03 \u00B7 matrices",t:"Divide everything by m\u2081",
+     b:"The stiffnesses are in the tens of thousands and the masses in the thousands. Divide <b>every entry of both matrices</b> by the same number, m\u2081, and the mass matrix collapses to 1, 0.5, 0.25 \u2014 something you can check at a glance. Nothing physical changes; the equations are only rescaled.",
+     fx:EQ([
+       function(){var b=0;return GL('K\u2032',b)+OP('=')+F(GL('K',b+0.16),GL('m'+SUB(1),b+0.34),{lg:1})+'\u2003\u2003'+GL('M\u2032',b+0.68)+OP('=')+F(GL('M',b+0.84),GL('m'+SUB(1),b+1.02),{lg:1});},
+       function(){var b=0.95;return GL('M\u2032',b)+OP('=')+'diag(1,\u2002'+fmt(m.ms[1]/m.ms[0],3)+',\u2002'+fmt(m.ms[n-1]/m.ms[0],3)+')';},
+       function(){var b=1.75;return TAG('why it works')+'every row is divided by the same number, so the roots do not move';}
+     ]),
+     n:"m\u2081 = "+fmt(m.ms[0],0)+" kg \u2014 the bottom floor of this problem.",
+     svg:divideSVG(m)},
+    {k:"03 \u00B7 matrices",t:"Now put B = \u03C9\u00B2 on the diagonal",
+     b:"B is the only unknown left. Because M\u2032 is diagonal, B lands on the diagonal and nowhere else: each diagonal cell becomes stiffness minus B times its mass ratio. The nine cells get letter names so the expansion can point at them.",
+     fx:EQ([
+       function(){var b=0;return GL('(K\u2032 \u2212 B M\u2032)',b)+GL('\u03C6',b+0.34)+OP('=')+GL('0',b+0.44);},
+       function(){var b=0.9;return TAG('diagonal')+GL('a',b)+OP('=')+GL(fmt(Kp[0][0],2),b+0.14)+OP('\u2212')+GL('B',b+0.40);},
+       function(){var b=1.8;return TAG('off-diagonal')+GL('b',b)+OP('=')+GL(fmt(Kp[0][1],2),b+0.14)+'\u2014 no B ever appears here';}
+     ]),
+     svg:cofactorSVG(m,0,-1)}
+  ]});
+
+  /* ---------- 4. eigenvalue form ---------- */
+  cls.push({id:"eig",name:"Eigenvalue",frames:[
+    {k:"04 \u00B7 eigenvalue",t:"Guess a sway that repeats itself",
+     b:"Try every floor moving together, sinusoidally: x = \u03C6 sin \u03C9t. Differentiate twice \u2014 the shape stays, a \u2212\u03C9\u00B2 appears. Substitute and the sine cancels, leaving a statement about shape and rate only.",
+     fx:EQ([
+       function(){var b=0;return GL('x(t)',b)+OP('=')+GL('\u03C6',b+0.16)+' sin '+GL('\u03C9t',b+0.34);},
+       function(){var b=0.85;return GL('x\u0308(t)',b)+OP('=')+OP('\u2212')+GL('\u03C9'+SUP('2'),b+0.20)+GL('\u03C6',b+0.32)+' sin '+GL('\u03C9t',b+0.46);},
+       function(){var b=1.7;return TAG('substitute')+GL('(K \u2212 \u03C9'+SUP('2')+'M)',b)+GL('\u03C6',b+0.30)+OP('=')+GL('0',b+0.42);}
+     ]),
+     n:"Only special \u03C9 make a nonzero \u03C6 possible \u2014 those are the building's natural frequencies.",
+     svg:sineSVG(m)},
+    {k:"04 \u00B7 eigenvalue",t:"Read it one row at a time",
+     b:"Row 1 says: every stiffness on that row times the shape value of its floor, added up, must equal \u03C9\u00B2 m\u2081 \u03C6\u2081. Three products on the left, one on the right \u2014 this is the arithmetic behind the eigenvalue.",
+     fx:EQ([
+       function(){var b=0;return '\u03A3'+SUB('j')+GL('K'+SUB('1j'),b+0.10)+GL('\u03C6'+SUB('j'),b+0.24)+OP('=')+GL('\u03C9'+SUP('2'),b+0.42)+GL('m'+SUB(1),b+0.54)+GL('\u03C6'+SUB(1),b+0.66);},
+       function(){var b=0.85,s='',q,v,neg;
+         for(q=0;q<n;q++){v=m.K[0][q]/1000;neg=v<0;
+           s+=(q===0?(neg?OP('\u2212'):''):OP(neg?'\u2212':'+'))+GL(fmt(Math.abs(v),1),b+0.06+0.28*q)+OP('\u00D7')+GL(fmt(m.phi[0][q],4),b+0.14+0.28*q);}
+         var sums=0;for(q=0;q<n;q++){sums+=(m.K[0][q]/1000)*m.phi[0][q];}
+         return s+OP('=')+PI(fmt(sums,1)+' kN',b+0.10+0.28*n,'res');},
+       function(){var b=2.15;return GL('\u03C9'+SUP('2'),b)+GL('m'+SUB(1),b+0.12)+GL('\u03C6'+SUB(1),b+0.24)+OP('=')+GL(fmt(m.lam[0],1),b+0.40)+OP('\u00D7')+GL(fmt(m.ms[0],0),b+0.52)+OP('\u00D7')+GL(fmt(m.phi[0][0],4),b+0.66)+OP('=')+PI(fmt(m.lam[0]*m.ms[0]*m.phi[0][0]/1000,1)+' kN',b+0.92,'res');}
+     ]),
+     n:"Units work because \u03C6 is read in metres (roof = 1.000 m), so K\u03C6 is a force in kN.",
+     svg:dotWalkSVG(m)}
+  ]});
+
+  /* ---------- 5. determinant ---------- */
+  var detFrames=[], i2;
+  function tdata(j){
+    var A=[],r,c2;
+    for(r=0;r<n;r++){A.push([]);for(c2=0;c2<n;c2++)A[r].push([-Mp[r][c2],Kp[r][c2]]);}
+    var cs=[];for(c2=0;c2<n;c2++)if(c2!==j)cs.push(c2);
+    var p1=cs[0],p2=cs[1];
+    var main=pmul(A[1][p1],A[2][p2]), cross=pmul(A[1][p2],A[2][p1]);
+    var minor=psub(main,cross), term=pmul(A[0][j],minor);
+    return {main:main,cross:cross,minor:minor,term:term,p1:p1,p2:p2,pivot:A[0][j],sign:(j===1?-1:1)};
+  }
+  if(n===3){
+    var t1=tdata(0), t2=tdata(1);
+    detFrames.push({k:"05 \u00B7 determinant",t:"A 3\u00D73 determinant is three smaller ones",
+      b:"Expand along the top row: each of its three entries is a <b>pivot</b>, and each pivot multiplies the 2\u00D72 that is left once you delete its row and its column. The signs alternate + \u2212 +, and the diagonal pattern below is all you have to remember.",
+      fx:EQ([
+        function(){var b=0;return GL('det',b)+OP('=')+'<span class="c1">'+GL('a',b+0.10)+GL('(ei \u2212 fh)',b+0.26)+'</span>'+OP('\u2212')+'<span class="c2">'+GL('b',b+1.05)+GL('(di \u2212 fg)',b+1.21)+'</span>'+OP('+')+'<span class="c3">'+GL('c',b+2.0)+GL('(dh \u2212 eg)',b+2.16)+'</span>';},
+        function(){var b=2.85;return TAG('read it as')+'pivot \u00D7 (main \u2218 cross of the 2\u00D72 left behind)';}
+      ]),
+      svg:cofactorSVG(m,0,-2)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Term 1: delete row 1 and column 1",
+      b:"Pivot <b>a</b> is the corner cell, so removing its row and column leaves e, f, h, i exactly where they were. Nothing is copied and nothing moves \u2014 the four surviving cells are already the 2\u00D72 you need.",
+      fx:EQ([
+        function(){var b=0;return TAG('pivot')+GL('a',b)+OP('=')+GL(pnum(t1.pivot,2),b+0.18);},
+        function(){var b=0.85;return TAG('sign')+'+ keep this term as it comes';}
+      ]),
+      svg:cofactorSVG(m,0,0)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Pair \u2198 e with i and multiply",
+      b:"Inside the 2\u00D72, multiply the cells on the main diagonal: e with i. This is one of the only two multiplications term 1 needs.",
+      fx:EQ([
+        function(){var b=0;return GL('e \u00D7 i',b)+OP('=')+PI(pnum(t1.main,2),b+0.30,'flow res');},
+        function(){var b=0.9;return TAG('why both')+'a 2\u00D72 determinant is always main diagonal minus the other one';}
+      ]),
+      svg:cofactorSVG(m,0,1)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Pair \u2199 f with h and subtract",
+      b:"The other diagonal gives the second product, and it is <b>subtracted</b>: minor = e\u00B7i \u2212 f\u00B7h. Multiply that by the pivot a and term 1 is done.",
+      fx:EQ([
+        function(){var b=0;return GL('f \u00D7 h',b)+OP('=')+PI(pnum(t1.cross,2),b+0.30,'flow res');},
+        function(){var b=0.9;return TAG('minor')+GL('e\u00B7i \u2212 f\u00B7h',b)+OP('=')+PI(pnum(t1.minor,2),b+0.44,'flow res');},
+        function(){var b=1.85;return TAG('term 1')+'T'+SUB(1)+OP('=')+PI(pnum(t1.term,2),b+0.30,'flow res');}
+      ]),
+      svg:cofactorSVG(m,0,2)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Term 2: the middle pivot, with a minus sign",
+      b:"Now the pivot is <b>b</b> \u2014 the cell joining floors 1 and 2, a stiffness with no B in it. Delete row 1 and column 2; the 2\u00D72 that survives is d, f, g, i, and the whole term carries a minus sign because of its position.",
+      fx:EQ([
+        function(){var b=0;return TAG('pivot')+GL('b',b)+OP('=')+GL(pnum(t2.pivot,2),b+0.18)+'<span class="hint-inline">no B \u2014 this term is a lower-degree polynomial</span>';}
+      ]),
+      svg:cofactorSVG(m,1,0)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Pair \u2198 d\u00B7i and \u2199 f\u00B7g",
+      b:"Same two products, different cells: main diagonal d with i, cross diagonal f with g. Subtract, multiply by b, and subtract the whole thing from term 1.",
+      fx:EQ([
+        function(){var b=0;return GL('d \u00D7 i',b)+OP('\u2212')+GL('f \u00D7 g',b+0.34)+OP('=')+PI(pnum(t2.minor,2),b+0.72,'flow res');},
+        function(){var b=0.85;return TAG('term 2')+'\u2212 b \u00D7 minor'+OP('=')+PI(pnum(t2.term.map(function(v){return -v;}),2),b+0.30,'flow res');}
+      ]),
+      svg:cofactorSVG(m,1,2)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Term 3 dies: its pivot is zero",
+      b:"The corner cell <b>c</b> joins floor 1 to floor 3, and no spring does that \u2014 it is zero, and a zero pivot wipes out its whole term however large the minor is. That is why the determinant only has two live products.",
+      fx:EQ([
+        function(){var b=0;return TAG('pivot')+GL('c',b)+OP('=')+PI('0',b+0.16,'res')+OP('\u21D2')+'term 3 = 0';}
+      ]),
+      svg:cofactorSVG(m,2,2)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Add the terms: the determinant",
+      b:"With the alternating signs, det = T\u2081 \u2212 T\u2082 + T\u2083. Each T is a polynomial in B, so stacking them and adding collapses everything into one cubic \u2014 the characteristic polynomial.",
+      fx:EQ([
+        function(){var b=0;return GL('det(B)',b)+OP('=')+PI(pnum(co,2),b+0.26,'flow res');},
+        function(){var b=0.95;return TAG('degree')+'three roots \u2014 three natural frequencies, no more';}
+      ]),
+      svg:sumSVG(m)});
+  } else {
+    detFrames.push({k:"05 \u00B7 determinant",t:"A 2\u00D72 determinant is one subtraction",
+      b:"With two floors the determinant is just the main diagonal product minus the cross product: a\u00B7d \u2212 b\u00B7c. The two arrows below are exactly those products.",
+      fx:EQ([
+        function(){var b=0;return GL('det',b)+OP('=')+GL('a',b+0.10)+GL('d',b+0.20)+OP('\u2212')+GL('b',b+0.40)+GL('c',b+0.50);}
+      ]),
+      svg:cofactorSVG(m,0,0)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Pair \u2198 a with d",
+      b:"The main diagonal product stays positive.",
+      fx:EQ([function(){var b=0;return GL('a \u00D7 d',b)+OP('=')+PI(pnum(pmul([-Mp[0][0],Kp[0][0]],[-Mp[1][1],Kp[1][1]]),2),b+0.30,'flow res');}]),
+      svg:cofactorSVG(m,0,1)});
+    detFrames.push({k:"05 \u00B7 determinant",t:"Pair \u2199 b with c and subtract",
+      b:"The cross product is subtracted. What is left is the determinant, a quadratic in B.",
+      fx:EQ([
+        function(){var b=0;return GL('b \u00D7 c',b)+OP('=')+PI(pnum(pmul([-Mp[0][1],Kp[0][1]],[-Mp[1][0],Kp[1][0]]),2),b+0.30,'flow res');},
+        function(){var b=0.9;return TAG('det')+PI(pnum(co,2),b,'flow res');}
+      ]),
+      svg:cofactorSVG(m,0,2)});
+  }
+  detFrames.push({k:"05 \u00B7 determinant",t:"The characteristic equation",
+    b:"Set the determinant to zero: that equation is what selects the frequencies. Divide every term by the leading coefficient so the polynomial starts with 1B\u00B3 \u2014 same roots, tidier arithmetic.",
+    fx:EQ([
+      function(){var b=0;return GL('det(B)',b)+OP('=')+GL('0',b+0.4)+OP('\u21D2')+PI(pnum(co,2),b+0.6,'flow res')+OP('=')+GL('0',b+2.6);},
+      function(){var b=1.0;return TAG('\u00F7 '+fmt(lead,3))+OP('\u21D2')+'&nbsp;'+GL(pnum(mono,4),b+0.2);}
+    ]),
+    n:"Degree "+n+" \u2014 exactly "+n+" roots, hence "+n+" natural frequencies.",
+    svg:curveSVG(m,{roots:false})});
+  cls.push({id:"det",name:"Determinant",frames:detFrames});
+
+  /* ---------- 6. frequencies ---------- */
+  var modeRows=[];
+  for(i=0;i<n;i++)modeRows.push('f'+sub(i)+' = '+fmt(m.freq[i],3)+' Hz');
+  cls.push({id:"roots",name:"Frequencies",frames:[
+    {k:"06 \u00B7 roots",t:"Where the curve crosses zero",
+     b:"The determinant is a polynomial, so its roots are where the curve meets the axis. All "+n+" roots come out positive \u2014 that is what turns them into frequencies instead of nonsense.",
+     n:"Read them off: B\u2081, B\u2082, B\u2083 \u2014 each is \u03C9\u00B2 for one mode.",
+     svg:curveSVG(m,{roots:true})},
+    {k:"06 \u00B7 roots",t:"From B to hertz and seconds",
+     b:"Square-root for rad/s, divide by 2\u03C0 for hertz, invert for the period. The first period is how long one full sway of the slow mode takes.",
+     fx:EQ([
+       function(){var b=0;return GL('\u03C9'+SUB(1),b)+OP('=')+SQ(GL(fmt(m.lam[0],1),b+0.2))+OP('=')+PI(fmt(m.omega[0],3)+' rad/s',b+0.55,'res');},
+       function(){var b=0.9;return GL('f'+SUB(1),b)+OP('=')+F(GL('\u03C9'+SUB(1),b+0.16),GL('2\u03C0',b+0.34),{lg:1})+OP('=')+F(GL(fmt(m.omega[0],3),b+0.50),GL('6.2832',b+0.66),{lg:1})+OP('=')+PI(fmt(m.freq[0],3)+' Hz',b+0.92,'res');},
+       function(){var b=1.85;return GL('T'+SUB(1),b)+OP('=')+F(GL('1',b+0.16),GL('f'+SUB(1),b+0.30),{lg:1})+OP('=')+F(GL('1',b+0.46),GL(fmt(m.freq[0],3),b+0.60),{lg:1})+OP('=')+PI(fmt(m.per[0],4)+' s',b+0.86,'res');},
+       function(){var b=2.8;return TAG('all modes')+'<span class="hint-inline">'+modeRows.join(' \u00B7 ')+'</span>';}
+     ]),
+     n:"Check: the roots add to the trace of M\u207B\u00B9K, which is "+fmt(traceOf(m),1)+".",
+     svg:freqSVG(m)},
+    (function(){
+      var S2=scaledMat(m), co2=detPolyN(S2.Kp,S2.Mp);
+      var gs=[1000,10000,35000], res=[], i2;
+      for(i2=0;i2<n;i2++)res.push(newtonRoot(co2,gs[i2]));
+      var rows=[
+        function(){var b=0;return TAG('as it is')+GL('det',b)+OP('=')+GL(pnum(co2,2).split('B').join('X'),b+0.25)+OP('=')+GL('0',b+2.2);}
+      ];
+      for(i2=0;i2<n;i2++)(function(k){
+        rows.push(function(){
+          var b=0.9+k*0.8;
+          return TAG('guess '+fmt(gs[k],0))+'X\u2080 = '+fmt(gs[k],0)+OP('\u21D2')+
+            PI('X = '+fmt(res[k].x,4),b,'flow res')+'<span class="hint-inline">'+res[k].it+' steps</span>';
+        });
+      })(i2);
+      return {k:"06 \u00B7 roots",t:"Type it as it is, then SHIFT + SOLVE",
+        b:"On the calculator the equation goes in exactly as written \u2014 nothing is shifted across, nothing is divided by the leading coefficient. SOLVE still needs a starting guess: from there the solver steps downhill until the answer stops moving, so the guess decides which of the "+n+" roots comes back.",
+        fx:EQ(rows),
+        n:"The same equation holds every root. A guess near a root lands on it in three or four steps; type a guess sitting on another root and SOLVE hands you that one instead \u2014 which is exactly why all "+n+" guesses are worth running.",
+        svg:newtonSVG(m)};
+    })()
+  ]});
+
+  /* ---------- 7. mode shapes ---------- */
+  for(i=0;i<n;i++)cls.push(modeChapter(m,i));
+
+  /* ---------- 8. motion ---------- */
+  var motion=[], mno=("0"+(7+n)).slice(-2);
+  for(i=0;i<n;i++){
+    var ph=m.phi[i], sgn=ph.map(function(v){return v<0?-1:1;}), opp=[], j2;
+    for(j2=0;j2<n-1;j2++){if(sgn[j2]!==sgn[n-1])opp.push(j2+1);}
+    var note=opp.length===0
+      ? 'All '+n+' entries of \u03C6'+sub(i)+' carry the same sign, so the floors lean together and cross zero together \u2014 one rigid shape swinging, not a wave.'
+      : 'Floor '+(opp.join(' and '))+(opp.length>1?' lean':' leans')+' opposite to the roof in \u03C6'+sub(i)+', so the building bends at '+(opp.length>1?'those levels':'that level')+' instead of leaning as a block.';
+    var dur=2600/(m.freq[i]/m.freq[0]); if(dur<520)dur=520; if(dur>3000)dur=3000;
+    var slow=Math.round(dur/1000/m.per[i]);
+    motion.push({k:mno+" \u00B7 motion",t:"Mode "+(i+1)+" in motion",
+      b:"Every floor reaches its extreme, and crosses rest, at the same instant \u2014 that is what makes it a mode rather than a wiggle. Its true period is T"+sub(i)+" = "+fmt(m.per[i],3)+" s; <span class=\"only-slow\">the animation runs "+slow+"\u00D7 slower so the eye can follow the shape.</span><span class=\"only-true\">at true speed it is a blur \u2014 the shape is what you can actually see.</span><span class=\"only-static\">your system asks for reduced motion, so the frame is held still at its extreme.</span>",
+      f:"x(t) = A \u00B7 \u03C6"+sub(i)+" \u00B7 sin(\u03C9"+sub(i)+" t)\n\u03C9"+sub(i)+" = "+fmt(m.omega[i],3)+" rad/s   \u00B7   T"+sub(i)+" = "+fmt(m.per[i],3)+" s",
+      n:note, hold:Math.max(5200,Math.round(dur*2.2)+900),
+      live:"mode",mode:i,svg:""});
+  }
+  var ratios=m.freq.slice(1).map(function(v,k2){return 'mode '+(k2+2)+' is '+fmt(v/m.freq[0],2)+'\u00D7 faster';}).join(', ');
+  motion.push({k:mno+" \u00B7 motion",t:"All modes at once: the real motion",
+    b:"Release the building from your initial condition and every mode rings at once. A roof pull is the awkward case: the roof is the floor every mode moves the most, so the fast modes come in almost as strong as the slow one \u2014 which is why the trace is a fast ripple riding on a slow sway.",
+    f:"x(t) = \u03A3 \u03C6\u0302\u1D63 q\u1D63(t)\nq\u1D63(t) = q\u1D63(0) cos(\u03C9\u1D63 t) + q\u0307\u1D63(0)/\u03C9\u1D63 \u00B7 sin(\u03C9\u1D63 t)",
+    n:'The '+n+' modal periods are far apart \u2014 '+ratios+'. Start the building in its first-mode shape instead and the ripple vanishes: it would ring cleanly at T'+sub(0)+' = '+fmt(m.per[0],3)+' s.',
+    hold:8200, live:"total",svg:""});
+  cls.push({id:"motion",name:"In motion",frames:motion});
+
+  return cls;
+}
+
+function polyTerm(m,r){
+  var S2=scaledMat(m),Kp=S2.Kp,Mp=S2.Mp;
+  function a(i,j){return [-Mp[i][j],Kp[i][j]];}
+  if(m.N===2)return r===0?pmul(a(0,0),a(1,1)):psub([0],[0,0]).concat([]);
+  if(r===0)return pmul(a(0,0),psub(pmul(a(1,1),a(2,2)),pmul(a(1,2),a(2,1))));
+  if(r===1)return pmul(a(0,1),psub(pmul(a(1,0),a(2,2)),pmul(a(1,2),a(2,0))));
+  return pmul(a(0,2),psub(pmul(a(1,0),a(2,1)),pmul(a(1,1),a(2,0))));
+}
+function traceOf(m){
+  var S2=scaledMat(m),s=0,i;
+  for(i=0;i<m.N;i++)s+=S2.Kp[i][i]/S2.Mp[i][i];
+  return s;
+}
+
+/* matrix figure wrapper */
+function matBlockSVG(rows,o){
+  o=o||{};
+  var W=520,H=340,n=rows.length,cw=Math.min(96,300/n),ch=Math.min(64,210/n);
+  var x=(W-n*cw)/2, y=(H-n*ch)/2-6;
+  var s=svgOpen(W,H);
+  s+=matBlock(x,y,rows,{cw:cw,ch:ch,fs:n>2?11.5:15,stagger:o.stagger});
+  if(o.heads){
+    var j2;
+    for(j2=0;j2<n;j2++)s+=t(x+(j2+0.5)*cw,y-13,o.heads[j2],{fs:12,anchor:'middle',fill:(o.headCols||[])[j2%4]||MUTED,weight:700});
+  }
+  s+='</svg>';
+  return s;
+}
+
+/* ---------- a cofactor term, drawn straight onto the matrix ---------- */
+function cofactorSVG(m,j,stage){
+  var n=m.N,S2=scaledMat(m),Kp=S2.Kp,Mp=S2.Mp,i,k;
+  var LET=[['a','b','c'],['d','e','f'],['g','h','i']];
+  var L2=(n===3?LET:[['a','b'],['c','d']]);
+  var cw=(n===3?112:142), ch=(n===3?56:76), mx=(520-n*cw)/2, my=(n===3?64:70);
+  var H=(n===3?368:346);
+  var cols=[];for(i=0;i<n;i++)if(i!==j)cols.push(i);
+  var hot=function(r,c){return stage>=0&&r===0&&c===j;};
+  var mino=function(r,c){return stage>=0&&r>0&&c!==j;};
+  var dim=function(r,c){return (stage>=0&&!hot(r,c)&&(r===0||c===j))||(stage===-2&&r>0);};
+  var cx=function(c){return mx+c*cw+cw/2;},cy=function(r){return my+r*ch+ch/2;};
+  var s=svgOpen(520,H), bs=2.2;
+  /* matrix brackets */
+  s+=line(mx-14,my,mx-14,my+n*ch,{stroke:INK,w:bs});
+  s+=line(mx-14,my,mx-7,my,{stroke:INK,w:bs});
+  s+=line(mx-14,my+n*ch,mx-7,my+n*ch,{stroke:INK,w:bs});
+  s+=line(mx+n*cw+14,my,mx+n*cw+14,my+n*ch,{stroke:INK,w:bs});
+  s+=line(mx+n*cw+14,my,mx+n*cw+7,my,{stroke:INK,w:bs});
+  s+=line(mx+n*cw+14,my+n*ch,mx+n*cw+7,my+n*ch,{stroke:INK,w:bs});
+  /* the grid */
+  for(i=0;i<n;i++)for(k=0;k<n;k++){
+    var x=mx+k*cw,y=my+i*ch;
+    var f=hot(i,k)?'#f4f5ff':(mino(i,k)?'#f4fdfa':'#fff');
+    if(dim(i,k))f='#fcfcfd';
+    s+=rect(x,y,cw,ch,0,{fill:f,stroke:'#ececf2',sw:1,op:dim(i,k)?0.6:1});
+  }
+  /* what survives, outlined */
+  if(stage>=0){
+    var out='';
+    if(n===2){
+      out='<rect x="'+(mx+cols[0]*cw-4)+'" y="'+(my+ch-4)+'" width="'+(cw+8)+'" height="'+(ch+8)+'" rx="13" fill="none" stroke="'+MINT+'" stroke-width="1.8" stroke-dasharray="7 5"/>';
+    } else {
+      var runs=[],st=cols[0],pr=cols[0];
+      for(i=1;i<cols.length;i++){if(cols[i]===pr+1){pr=cols[i];}else{runs.push([st,pr]);st=cols[i];pr=cols[i];}}
+      runs.push([st,pr]);
+      for(i=0;i<runs.length;i++){
+        var rx0=mx+runs[i][0]*cw-4,rw=(runs[i][1]-runs[i][0]+1)*cw+8;
+        out+='<rect x="'+rx0.toFixed(1)+'" y="'+(my+ch-4)+'" width="'+rw.toFixed(1)+'" height="'+(2*ch+8)+'" rx="13" fill="none" stroke="'+MINT+'" stroke-width="1.8" stroke-dasharray="7 5"/>';
+      }
+    }
+    s+='<g class="pin" style="animation-delay:0.12s">'+out+'</g>';
+  }
+  /* pivot ring */
+  if(stage>=0){
+    s+='<rect x="'+(mx+j*cw+1.8)+'" y="'+(my+1.8)+'" width="'+(cw-3.6)+'" height="'+(ch-3.6)+'" rx="10" fill="none" stroke="'+ACCENT+'" stroke-width="2.2"/>';
+  }
+  /* pairing arrows, under the numerals */
+  var yNum=function(r){return cy(r)+11;};   /* the numerals sit below the cell centre */
+  var m1x=n===3?cx(cols[0]):cx(0), m1y=yNum(n===3?1:0), m2x=n===3?cx(cols[1]):cx(1), m2y=yNum(n===3?2:1);
+  var a1x=n===3?cx(cols[1]):cx(1), a1y=yNum(n===3?1:0), a2x=n===3?cx(cols[0]):cx(0), a2y=yNum(n===3?2:1);
+  var hw=function(r,c){return cellText(Kp,Mp,r,c).length*(n===3?3.3:3.9);};
+  var mr1=n===3?1:0, mr2=n===3?2:1;
+  if(stage>=2)s+=pairArrow(a1x,a1y,a2x,a2y,AMBER,0.05,0,false,hw(mr1,cols[1]),hw(mr2,cols[0]));
+  if(stage>=1)s+=pairArrow(m1x,m1y,m2x,m2y,MINT,0.05,0,stage>=2,hw(mr1,cols[0]),hw(mr2,cols[1]));
+  /* letters, then the numbers */
+  var lc=function(r,c){
+    if(stage>=1&&r===1&&c===cols[0])return MINT;
+    if(stage>=1&&r===2&&c===cols[1])return MINT;
+    if(stage>=2&&r===1&&c===cols[1])return AMBER;
+    if(stage>=2&&r===2&&c===cols[0])return AMBER;
+    return hot(r,c)?ACCENT:(mino(r,c)&&stage>=0?MINT:'#b8b8c6');
+  };
+  for(i=0;i<n;i++)for(k=0;k<n;k++){
+    s+=t(mx+k*cw+9,my+i*ch+16,L2[i][k],{fs:9.5,weight:700,mono:1,fill:lc(i,k),op:dim(i,k)?.5:1});
+    s+=t(mx+k*cw+cw/2,my+i*ch+ch/2+15,cellText(Kp,Mp,i,k),
+      {fs:n===3?10.5:12.5,anchor:'middle',mono:1,weight:hot(i,k)?700:500,fill:dim(i,k)?FAINT:INK,op:dim(i,k)?.55:1});
+  }
+  /* signs above row 1 */
+  if(stage===-2){
+    for(k=0;k<n;k++)s+='<g class="pin" style="animation-delay:'+(0.5+k*0.3).toFixed(2)+'s">'+
+      t(cx(k),my-14,k===1?'\u2212':(k===2?'+':'\u002B'),{fs:16,anchor:'middle',weight:700,fill:k===1?AMBER:ACCENT})+'</g>';
+    s+=t(14,my-14,'signs',{fs:10.5,fill:FAINT});
+  }
+  /* captions */
+  var ty=my+n*ch+34;
+  if(stage===-1){
+    s+=t(14,ty,'row 1 holds the three pivots; a, e and i carry B \u2014 nothing else does',{fs:11.5,fill:MUTED});
+  } else if(stage===-2){
+    s+=t(14,ty,'each entry is K\u2032 \u2212 B M\u2032 \u2014 a diagonal cell, so it carries B',{fs:11.5,fill:MUTED});
+  } else {
+    var pv=n===3?[-Mp[0][j],Kp[0][j]]:[-Mp[0][j],Kp[0][j]];
+    var lbl=n===3?('term '+(j+1)+'  \u00B7  pivot '+L2[0][j]):('det  \u00B7  pivot '+L2[0][0]);
+    var eq=pnum(pv,2).replace(/ \u2212 /g,' \u2212 ').replace(/ \+ /g,' + ');
+    s+='<g class="pin" style="animation-delay:0.05s">'+t(14,ty,lbl+' = '+eq,{fs:12.5,weight:700})+'</g>';
+    if(stage===0){
+      s+='<g class="pin" style="animation-delay:0.28s">'+t(14,ty+25,(n===3?('delete row 1 and column '+(j+1)+' \u2014 the faint cells are gone'):'every cell survives \u2014 a, b, c, d'),{fs:11.5,fill:MUTED})+'</g>';
+      s+='<g class="pin" style="animation-delay:0.5s">'+t(14,ty+50,(n===3?'what survives is the 2\u00D72 outlined in green':'what survives is d \u2014 the cell in green'),{fs:11.5,fill:MINT,weight:600})+'</g>';
+    }
+    var m1l=n===3?LET[1][cols[0]]:'a', m2l=n===3?LET[2][cols[1]]:'d';
+    var x1l=n===3?LET[1][cols[1]]:'b', x2l=n===3?LET[2][cols[0]]:'c';
+    if(stage>=1){
+      s+='<g class="pin" style="animation-delay:0.4s">'+t(14,ty+25,'main \u2198  '+m1l+' \u00D7 '+m2l,{fs:12.5,mono:1,fill:MINT,weight:700})+'</g>';
+    }
+    if(stage>=2){
+      s+='<g class="pin" style="animation-delay:0.6s">'+t(14,ty+50,'cross \u2199  '+x1l+' \u00D7 '+x2l,{fs:12.5,mono:1,fill:AMBER,weight:700})+'</g>';
+      s+='<g class="pin" style="animation-delay:0.8s">'+t(14,ty+75,'minor = main \u2212 cross',{fs:12.5,mono:1,fill:INK,weight:600})+'</g>';
+      s+='<g class="pin" style="animation-delay:1.0s">'+t(14,ty+100,(n===3?('T'+sub(j)+' = '):'det = ')+(j===1?'\u2212':'\u002B')+' pivot \u00D7 minor',{fs:12.5,mono:1,fill:[ACCENT,MINT,AMBER][j],weight:700})+'</g>';
+    }
+  }
+  s+='</svg>';
+  return s;
+}
+
+/* ---------- K and M, each divided by m1 ---------- */
+function divideSVG(m){
+  var S2=scaledMat(m),Kp=S2.Kp,Mp=S2.Mp,n=m.N,i;
+  var cw=(n===3?68:96), ch=(n===3?40:54), gap=86;
+  var mw=n*cw, xL=(520-(2*mw+gap))/2, xR=xL+mw+gap;
+  var H=(n===3?446:436);
+  var s=svgOpen(520,H);
+  var kRows=matRows(m.K,function(v){return fmt(v,0);});
+  var kpRows=matRows(Kp,function(v){return Math.abs(v)<1e-9?'0':fmt(v,2);});
+  var mRows=matRows(m.M,function(v){return v?fmt(v,0):'0';});
+  var mpRows=matRows(Mp,function(v){return Math.abs(v)<1e-9?'0':fmt(v,2);});
+  var fs=(n===3?9.2:11);
+  s+=t(xL,40,'[K]   N/m',{fs:11,fill:MUTED,weight:700});
+  s+=t(xR,40,'[K\u2032] = [K] \u00F7 m\u2081',{fs:11,fill:ACCENT,weight:700});
+  s+=matBlock(xL,54,kRows,{cw:cw,ch:ch,fs:fs});
+  s+=matBlock(xR,54,kpRows,{cw:cw,ch:ch,fs:fs,hot:function(r,c){return r===c;}});
+  s+=t(xL+mw+gap/2,54+n*ch/2+6,'\u00F7 '+fmt(m.ms[0],0),{fs:12,anchor:'middle',weight:700,fill:ACCENT});
+  var y2=54+n*ch+84;
+  s+=t(xL,y2-14,'[M]   kg',{fs:11,fill:MUTED,weight:700});
+  s+=t(xR,y2-14,'[M\u2032] = [M] \u00F7 m\u2081',{fs:11,fill:ACCENT,weight:700});
+  s+=matBlock(xL,y2,mRows,{cw:cw,ch:ch,fs:fs});
+  s+=matBlock(xR,y2,mpRows,{cw:cw,ch:ch,fs:fs,hot:function(r,c){return r===c;}});
+  s+=t(xL+mw+gap/2,y2+n*ch/2+6,'\u00F7 '+fmt(m.ms[0],0),{fs:12,anchor:'middle',weight:700,fill:ACCENT});
+  s+=t(14,y2+n*ch+34,'same number top and bottom \u2014 the equations are unchanged, only easier to read',{fs:11,fill:FAINT});
+  s+='</svg>';
+  return s;
+}
+
+/* ---------- T1 / T2 / T3 ladder, then the det they add up to ---------- */
+function sumSVG(m){
+  var n=m.N,S2=scaledMat(m),Kp=S2.Kp,Mp=S2.Mp,i,j;
+  function a(i,j){return [-Mp[i][j],Kp[i][j]];}
+  var TC=[ACCENT,MINT,AMBER], terms=[];
+  if(n===2){
+    terms.push([1,pmul(a(0,0),a(1,1))]);
+    terms.push([-1,pmul(a(0,1),a(1,0))]);
+  } else {
+    for(j=0;j<n;j++){
+      var cs=[];for(i=0;i<n;i++)if(i!==j)cs.push(i);
+      terms.push([(j%2?-1:1),pmul(a(0,j),psub(pmul(a(1,cs[0]),a(2,cs[1])),pmul(a(1,cs[1]),a(2,cs[0]))))]);
+    }
+  }
+  var det=detPolyN(Kp,Mp), lead=det[0]||1, mon=det.map(function(v){return v/lead;});
+  var y0=56, dy=34, H=(n===2?248:284);
+  var s=svgOpen(520,H);
+  function pfs(str){return Math.max(8,Math.min(10.6,452/(0.605*Math.max(1,str.length))));}
+  s+=t(28,26,'each pivot times the 2\u00D72 it leaves behind',{fs:10.5,fill:FAINT,weight:700});
+  var yb=y0, i2;
+  for(i2=0;i2<terms.length;i2++){
+    var poly=pnum(terms[i2][1],2), col=TC[i2%3];
+    s+=t(34,yb,'T'+sub(i2),{fs:12,weight:700,fill:col});
+    s+=t(64,yb,poly,{fs:pfs(poly),mono:1,fill:poly==='0'?FAINT:INK});
+    if(poly==='0')s+=t(84,yb,'\u2014 pivot is zero, so the term vanishes',{fs:9.5,fill:FAINT});
+    yb+=dy;
+  }
+  var ry=yb-16;
+  s+=line(30,ry,492,ry,{stroke:'#dcdce6',w:1.2});
+  var comb='det = ';
+  for(i2=0;i2<terms.length;i2++)comb+=(i2===0?'':(terms[i2][0]<0?' \u2212 ':' + '))+'T'+sub(i2);
+  var yc=ry+30;
+  s+=t(30,yc,comb,{fs:12.5,fill:MUTED,weight:600});
+  var yr=yc+30;
+  s+=t(30,yr,'=',{fs:14,fill:MUTED});
+  s+=t(64,yr,pnum(det,2),{fs:pfs(pnum(det,2)),mono:1,fill:ACCENT,weight:650});
+  var ym=yr+32;
+  s+=t(30,ym,'\u00F7 '+fmt(lead,3),{fs:9.5,fill:FAINT});
+  s+=t(98,ym,pnum(mon,4),{fs:pfs(pnum(mon,4)),mono:1,fill:INK,weight:600});
+  s+='</svg>';
+  return s;
+}
+
+/* ---------- row of K times the shape: exactly which numbers multiply ---------- */
+function dotWalkSVG(m,o){
+  o=o||{};
+  var n=m.N, W=540, H=404, i, j;
+  var ph=m.phi[0], lam=m.lam[0], m0=m.ms[0];
+  var row=[], prod=[], sum=0;
+  for(j=0;j<n;j++){row.push(m.K[0][j]/1000);prod.push(row[j]*ph[j]);sum+=prod[j];}
+  var rhs=lam*m0*ph[0]/1000;
+  var cw=Math.min(146,(W-84)/n), gap=11;
+  var x0=(W-(n*cw+(n-1)*gap))/2;
+  var yK=80, hK=44, yP=178, hP=40;
+  var s=svgOpen(W,H);
+  s+=t(28,26,'row 1 of K  \u00D7  shape \u03C6'+sub(0),{fs:10.5,fill:FAINT,weight:700});
+  s+=t(28,43,'the roof is scaled to 1.000 m, so every product is a force in kN',{fs:10,fill:FAINT});
+  for(j=0;j<n;j++){
+    var x=x0+j*(cw+gap), cx=x+cw/2, col=MC[j%MC.length], d=0.16+0.5*j;
+    s+=t(cx,yK-9,'K'+sub(0)+'j',{fs:9.5,anchor:'middle',fill:FAINT,weight:600});
+    s+='<g class="gl" style="animation-delay:'+d.toFixed(2)+'s">'+rect(x,yK,cw,hK,10,{fill:'#fff',stroke:col,sw:1.7})+'</g>';
+    s+=t(cx,yK+hK/2+5.5,fmt(row[j],1),{fs:13.5,anchor:'middle',mono:1,weight:700});
+    var my=(yK+hK+yP)/2;
+    s+=line(cx,yK+hK+4,cx,yP-4,{stroke:'#dcdce6',w:1.2,dash:'3 4'});
+    s+='<g class="pin" style="animation-delay:'+d.toFixed(2)+'s"><circle cx="'+cx+'" cy="'+my+'" r="9" fill="#fff" stroke="'+col+'" stroke-width="1.2"/></g>';
+    s+=t(cx,my+3.8,'\u00D7',{fs:10.5,anchor:'middle',fill:col,weight:700});
+    s+='<g class="gl" style="animation-delay:'+(d+0.12).toFixed(2)+'s">'+rect(x,yP,cw,hP,10,{fill:'#fff',stroke:col,sw:1.7})+'</g>';
+    s+=t(cx,yP+hP/2+5,fmt(ph[j],4),{fs:12.5,anchor:'middle',mono:1,weight:650});
+    s+=t(cx,yP+hP+15,'\u03C6'+sub(j),{fs:9.5,anchor:'middle',fill:FAINT,weight:600});
+    s+='<g class="pin" style="animation-delay:'+(d+0.26).toFixed(2)+'s">'+t(cx,yP+hP+38,'=',{fs:13,anchor:'middle',fill:MUTED})+'</g>';
+    s+='<g class="pin" style="animation-delay:'+(d+0.3).toFixed(2)+'s">'+t(cx,yP+hP+64,(prod[j]<0?'\u2212':'')+fmt(Math.abs(prod[j]),1),{fs:13,anchor:'middle',mono:1,weight:700,fill:col})+'</g>';
+  }
+  var expr='';
+  for(j=0;j<n;j++){var v=prod[j];expr+=(j===0?(v<0?'\u2212':''):(v<0?' \u2212 ':' + '))+fmt(Math.abs(v),1);}
+  s+='<g class="pin" style="animation-delay:1.85s">';
+  s+=t(28,334,'\u03A3 = '+expr+' = '+fmt(sum,1)+' kN',{fs:12.5,mono:1,weight:600});
+  s+=t(28,356,'\u03C9'+sub(0)+'\u00B2 m'+sub(0)+' \u03C6'+sub(0)+' = '+fmt(lam,1)+' \u00D7 '+fmt(m0,0)+' \u00D7 '+fmt(ph[0],4)+' = '+fmt(rhs,1)+' kN',{fs:12,mono:1,fill:ACCENT,weight:600});
+  s+='</g>';
+  s+='<g class="pin" style="animation-delay:2.3s">'+t(28,384,'both sides agree to within rounding \u2014 the row is satisfied',{fs:10.5,fill:FAINT})+'</g>';
+  s+='</svg>';
+  return s;
+}
+
+/* sine figure */
+function sineSVG(m){
+  var W=520,H=320,x0=70,x1=470,y0=160,A=70;
+  var s=svgOpen(W,H);
+  s+=line(x0,y0,x1+10,y0,{stroke:'#d5d5e0',w:1.4});
+  var d='',i;
+  for(i=0;i<=160;i++){
+    var xx=i/160, ang=xx*Math.PI*2*2;
+    var px=x0+(x1-x0)*xx, py=y0-A*Math.sin(ang);
+    d+=(i?'L':'M')+px.toFixed(1)+' '+py.toFixed(1);
+  }
+  s+=path(d,{stroke:ACCENT,w:2.6,draw:true});
+  s+=line(x0,y0-A,x0,y0+A,{stroke:'#e2e2ec',w:1,dash:'4 4'});
+  s+=t(x0,y0-A-10,'\u03C6',{fs:12,fill:ACCENT,weight:700});
+  s+=t(x1+4,y0-9,'t',{fs:12,fill:MUTED});
+  var bx=x0, be=x0+(x1-x0)/2, by=y0+A+16;
+  s+=line(bx,by,be,by,{stroke:MUTED,w:1});
+  s+=line(bx,by-5,bx,by+5,{stroke:MUTED,w:1});
+  s+=line(be,by-5,be,by+5,{stroke:MUTED,w:1});
+  s+=t((bx+be)/2,by+20,'one period  T = 2\u03C0/\u03C9 = '+fmt(m.per[0],3)+' s',{fs:11,anchor:'middle',fill:MUTED});
+  s+='</svg>';
+  return s;
+}
+function freqSVG(m){
+  var W=520,H=300,i,n=m.N;
+  var s=svgOpen(W,H);
+  var rowH=(H-70)/n, top=56, x0=104, trackW=250, fmax=m.freq[n-1];
+  s+=t(36,34,'frequency',{fs:10,fill:FAINT,weight:700});
+  s+=t(36+trackW+70,34,'\u03C9  rad/s',{fs:10,fill:FAINT,weight:700,anchor:'end'});
+  for(i=0;i<n;i++){
+    var y=top+i*rowH, col=MC[i%MC.length];
+    var w=Math.max(7,trackW*m.freq[i]/fmax);
+    s+=t(36,y+16,'mode '+(i+1),{fs:11,fill:MUTED,weight:700});
+    s+=rect(x0,y+7,trackW,12,6,{fill:'#f2f2f7'});
+    s+=rect(x0,y+7,w,12,6,{fill:col,op:.9,anim:'pop',delay:(0.1*i).toFixed(2)});
+    s+=t(x0,y+40,'f'+sub(i)+' = '+fmt(m.freq[i],3)+' Hz',{fs:11.5,mono:1,fill:INK,weight:600});
+    s+=t(x0+124,y+40,'T'+sub(i)+' = '+fmt(m.per[i],4)+' s',{fs:11,mono:1,fill:MUTED});
+    s+=t(508,y+40,'ω '+fmt(m.omega[i],2),{fs:10.5,mono:1,fill:FAINT,anchor:'end'});
+  }
+  s+='</svg>';
+  return s;
+}
+
+/* ---------- Newton: three guesses, three roots ---------- */
+function newtonSVG(m){
+  var W=520,H=360,n=m.N,S2=scaledMat(m);
+  var co=detPolyN(S2.Kp,S2.Mp), gs=[1000,10000,35000].slice(0,n);
+  var s=svgOpen(W,H),i;
+  s+=t(W/2,28,'one equation  \u00B7  three starting guesses',{fs:11,fill:MUTED,anchor:'middle',weight:600});
+  for(i=0;i<n;i++){
+    var y=86+i*86, r=newtonRoot(co,gs[i]), col=MC[i%MC.length];
+    var xa=166, xb=352;
+    s+=rect(44,y-19,106,38,11,{fill:'#f4f4fa',stroke:LINE});
+    s+=t(97,y+4,'X\u2080 = '+fmt(gs[i],0),{fs:11,anchor:'middle',mono:1,weight:600});
+    s+=line(xa,y,xb-11,y,{stroke:FAINT,w:1.5,dash:'4 5'});
+    s+=path('M'+(xb-15)+' '+(y-4.5)+'L'+xb+' '+y+'L'+(xb-15)+' '+(y+4.5),{stroke:FAINT,w:1.6,cap:1});
+    s+=t((xa+xb)/2,y-9,r.it+' steps',{fs:9,fill:FAINT,anchor:'middle'});
+    s+=rect(360,y-19,132,38,11,{fill:col,op:.1});
+    s+=rect(360,y-19,132,38,11,{stroke:col,sw:1.1,op:.55});
+    s+=t(426,y+4,'X = '+fmt(r.x,4),{fs:11,anchor:'middle',mono:1,fill:col,weight:700});
+  }
+  s+=t(W/2,H-16,'X = B = \u03C9\u00B2   \u00B7   the solver stops when the answer stops moving',{fs:9.5,fill:FAINT,anchor:'middle'});
+  s+='</svg>';
+  return s;
+}
+
+/* ---------- one chapter per mode ---------- */
+function modeChapter(m,r){
+  var n=m.N, S2=scaledMat(m), Kp=S2.Kp, Mp=S2.Mp, lam=m.lam[r];
+  var A=[],i,j;
+  for(i=0;i<n;i++){A.push([]);for(j=0;j<n;j++)A[i].push(Kp[i][j]-(i===j?lam*Mp[i][i]:0));}
+  var rows=A.map(function(row){return row.map(function(v){return fmt(v,2);});});
+  var steps=[], x=[], kk=m.k.map(function(v){return v*1000;});
+  x[n-1]=1;
+  for(var f=n-1;f>=1;f--){
+    var below=kk[f], above=(f<n-1)?kk[f+1]:0;
+    var val=((below+above-lam*m.M[f][f])*x[f]-above*(f+1<n?x[f+1]:0))/below;
+    x[f-1]=val;
+    steps.push({f:f,val:val,below:below,above:above});
+  }
+  var resid=(kk[0]+(n>1?kk[1]:0)-lam*m.M[0][0])*x[0]-(n>1?kk[1]*x[1]:0);
+  var mno=("0"+(7+r)).slice(-2);
+  var Br=I('B')+SUB(r+1);
+  function phq(s){return I('\u03C6')+SUB(s);}
+  function kq(s){return I('k')+SUB(s);}
+  function mq(s){return I('m')+SUB(s);}
+  function blk(R){                      /* ( k_R + k_R+1 - B m_R ) */
+    var s='('+kq(R);
+    if(R<n)s+=OP('+')+kq(R+1);
+    return s+OP('\u2212')+Br+mq(R)+')';
+  }
+  function nw(h){                       /* keep a term glued to its "= 0" when the row wraps */
+    return '<span style="white-space:nowrap;display:inline-flex;align-items:center;gap:.14em">'+h+'</span>';
+  }
+  var tags=[],phTags=[];
+  for(i=0;i<n;i++){tags.push(m.phi[r][i]);}
+
+  /* --- frame 2: every row of the matrix, typed as it stands = 0 --- */
+  var COL=[ACCENT,MINT,AMBER,MC[3]];
+  function phc(j){return '<span style="color:'+COL[j%4]+'">'+I('\u03C6')+SUB(j+1)+'</span>';}
+  function cw(j,s){return '<span style="color:'+COL[j%4]+'">'+s+'</span>';}
+  var sym=[],Rn;
+  for(Rn=n;Rn>=1;Rn--)(function(R){
+    var b=0.28+(n-R)*0.85;
+    sym.push(function(){
+      var h=TAG('row '+R),hint;
+      if(R>1)h+=OP('\u2212')+kq(R)+phc(R-2);
+      h+=(R>1?OP('+'):'')+blk(R)+phc(R-1);
+      if(R<n)h+=OP('\u2212')+kq(R+1)+phc(R);
+      h+=nw(OP('=')+PI('0',b+0.34,'res'));
+      hint=(R>1)?('the only unknown in this row is '+phc(R-2)):'the row that never gets used';
+      return h+'<span class="hint-inline">'+hint+'</span>';
+    });
+  })(Rn);
+
+  /* --- frame 3: the same rows with the numbers in, then SHIFT + SOLVE --- */
+  var nums=[],Rk;
+  for(Rk=n;Rk>=2;Rk--)(function(R){
+    var f=R-1,u=f-1,b=0.30+(n-R)*1.32;
+    nums.push(function(){
+      var h=TAG('row '+R),j,v,sg;
+      sg=A[f][u]<0?OP('\u2212'):'';
+      h+=sg+cw(u,fmt(Math.abs(A[f][u]),2))+OP('\u00D7')+cw(u,'X');
+      for(j=f;j<n;j++){
+        if(Math.abs(A[f][j])<1e-9)continue;
+        v=(j===n-1)?1:x[j];
+        sg=A[f][j]<0?OP('\u2212'):OP('+');
+        h+=sg+cw(j,fmt(Math.abs(A[f][j]),2))+OP('\u00D7')+cw(j,v<0?'('+fmt(v,6)+')':fmt(v,(j===n-1?4:6)));
+      }
+      h+=nw(OP('=')+PI('0',b+0.34,'res'));
+      return h+'<span class="hint-inline">X is '+phc(u)+' \u2014 everything else is a number</span>';
+    });
+    nums.push(function(){
+      return TAG('solve')+'X'+OP('=')+PI(fmt(x[u],4),b+0.52,'flow res')+
+        '<span class="hint-inline">so '+phc(u)+' = '+fmt(x[u],4)+'</span>';
+    });
+  })(Rk);
+  nums.push(function(){
+    var h=TAG('check'),j2,v,sg,sum=0,first=1,b=0.36;
+    for(j2=0;j2<n;j2++){
+      if(Math.abs(A[0][j2])<1e-9)continue;
+      v=(j2===n-1)?1:parseFloat(x[j2].toFixed(6));
+      sum+=A[0][j2]*v;
+      sg=A[0][j2]<0?OP('\u2212'):(first?'':OP('+'));
+      h+=sg+cw(j2,fmt(Math.abs(A[0][j2]),2))+OP('\u00D7')+cw(j2,v<0?'('+fmt(v,6)+')':fmt(v,(j2===n-1?4:6)));
+      first=0;
+    }
+    h+=nw(OP('=')+PI(sci(sum,1),b+0.30,'res'));
+    return h+'<span class="hint-inline">\u2248 0 \u2014 what is left is the rounding in the \u03C6 values above</span>';
+  });
+  nums.push(function(){
+    return TAG('shape')+phq(r+1)+nw(OP('=')+PI('[ '+m.phi[r].map(function(v){return fmt(v,4);}).join(',   ')+' ]',1.15,'res'));
+  });
+
+  var heads1=[];
+  for(i=0;i<n;i++)heads1.push('\u03C6'+SUB(i+1));
+  return {id:"mode"+r,name:"Mode "+(r+1),frames:[
+    {k:mno+" \u00B7 mode "+(r+1),t:"Substitute B"+sub(r)+" = "+fmt(lam,2)+" into the matrix",
+     b:"Put the root back in [K\u2032 \u2212 B M\u2032]. The matrix is now singular, which is the whole point: one row is redundant, so we are free to set the roof to 1.0000.",
+     fx:EQ([
+       function(){var b=0;return GL('K\u2032',b)+OP('\u2212')+GL('B'+SUB(r+1),b+0.12)+GL('M\u2032',b+0.26)+OP('=')+PI('singular',b+0.4,'res')+'<span class="hint-inline">B'+SUB(r+1)+' = '+fmt(lam,2)+',  \u03C9'+SUB(r+1)+' = '+fmt(m.omega[r],3)+' rad/s</span>';},
+       function(){var b=0.8;return TAG('why')+'a nonzero \u03C6 can survive only if the determinant '+GL('vanishes',b);}
+     ]),
+     n:"Every mode is scaled with the roof at 1.000 \u2014 the conventional choice. Each column keeps its colour in the rows below, so one \u03C6 can be followed through all the arithmetic.",
+     svg:matBlockSVG(rows,{stagger:0.05,heads:heads1,headCols:COL})},
+    {k:mno+" \u00B7 mode "+(r+1),t:"Read every row as it stands \u2014 one unknown each",
+     b:"Read a row of [K\u2032 \u2212 B M\u2032]\u03C6 = 0 straight off the matrix above. With the roof at 1.0000 and the rows taken from the top down, each row holds exactly one unknown \u2014 the floor below it. Nothing is moved across and nothing is divided: the row goes down as the matrix reads it, and it ends in = 0.",
+     fx:EQ(sym),
+     n:"Top row first. The bottom row is never used to solve anything \u2014 that is the row that checks the answer.",
+     svg:modeSVG(m,r,{amp:78,tags:tags})},
+    {k:mno+" \u00B7 mode "+(r+1),t:"Type the row in, press SHIFT + SOLVE",
+     b:"A calculator solves an equation exactly as it stands: type the row with X where the unknown sits, finish it with = 0, and ask it for X. The solver searches for the value that makes the row vanish, so no division and no rearranging is done by hand. Then repeat on the row above, using the answer you just got.",
+     fx:EQ(nums),
+     n:"The unused row is the check: it must come out \u2248 0. If it does not, one of the numbers went in wrong.",
+     svg:modeSVG(m,r,{amp:78,tags:tags})}
+  ]};
+}
+
+/* ================= 3D view (three.js r159, fetched on first use) ================= */
+var VIEW='2d', VDEF='2d', V3=null, V3wait=null, V3fail=false;
+function reduced(){return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}
+/* 3D only where the building is the subject; matrices and determinants stay flat */
+function v3Eligible(ch,fr){
+  var c=CHAPTERS[ch];
+  return c.id==='frame'||!!c.frames[fr].live||(/^mode\d/.test(c.id)&&fr===c.frames.length-1);
+}
+function loadThree(cb){
+  if(window.THREE)return cb(true);
+  if(V3wait){V3wait.push(cb);return;}
+  V3wait=[cb];
+  var s=document.createElement('script');s.src='three.min.js';
+  function done(ok){var l=V3wait;V3wait=null;l.forEach(function(f){f(ok&&!!window.THREE);});}
+  s.onload=function(){done(true);};s.onerror=function(){done(false);};
+  document.head.appendChild(s);
+}
+function setView(v,quiet){
+  if(V3fail&&v!=='2d'){toast('3D needs WebGL, which this browser does not offer',false);v='2d';}
+  VIEW=v;
+  $$('#view-seg button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===v);});
+  syncSeg($('#view-seg'));
+  if(!quiet)syncURL();
+  v3Apply();
+}
+function v3Apply(){
+  var el=$('#stage-3d'),sv=$('#stage-svg'),want=VIEW!=='2d'&&v3Eligible(FI.ch,FI.fr);
+  $('#v3-note').hidden=!(VIEW!=='2d'&&!want);
+  $('#stage-views').classList.toggle('both',want&&VIEW==='both');
+  if(!want){el.hidden=true;sv.hidden=false;v3Stop();return;}
+  sv.hidden=VIEW==='3d';
+  el.hidden=false;
+  loadThree(function(ok){
+    if(!ok||!v3Init()){V3fail=true;setView('2d');return;}
+    if(el.hidden)return;
+    v3Build();v3Start();
+  });
+}
+function v3Init(){
+  if(V3)return true;
+  try{
+    var T=THREE,el=$('#stage-3d');
+    var r=new T.WebGLRenderer({antialias:true,alpha:true});
+    r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    el.insertBefore(r.domElement,el.firstChild);
+    var sc=new T.Scene();
+    sc.add(new T.HemisphereLight(0xffffff,0xd8dae6,1.15));
+    var dl=new T.DirectionalLight(0xffffff,1.7);dl.position.set(9,16,12);sc.add(dl);
+    V3={r:r,sc:sc,cam:new T.PerspectiveCamera(32,1,0.1,800),az:0.7,el:0.3,spin:true,raf:null,t0:0,key:'',w:0,h:0,p:null};
+    var cv=r.domElement,drag=null;
+    cv.style.touchAction='pan-y';      /* vertical swipes still scroll the page on phones */
+    cv.addEventListener('pointerdown',function(e){
+      drag={x:e.clientX,y:e.clientY,az:V3.az,el:V3.el,m:e.pointerType==='mouse'};V3.spin=false;
+      try{cv.setPointerCapture(e.pointerId);}catch(_){}
+    });
+    cv.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      V3.az=drag.az-(e.clientX-drag.x)*0.008;
+      if(drag.m)V3.el=Math.max(0.04,Math.min(1.25,drag.el+(e.clientY-drag.y)*0.006));
+    });
+    ['pointerup','pointercancel'].forEach(function(n){cv.addEventListener(n,function(){drag=null;});});
+    return true;
+  }catch(e){return false;}
+}
+function v3Build(){
+  var m=model,n=m.N,key=JSON.stringify([m.hs,m.cols,S.b,S.geom,n]);
+  if(V3.key===key)return;
+  V3.key=key;
+  var T=THREE,i,j;
+  if(V3.p){V3.sc.remove(V3.p.root);V3.p.root.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});}
+  var root=new T.Group(),cols=m.cols||4,gx=Math.ceil(Math.sqrt(cols)),gz=Math.ceil(cols/gx);
+  var L=6,W=gz>1?5:0,cw=(S.geom?Math.max(0.2,S.b/1000):0.3)*1.3;   /* columns drawn 30% fat so they read */
+  var xs=[];
+  for(i=0;i<cols;i++){var a=i%gx,c=Math.floor(i/gx);xs.push([gx>1?-L/2+L*a/(gx-1):0,gz>1?-W/2+W*c/(gz-1):0]);}
+  var ys=[0];for(i=0;i<n;i++)ys.push(ys[i]+m.hs[i]);
+  var H=ys[n];
+  var ground=new T.Mesh(new T.BoxGeometry(L+5,0.3,W+5),new T.MeshStandardMaterial({color:0xececf2,roughness:1}));
+  ground.position.y=-0.15;root.add(ground);
+  var colMat=new T.MeshStandardMaterial({color:0xa3a8b5,roughness:.75});
+  var columns=[],slabs=[];
+  for(i=0;i<n;i++){
+    for(j=0;j<xs.length;j++){
+      var g=new T.BoxGeometry(cw,m.hs[i],cw,1,14,1);g.translate(0,m.hs[i]/2,0);
+      var mesh=new T.Mesh(g,colMat);mesh.position.set(xs[j][0],ys[i],xs[j][1]);root.add(mesh);
+      columns.push({g:g,mesh:mesh,x0:Float32Array.from(g.attributes.position.array),h:m.hs[i],f:i,bx:xs[j][0]});
+    }
+    var slab=new T.Mesh(new T.BoxGeometry(L+1.4,0.32,W+1.4),
+      new T.MeshStandardMaterial({color:new T.Color(MC[i%MC.length]),roughness:.5,transparent:true,opacity:.92}));
+    slab.position.set(0,ys[i+1]+0.16,0);root.add(slab);slabs.push(slab);
+  }
+  var lg=new T.BufferGeometry();lg.setAttribute('position',new T.BufferAttribute(new Float32Array((n+1)*3),3));
+  var shape=new T.Line(lg,new T.LineBasicMaterial({color:0x0d0f14}));shape.frustumCulled=false;root.add(shape);
+  V3.sc.add(root);
+  V3.p={root:root,columns:columns,slabs:slabs,shape:shape,ys:ys,H:H,lz:W/2+0.72,dist:Math.max(H,L+2)*2.5};
+}
+function v3Disp(now){
+  var n=model.N,d=[],i,c=CHAPTERS[FI.ch];
+  if(LIVE&&LIVE.disp&&LIVE.disp.length===n)return LIVE.disp;
+  if(/^mode\d/.test(c.id)){
+    var r=+c.id.slice(4),ph=model.phi[r],mx=maxAbs(ph),sn=reduced()?0.8:Math.sin(2*Math.PI*now/modeDur(r));
+    for(i=0;i<n;i++)d.push(ph[i]/mx*sn);
+    return d;
+  }
+  for(i=0;i<n;i++)d.push(0);
+  return d;
+}
+function v3Start(){if(!V3.raf){V3.t0=performance.now();V3.raf=requestAnimationFrame(v3Tick);}}
+function v3Stop(){if(V3&&V3.raf){cancelAnimationFrame(V3.raf);V3.raf=null;}}
+function v3Tick(now){
+  V3.raf=requestAnimationFrame(v3Tick);
+  var el=$('#stage-3d'),w=el.clientWidth,h=el.clientHeight,P=V3.p;
+  if(!w||!h||!P)return;
+  if(V3.w!==w||V3.h!==h){V3.r.setSize(w,h,false);V3.cam.aspect=w/h;V3.cam.updateProjectionMatrix();V3.w=w;V3.h=h;}
+  if(V3.spin&&!reduced())V3.az+=0.0022;
+  var d=v3Disp(now-V3.t0),A=0.09*P.H,n=P.slabs.length,i;   /* sway exaggerated to 9% of the height */
+  P.columns.forEach(function(c){
+    var db=c.f?d[c.f-1]*A:0,dt=d[c.f]*A,pos=c.g.attributes.position.array,k,s;
+    c.mesh.position.x=c.bx+db;
+    for(k=0;k<pos.length;k+=3){s=c.x0[k+1]/c.h;pos[k]=c.x0[k]+(dt-db)*(3*s*s-2*s*s*s);}   /* fixed-fixed column curve */
+    c.g.attributes.position.needsUpdate=true;
+  });
+  for(i=0;i<n;i++)P.slabs[i].position.x=d[i]*A;
+  var lp=P.shape.geometry.attributes.position.array;
+  for(i=0;i<=n;i++){lp[i*3]=i?d[i-1]*A:0;lp[i*3+1]=P.ys[i]+(i?0.16:0);lp[i*3+2]=P.lz;}
+  P.shape.geometry.attributes.position.needsUpdate=true;
+  var R=P.dist,cam=V3.cam;
+  cam.position.set(R*Math.cos(V3.el)*Math.sin(V3.az),P.H*0.5+R*Math.sin(V3.el),R*Math.cos(V3.el)*Math.cos(V3.az));
+  cam.lookAt(0,P.H*0.5,0);
+  V3.r.render(V3.sc,cam);
+}
+
+/* ================= 1. chapters + renderer ================= */
+function maxAbs(v){var m=0,i;for(i=0;i<v.length;i++)m=Math.max(m,Math.abs(v[i]));return m||1;}
+function gindex(ch,fr){var t=0,i;for(i=0;i<ch;i++)t+=CHAPTERS[i].frames.length;return t+fr;}
+function gtotal(){var t=0,i;for(i=0;i<CHAPTERS.length;i++)t+=CHAPTERS[i].frames.length;return t;}
+
+function renderChapters(){
+  var h='',i;
+  for(i=0;i<CHAPTERS.length;i++){
+    h+='<button data-ch="'+i+'" class="'+(i===FI.ch?'on':'')+'"><b>'+('0'+(i+1)).slice(-2)+'</b><span>'+escapeHTML(CHAPTERS[i].name)+'</span></button>';
+  }
+  $('#chapters').innerHTML=h;
+  $$('#chapters button').forEach(function(b){
+    b.addEventListener('click',function(){setPlay(false);show(+b.getAttribute('data-ch'),0);});
+  });
+  var tot=gtotal();
+  $('#frame-count').textContent='frame '+((gindex(FI.ch,FI.fr))+1)+' / '+tot;
+  $('#prog').style.width=(((gindex(FI.ch,FI.fr))+1)/tot*100).toFixed(2)+'%';
+  var W=['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve'];
+  var cc=$('#chap-count'); if(cc)cc.textContent=W[CHAPTERS.length]||CHAPTERS.length;
+  requestAnimationFrame(movePill);
+  requestAnimationFrame(syncSegs);
+}
+
+/* sliding indicator behind the active tab — measured, not hard-coded */
+function movePill(){
+  var wrap=$('#chapters'); if(!wrap)return;
+  var pill=wrap.querySelector('.pill');
+  if(!pill){pill=document.createElement('span');pill.className='pill';wrap.insertBefore(pill,wrap.firstChild);}
+  var on=wrap.querySelector('button.on');
+  if(!on){pill.style.opacity=0;return;}
+  pill.style.left=on.offsetLeft+'px';
+  pill.style.top=on.offsetTop+'px';
+  pill.style.width=on.offsetWidth+'px';
+  pill.style.height=on.offsetHeight+'px';
+  pill.style.opacity=1;
+  var sl=wrap.scrollLeft,sr=sl+wrap.clientWidth;
+  if(on.offsetLeft<sl+10)wrap.scrollLeft=on.offsetLeft-10;
+  else if(on.offsetLeft+on.offsetWidth>sr-10)wrap.scrollLeft=on.offsetLeft+on.offsetWidth-wrap.clientWidth+10;
+}
+
+/* same idea for the small segmented controls */
+function syncSeg(el){
+  if(!el)return;
+  var thumb=el.querySelector('.thumb');
+  if(!thumb){thumb=document.createElement('span');thumb.className='thumb';el.insertBefore(thumb,el.firstChild);}
+  var on=el.querySelector('button.on');
+  if(!on){thumb.style.opacity=0;return;}
+  thumb.style.left=on.offsetLeft+'px';
+  thumb.style.width=on.offsetWidth+'px';
+  thumb.style.opacity=1;
+}
+function syncSegs(){$$('.seg').forEach(syncSeg);}
+
+/* sonner-style toast */
+function toast(msg,ok){
+  var w=$('#toasts');
+  if(!w){w=document.createElement('div');w.id='toasts';w.className='toast-wrap';document.body.appendChild(w);}
+  var t=document.createElement('div');t.className='toast'+(ok===false?' bad':'');
+  t.innerHTML='<span class="tic">'+(ok===false?'!':'\u2713')+'</span><span></span>';
+  t.lastChild.textContent=msg;
+  w.appendChild(t);
+  while(w.children.length>3)w.removeChild(w.firstChild);
+  requestAnimationFrame(function(){t.classList.add('in');});
+  setTimeout(function(){t.classList.remove('in');setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},300);},2500);
+}
+
+/* hero numbers tick to their new value instead of snapping */
+function countTo(el,txt){
+  if(!el)return;
+  if(el.getAttribute('data-v')===txt)return;
+  var from=parseFloat(String(el.textContent||'').replace(/,/g,''));
+  el.setAttribute('data-v',txt);
+  var target=parseFloat(String(txt).replace(/,/g,''));
+  if(!isFinite(target)||!isFinite(from)||window.matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=txt;return;}
+  var dec=(String(txt).split('.')[1]||'').replace(/[^0-9]/g,'').length;
+  var commas=String(txt).indexOf(',')>=0;
+  var t0=performance.now(),dur=640;
+  (function frame(now){
+    var p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);
+    var s=(from+(target-from)*e).toFixed(dec);
+    if(commas)s=s.replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    el.textContent=s;
+    if(p<1)requestAnimationFrame(frame);else el.textContent=txt;
+  })(t0);
+}
+
+/* plain-text copy of the solved model */
+function reportText(){
+  var m=model,n=m.N,i,L=[];
+  L.push('MDOF Calculator \u2014 free vibration of a '+n+'-storey frame');
+  L.push('E = '+fmt(m.Ec,0)+' MPa \u00B7 EI = '+fmt(m.EI,0)+' kN.m2 per column');
+  L.push('Storey stiffness (kN/m): '+m.kf.slice(0,n).map(function(v){return fmt(v,1);}).join(' \u00B7 '));
+  L.push('Frequencies: '+m.freq.slice(0,n).map(function(v,j){return 'f'+(j+1)+' = '+fmt(v,3)+' Hz';}).join(' \u00B7 '));
+  L.push('Periods: '+m.per.slice(0,n).map(function(v,j){return 'T'+(j+1)+' = '+fmt(v,4)+' s';}).join(' \u00B7 '));
+  L.push('Mode shapes (roof = 1.0000, floor 1 first):');
+  for(i=0;i<n;i++)L.push('  mode '+(i+1)+': '+m.phi[i].map(function(v){return fmt(v,4);}).join(', '));
+  return L.join('\n');
+}
+
+function show(ch,fr){
+  ch=Math.max(0,Math.min(ch,CHAPTERS.length-1));
+  fr=Math.max(0,Math.min(fr,CHAPTERS[ch].frames.length-1));
+  stopLive();
+  FI.ch=ch;FI.fr=fr;
+  var f=CHAPTERS[ch].frames[fr];
+  $('#stage-k').textContent=f.k;
+  $('#n-kicker').textContent='Chapter '+('0'+(ch+1)).slice(-2)+' \u00B7 step '+(fr+1)+' of '+CHAPTERS[ch].frames.length;
+  $('#n-title').textContent=f.t;
+  var body=$('#n-body');
+  body.innerHTML=f.b;
+  body.classList.remove('fade');void body.offsetWidth;body.classList.add('fade');
+  var fEl=$('#n-formula');
+  if(f.fx){fEl.className='formula math';fEl.innerHTML=f.fx;fEl.hidden=false;}
+  else if(f.f){fEl.className='formula';fEl.innerHTML=f.f.split('\n').map(function(s){return '<div>'+s+'</div>';}).join('');fEl.hidden=false;}
+  else{fEl.hidden=true;fEl.innerHTML='';}
+  var nEl=$('#n-note');
+  if(f.n){$('#n-note-t').innerHTML=f.n;nEl.hidden=false;}else{$('#n-note-t').innerHTML='';nEl.hidden=true;}
+  if(f.live){startLive(f);}else{$('#stage-svg').innerHTML=f.svg;}
+  $('#stage-live').hidden=!f.live;
+  v3Apply();
+  var ts=$('#tspeed');
+  ts.hidden=f.live!=='mode';
+  if(!ts.hidden){
+    ts.textContent=STrue?'True speed':'Slow \u00D7'+slowK(f.mode||0);
+    ts.setAttribute('aria-pressed',STrue?'true':'false');
+    ts.classList.toggle('on',STrue);
+  }
+  document.body.classList.toggle('truespeed',STrue);
+  $$('#chapters button').forEach(function(b,ix){b.classList.toggle('on',ix===ch);});
+  movePill();
+  var tot=gtotal();
+  $('#frame-count').textContent='frame '+(gindex(ch,fr)+1)+' / '+tot;
+  $('#prog').style.width=((gindex(ch,fr)+1)/tot*100).toFixed(2)+'%';
+}
+
+/* ---- playback ---- */
+function holdMs(){var f=CHAPTERS[FI.ch].frames[FI.fr];return (f.hold||5200)/FI.speed;}
+function setPlay(on){
+  FI.playing=on;
+  if(FI.timer){clearTimeout(FI.timer);FI.timer=null;}
+  $('#play-ic').textContent=on?'\u275A\u275A':'\u25B6';
+  $('#play-tx').textContent=on?'Pause':'Play';
+  if(on)FI.timer=setTimeout(step,holdMs());
+}
+function step(){
+  if(!FI.playing)return;
+  var ch=CHAPTERS[FI.ch];
+  if(FI.fr<ch.frames.length-1)show(FI.ch,FI.fr+1);
+  else if(FI.ch<CHAPTERS.length-1)show(FI.ch+1,0);
+  else{setPlay(false);return;}
+  if(FI.playing)FI.timer=setTimeout(step,holdMs());
+}
+
+/* ================= 2. live animation ================= */
+var LIVE=null,STrue=false;
+function modeDur(r){var d=2600/(model.freq[r]/model.freq[0]);return Math.max(520,Math.min(3000,d));}
+function slowK(r){return Math.max(1,Math.round(modeDur(r)/1000/model.per[r]));}
+
+function liveSVG(disp,o){
+  o=o||{};
+  var n=model.N,W=520,H=o.strip?440:336,baseY=o.strip?300:H-42,topY=52;
+  var stepY=(baseY-topY)/(n+0.25);
+  var xl=200,xr=300;
+  var s=svgOpen(W,H);
+  s+='<defs><pattern id="lh" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="8" stroke="#c9c9d4" stroke-width="1.4"/></pattern></defs>';
+  s+=rect(84,baseY,352,11,0,{fill:'url(#lh)',op:.85});
+  s+=line(80,baseY,440,baseY,{w:2});
+  s+=line(250,baseY-6,250,topY-14,{stroke:'#dedee8',w:1,dash:'4 6'});
+  if(o.cap)s+=t(30,26,o.cap,{fs:10.5,fill:MUTED,weight:600});
+  if(o.warn)s+=t(30,42,o.warn,{fs:9.4,fill:AMBER,weight:700});
+  if(o.roof!=null)s+=t(508,26,'roof '+fmt(o.roof,1)+' mm',{fs:10.5,fill:ACCENT,anchor:'end',weight:700});
+  var i;
+  for(i=0;i<n;i++){
+    var y1=baseY-i*stepY,y2=baseY-(i+1)*stepY;
+    var b1=(i===0?0:disp[i-1]),b2=disp[i];
+    s+=line(xl+b1,y1,xl+b2,y2,{w:5,stroke:'#c7c7d4',cap:1});
+    s+=line(xr+b1,y1,xr+b2,y2,{w:5,stroke:'#c7c7d4',cap:1});
+  }
+  for(i=0;i<=n;i++){
+    var dy=baseY-i*stepY, dx=(i===0?0:disp[i-1]), roof=(i===n);
+    s+=rect(xl+dx-16,dy-5,xr-xl+32,10,5,{fill:roof?INK:'#fff',stroke:INK,sw:roof?0:1.5});
+    if(i>0)s+=t(xr+30+(dx>0?dx:0),dy+4,roof?'roof':'floor '+i,{fs:10,fill:FAINT});
+    if(i>0){
+      s+=t(xl-22+dx,dy-9,'m'+sub(i-1)+' \u00B7 '+fmt(model.ms[i-1],0)+' kg',{fs:9,fill:MC[(i-1)%MC.length],anchor:'end',weight:600});
+    }
+  }
+  if(o.mm){
+    /* the displacement drawn beside the frame: bars off a zero line, value at the end */
+    var gx=430, gm=30, pk=o.mmPeak||1;
+    s+=t(470,topY+9,'mm',{fs:8.6,fill:FAINT,weight:700});
+    s+=line(gx,topY-8,gx,baseY,{stroke:'#e2e2ec',w:1,dash:'3 5'});
+    for(i=0;i<n;i++){
+      var yg=baseY-(i+1)*stepY, vv=o.mm[i]||0;
+      var dp=Math.max(-gm,Math.min(gm,vv/pk*gm)), cg=MC[i%MC.length];
+      s+=line(gx,yg,gx+dp,yg,{w:3,stroke:cg,cap:1,op:.85});
+      s+=dot(gx+dp,yg,3,cg);
+      s+=t(470,yg+3.2,Math.abs(vv)<0.05?'0.0':fmt(vv,1),{fs:8.6,mono:1,fill:INK,weight:600});
+    }
+  }
+  if(o.strip){
+    var st=o.strip, sx0=92,sx1=430, sy=398, amp=24;
+    s+=rect(70,344,392,84,10,{fill:'#fff',stroke:'#ececf2'});
+    s+=t(80,360,'roof displacement  x' + sub(n-1) + '(t)',{fs:9.5,fill:FAINT,weight:600});
+    s+=line(sx0,sy,sx1,sy,{stroke:'#e4e4ee',w:1});
+    var d='';
+    for(i=0;i<st.hist.length;i++){
+      var px=sx0+(sx1-sx0)*st.hist[i].t/st.tMax;
+      var py=sy-amp*st.hist[i].x/st.peak;
+      d+=(i?'L':'M')+px.toFixed(1)+' '+py.toFixed(1);
+    }
+    s+=path(d,{stroke:MC[0],w:1.8,op:.85});
+    var mxp=sx0+(sx1-sx0)*st.tNow/st.tMax;
+    var myp=sy-amp*(st.nowX/st.peak);
+    s+=line(mxp,346,mxp,sy+6,{stroke:ACCENT,w:1,dash:'3 4',op:.45});
+    s+=dot(mxp,myp,4.2,ACCENT);
+    s+=t(sx0,sy+18,'0 s',{fs:9,fill:FAINT});
+    s+=t(sx1,sy+18,fmt(st.tMax,2)+' s',{fs:9,fill:FAINT,anchor:'end'});
+    s+=t(sx1,sy-amp-6,'peak \u00B1'+fmt(st.peak*1000,1)+' mm',{fs:9,fill:FAINT,anchor:'end'});
+  }
+  s+='</svg>';
+  return s;
+}
+
+function startLive(f){
+  var n=model.N,i;
+  var ic=initials();
+  LIVE={kind:f.live,r:f.mode||0,t0:(performance.now?performance.now():Date.now()),raf:null,hist:null};
+  if(f.live==='total'){
+    var Tw=3.2*model.per[0], NS=260, hist=[], peak=0;
+    for(i=0;i<=NS;i++){
+      var tt=Tw*i/NS, xr=responseAt(model,ic.x0,ic.v0,ic.zeta,tt);
+      var v=xr[n-1];
+      hist.push({t:tt,x:v});
+      peak=Math.max(peak,Math.abs(v));
+    }
+    LIVE.hist={hist:hist,peak:peak||1,tMax:Tw,dur:7600};
+  } else {
+    LIVE.dur=STrue?model.per[f.mode]*1000:modeDur(f.mode);
+  }
+  var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(rm){LIVE.rm=1;drawLive(LIVE.kind==='total'?LIVE.hist.dur*0.55:LIVE.dur*0.25);return;}
+  drawLive(0);
+  LIVE.raf=requestAnimationFrame(liveTick);
+}
+function stopLive(){
+  if(LIVE&&LIVE.raf)cancelAnimationFrame(LIVE.raf);
+  LIVE=null;
+}
+function liveTick(ts){
+  if(!LIVE||LIVE.rm)return;
+  var el=ts-LIVE.t0;
+  drawLive(el);
+  LIVE.raf=requestAnimationFrame(liveTick);
+}
+function drawLive(el){
+  if(!LIVE)return;
+  var n=model.N,i,disp=[];
+  if(LIVE.kind==='mode'){
+    var r=LIVE.r, ph=model.phi[r], mx=maxAbs(ph);
+    var w=2*Math.PI/LIVE.dur;          /* rad per ms */
+    var sn=Math.sin(w*el);
+    var mm=[];
+    for(i=0;i<n;i++){disp.push(ph[i]/mx*46*sn);mm.push(ph[i]/mx*S.amp*sn);}
+    var slow=Math.round(LIVE.dur/1000/model.per[r]);
+    var cap=LIVE.rm?('mode '+(r+1)+' \u00B7 T = '+fmt(model.per[r],3)+' s \u00B7 held still')
+                   :STrue?('mode '+(r+1)+' \u00B7 T = '+fmt(model.per[r],3)+' s \u00B7 true speed')
+                   :('mode '+(r+1)+' \u00B7 T = '+fmt(model.per[r],3)+' s \u00B7 slow motion \u00D7'+slowK(r));
+    var warn=(!LIVE.rm&&STrue&&model.freq[r]>=15)?(fmt(model.freq[r],1)+' Hz \u2014 a blur at true speed; the shape is what matters'):'';
+    $('#stage-svg').innerHTML=liveSVG(disp,{cap:cap,warn:warn,mm:mm,mmPeak:S.amp});
+  } else {
+    var st=LIVE.hist;
+    var tn=(el%st.dur)/st.dur;
+    var tNow=tn*st.tMax;
+    var ic=initials();
+    var xr=responseAt(model,ic.x0,ic.v0,ic.zeta,tNow);
+    var mm=[];
+    for(i=0;i<n;i++){disp.push(xr[i]/st.peak*46);mm.push(xr[i]*1000);}
+    $('#stage-svg').innerHTML=liveSVG(disp,{cap:'all modes superimposed \u00B7 t = '+fmt(tNow,3)+' s',roof:xr[n-1]*1000,mm:mm,mmPeak:st.peak*1000,strip:{hist:st.hist,tMax:st.tMax,peak:st.peak,tNow:tNow,nowX:xr[n-1]}});
+  }
+  LIVE.disp=disp.map(function(v){return v/46;});
+}
+
+/* ================= 3. hero ================= */
+function renderHero(){
+  var m=model,n=m.N;
+  $('#top-chip').innerHTML='<i></i><span>'+n+' storeys \u00B7 '+m.cols+' columns</span>';
+  countTo($('#h-f1'),fmt(m.freq[0],3));
+  countTo($('#h-t1'),fmt(m.per[0],4));
+  countTo($('#h-k1'),fmt(m.kf[0],0));
+  $('#h-w1').textContent=fmt(m.omega[0],2);
+  $('#h-roof').textContent=fmt(m.phi[0][n-1]/m.phi[0][0],2);
+  $('#hero-svg').innerHTML=buildingSVG(m,{modeShape:m.phi[0],modeScale:56,modeColor:MC[0],masses:true,topY:70});
+  $('#tour-live-chip').textContent=n+' storeys \u00B7 '+fmt(m.fc?m.p.fc:m.p.fc,0)+' MPa';
+}
+
+/* ================= 4. answers ================= */
+function renderAnswers(){
+  var m=model,n=m.N,i,r;
+  var tag=$('#ans-tag');if(tag)tag.textContent=n+' storeys \u00B7 '+m.freq.length+' modes';
+  var kh='<div class="ans-big"><span class="v">'+fmt(m.kc[0],0)+'</span><span class="u">kN/m \u00B7 one column, storey 1</span></div>';
+  kh+='<div class="hint" style="margin:6px 0 10px">Each column is fixed at both ends: k = 12EI/h\u00B3. Storey stiffness multiplies by the number of columns.</div>';
+  for(i=0;i<n;i++){
+    kh+='<div class="kv"><span class="k">Storey '+(i+1)+' \u00B7 h = '+fmt(m.hs[i],2)+' m</span><span class="v">'+fmt(m.kc[i],1)+' \u2192 '+fmt(m.kf[i],0)+'</span></div>';
+  }
+  kh+='<div class="kv"><span class="k">EI of one column</span><span class="v">'+fmt(m.EI,0)+' kN\u00B7m\u00B2</span></div>';
+  $('#ans-k').innerHTML=kh;
+
+  var fh='<table class="t"><thead><tr><th>Mode</th><th>\u03C9 (rad/s)</th><th>f (Hz)</th><th>T (s)</th></tr></thead><tbody>';
+  for(i=0;i<n;i++){
+    fh+='<tr><td><span class="dot" style="background:'+MC[i%MC.length]+'"></span> '+(i+1)+'</td><td>'+fmt(m.omega[i],3)+'</td><td><b>'+fmt(m.freq[i],3)+'</b></td><td>'+fmt(m.per[i],4)+'</td></tr>';
+  }
+  fh+='</tbody></table>';
+  fh+='<div class="kv"><span class="k">Frequency ratio f\u2082/f\u2081</span><span class="v">'+(n>1?fmt(m.freq[1]/m.freq[0],2):'\u2014')+'</span></div>';
+  $('#ans-f').innerHTML=fh;
+
+  var mh='';
+  for(r=0;r<n;r++){
+    mh+='<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px">';
+    mh+='<div style="flex:0 0 54px">'+shapeSVG(m,r)+'</div>';
+    mh+='<div style="flex:1">';
+    mh+='<div style="font-size:12px;font-weight:700;color:'+MC[r%MC.length]+'">mode '+(r+1)+'</div>';
+    for(i=n-1;i>=0;i--){mh+='<div class="kv" style="padding:4px 0"><span class="k">'+(i===n-1?'roof':'floor '+(i+1))+'</span><span class="v">'+fmt(m.phi[r][i],4)+'</span></div>';}
+    mh+='</div></div>';
+  }
+  $('#ans-modes').innerHTML=mh;
+
+  var KA=[],MA=[],j;
+  for(i=0;i<n;i++){
+    KA.push([]);MA.push([]);
+    for(j=0;j<n;j++){KA[i].push(fmt(m.K[i][j]/1000,1));MA[i].push(i===j?fmt(m.M[i][i],0):'0');}
+  }
+  var Kt=matText(KA),Mt=matText(MA);
+  $('#ans-mat').innerHTML='<div class="hint">K, kN/m</div><pre class="mat">'+Kt+'</pre><div class="hint" style="margin-top:8px">M, kg</div><pre class="mat">'+Mt+'</pre>';
+
+  /* checks */
+  var ch='',ok;
+  var res=0;
+  for(r=0;r<n;r++){
+    var Kv=[],ph=m.phi[r];
+    for(i=0;i<n;i++){
+      var sum=0;
+      for(j=0;j<n;j++)sum+=(m.K[i][j]-m.lam[r]*(i===j?m.M[i][i]:0))*ph[j];
+      sum=sum/Math.max(Math.abs(m.K[i][i]),1);
+      res=Math.max(res,Math.abs(sum));
+    }
+  }
+  ok=res<1e-9;
+  ch+=checkRow('Eigen equation residual  max |(K\u2212\u03BBM)\u03C6| / k', sci(res,2), ok);
+
+  var tr=0;for(i=0;i<n;i++)tr+=m.K[i][i]/m.M[i][i];
+  var sl=m.lam.reduce(function(a,b){return a+b;},0);
+  ok=Math.abs(tr-sl)/Math.max(Math.abs(tr),1)<1e-9;
+  ch+=checkRow('\u03A3\u03BB = trace(M\u207B\u00B9K)', fmt(sl,2)+' vs '+fmt(tr,2), ok);
+
+  var orth=0;
+  for(r=0;r<n;r++)for(var q=r+1;q<n;q++){
+    var s2=0;
+    for(i=0;i<n;i++)s2+=m.M[i][i]*m.phi[r][i]*m.phi[q][i];
+    orth=Math.max(orth,Math.abs(s2)/Math.sqrt(m.mu[r]*m.mu[q]));
+  }
+  ok=orth<1e-9;
+  ch+=checkRow('M-orthogonality  max |\u03C6\u1D63\u1D40 M \u03C6\u209B|', sci(orth,2), ok);
+
+  var comp=0;
+  for(i=0;i<n;i++)for(j=0;j<n;j++){
+    var s3=0;
+    for(r=0;r<n;r++)s3+=m.phihat[r][i]*m.phihat[r][j];
+    comp=Math.max(comp,Math.abs(s3*m.M[j][j]-(i===j?1:0)));
+  }
+  ok=comp<1e-9;
+  ch+=checkRow('Completeness  ||\u03A6\u03A6\u1D40M \u2212 I||', sci(comp,2), ok);
+
+  /* three checks a student can repeat by hand */
+  var Kp=[],Mp=[];
+  for(i=0;i<n;i++){Kp.push([]);Mp.push([]);for(j=0;j<n;j++){Kp[i].push(m.K[i][j]/m.M[0][0]);Mp[i].push(m.M[i][j]/m.M[0][0]);}}
+  var detK=detN(Kp),detM=detN(Mp),prod=1;
+  for(r=0;r<n;r++)prod*=m.lam[r];
+  ok=Math.abs(prod-detK/detM)/Math.max(Math.abs(prod),1)<1e-9;
+  ch+=checkRow('Product of the roots  \u220F\u03BB = det K\u2032 / det M\u2032', sci(prod,4)+' = '+sci(detK/detM,4), ok);
+
+  var Fv=[],db,ss,RA,num=0,den=0,dmx=0;
+  for(i=0;i<n;i++)Fv.push(m.M[i][i]*9.81);
+  db=solveLin(m.K,Fv);
+  for(i=0;i<n;i++)dmx=Math.max(dmx,Math.abs(db[i]));
+  for(i=0;i<n;i++)db[i]/=dmx;
+  for(i=0;i<n;i++){
+    ss=0;for(j=0;j<n;j++)ss+=m.K[i][j]*db[j];
+    num+=db[i]*ss;den+=m.M[i][i]*db[i]*db[i];
+  }
+  RA=num/den;
+  ok=RA>=m.lam[0]*(1-1e-12);
+  ch+=checkRow('Rayleigh, self-weight shape  R \u2265 \u03BB\u2081', fmt(RA,1)+' vs '+fmt(m.lam[0],1)+'  (+'+fmt(100*(RA/m.lam[0]-1),2)+'%)', ok);
+
+  var sym=0,dk;
+  for(i=0;i<n;i++)for(j=0;j<n;j++){
+    dk=Math.max(Math.abs(m.K[i][j]),1);sym=Math.max(sym,Math.abs(m.K[i][j]-m.K[j][i])/dk);
+    dk=Math.max(Math.abs(m.M[i][j]),1);sym=Math.max(sym,Math.abs(m.M[i][j]-m.M[j][i])/dk);
+  }
+  ok=sym<1e-14;
+  ch+=checkRow('Symmetry  max |K\u1D62\u2C7C \u2212 K\u2C7C\u1D62| / K', sci(sym,2), ok);
+
+  $('#ans-check').innerHTML=ch;
+}
+function pad(s,w){s=String(s);while(s.length<w)s=' '+s;return s;}
+function matText(A){
+  var i,j,w=[];
+  for(j=0;j<A[0].length;j++){w[j]=0;for(i=0;i<A.length;i++)w[j]=Math.max(w[j],A[i][j].length);}
+  var out=[];
+  for(i=0;i<A.length;i++){
+    var cells=[];
+    for(j=0;j<A[i].length;j++)cells.push(pad(A[i][j],w[j]));
+    out.push('[ '+cells.join('  ')+' ]');
+  }
+  return out.join('\n');
+}
+function padR(s,w){s=String(s);while(s.length<w)s+=' ';return s;}
+function detN(A0){
+  var n=A0.length,A=A0.map(function(r){return r.slice();}),det=1,i,j,k,p,t;
+  for(k=0;k<n;k++){
+    p=k;
+    for(i=k+1;i<n;i++)if(Math.abs(A[i][k])>Math.abs(A[p][k]))p=i;
+    if(Math.abs(A[p][k])<1e-300)return 0;
+    if(p!==k){t=A[p];A[p]=A[k];A[k]=t;det=-det;}
+    det*=A[k][k];
+    for(i=k+1;i<n;i++){
+      var f=A[i][k]/A[k][k];
+      for(j=k;j<n;j++)A[i][j]-=f*A[k][j];
+    }
+  }
+  return det;
+}
+function solveLin(A0,b){
+  var n=A0.length,A=A0.map(function(r){return r.slice();}),v=b.slice(),i,j,k,p,t,x=new Array(n);
+  for(k=0;k<n;k++){
+    p=k;
+    for(i=k+1;i<n;i++)if(Math.abs(A[i][k])>Math.abs(A[p][k]))p=i;
+    if(p!==k){t=A[p];A[p]=A[k];A[k]=t;t=v[p];v[p]=v[k];v[k]=t;}
+    for(i=k+1;i<n;i++){
+      var f=A[i][k]/A[k][k];
+      for(j=k;j<n;j++)A[i][j]-=f*A[k][j];
+      v[i]-=f*v[k];
+    }
+  }
+  for(i=n-1;i>=0;i--){
+    var s=v[i];
+    for(j=i+1;j<n;j++)s-=A[i][j]*x[j];
+    x[i]=s/A[i][i];
+  }
+  return x;
+}
+function checkRow(label,val,ok){
+  return '<div class="kv"><span class="k">'+label+'</span><span class="v" style="font-size:12px">'+val+' <span class="pill-ok" style="border:0;background:'+(ok?'#e7f7f0':'#fdf3e3')+';color:'+(ok?'#047857':'#b45309')+'">'+(ok?'pass':'check')+'</span></span></div>';
+}
+function shapeSVG(m,r){
+  var n=m.N,i,ph=m.phi[r],mx=maxAbs(ph);
+  var W=54,H=88,baseY=H-8,topY=8,stepY=(baseY-topY)/(n+0.2),cx=W/2;
+  var s=svgOpen(W,H);
+  s+=line(6,baseY,W-6,baseY,{stroke:'#d8d8e2',w:1.2});
+  var d='M'+cx+' '+baseY;
+  for(i=0;i<n;i++)d+='L'+(cx+ph[i]/mx*12)+' '+(baseY-(i+1)*stepY);
+  s+=path(d,{stroke:MC[r%MC.length],w:2,cap:1});
+  for(i=0;i<n;i++)s+=dot(cx+ph[i]/mx*12,baseY-(i+1)*stepY,2.6,MC[r%MC.length]);
+  s+='</svg>';
+  return s;
+}
+
+/* ================= 5. builder ================= */
+function renderStoreys(){
+  var n=S.n,i,h='';
+  h+='<div class="hd"><span>Floor</span><span>'+(S.geom?'Height h (m)':'Stiffness k (kN/m)')+'</span><span>Mass (kg)</span><span>stiffness</span></div>';
+  for(i=0;i<n;i++){
+    h+='<div class="sr"><span class="fl">'+(i+1)+'</span>';
+    if(S.geom)h+='<input class="inp" data-h="'+i+'" type="number" step="0.1" min="0.5" max="9" value="'+S.hs[i]+'">';
+    else h+='<input class="inp" data-k="'+i+'" type="number" step="100" min="100" value="'+Math.round(S.ks[i])+'">';
+    h+='<input class="inp" data-m="'+i+'" type="number" step="100" min="1" value="'+S.ms[i]+'">';
+    h+='<span class="sk">'+fmt(model.kf[i],0)+'</span></div>';
+  }
+  $('#storey-tbl').innerHTML=h;
+  $$('#storey-tbl input').forEach(function(el){
+    el.addEventListener('input',function(){
+      var v=parseFloat(el.value);
+      if(!isFinite(v))return;
+      if(el.hasAttribute('data-h'))S.hs[+el.getAttribute('data-h')]=Math.max(0.3,v);
+      else if(el.hasAttribute('data-k'))S.ks[+el.getAttribute('data-k')]=Math.max(1,v);
+      else S.ms[+el.getAttribute('data-m')]=Math.max(1,v);
+      recompute();
+    });
+  });
+  $('#in-e').value=isFinite(model.Ec)?fmt(model.Ec,1)+' MPa':'—';
+  $('#geom-block').style.display=S.geom?'':'none';
+}
+function syncInputs(){
+  $('#in-fc').value=S.fc;
+  $('#in-cols').value=S.cols;
+  $('#in-b').value=S.b;
+  $('#in-zeta').value=S.zeta;
+  $('#in-ic').value=S.ic;
+  $('#in-amp').value=S.amp;
+  $('#amp-val').textContent=S.amp+' mm';
+  $('#amp-lab').textContent=S.amp+' mm';
+  $$('#floors-seg button').forEach(function(b){b.classList.toggle('on',+b.getAttribute('data-n')===S.n);});
+  $$('#geom-seg button').forEach(function(b){b.classList.toggle('on',(+b.getAttribute('data-g')===1)===S.geom);});
+}
+function renderPreview(){
+  var m=model,n=m.N,i,h='';
+  $('#build-svg').innerHTML=buildingSVG(m,{modeShape:m.phi[0],modeScale:44,modeColor:MC[0],masses:true,topY:52});
+  for(i=0;i<n;i++){
+    h+='<div class="r"><span>mode '+(i+1)+'</span><b>'+fmt(m.freq[i],3)+' Hz \u00B7 T '+fmt(m.per[i],3)+' s</b></div>';
+  }
+  h+='<div class="r"><span>k\u2081 \u00B7 k\u2099</span><b>'+fmt(m.kf[0],0)+' \u00B7 '+fmt(m.kf[n-1],0)+' kN/m</b></div>';
+  $('#build-tbl').innerHTML=h;
+}
+
+/* ================= 6. method ================= */
+function mtx(rows){
+  var out=[],i,j;
+  for(i=0;i<rows.length;i++){
+    var line='[ ';
+    for(j=0;j<rows[i].length;j++)line+=pad(rows[i][j],11)+(j<rows[i].length-1?'  ':'');
+    out.push(line+' ]');
+  }
+  return out.join('\n');
+}
+function renderMethod(){
+  var m=model,n=m.N,i,j,S2=scaledMat(m),co=detPolyN(S2.Kp,S2.Mp),mono=co.map(function(c){return c/co[0];});
+  var Krows=[],Mrows=[],Kp=[];
+  for(i=0;i<n;i++){Krows.push([]);Mrows.push([]);Kp.push([]);for(j=0;j<n;j++){Krows[i].push(fmt(m.K[i][j]/1000,1));Mrows[i].push(i===j?fmt(m.M[i][i],0):'0');Kp[i].push(fmt(m.K[i][j]/m.ms[0],1));}}
+  var blocks=[];
+  blocks.push({t:'Model and assumptions',b:
+    '<p>A '+n+'-storey shear frame: rigid floor slabs, axially rigid columns, all mass lumped at the floors. Each storey deforms only by shearing its columns, so one sideways displacement per floor \u2014 '+n+' degrees of freedom.</p>'+
+    '<p>Columns are fixed against rotation at both ends (stiff beams), hence k = 12EI/h\u00B3 per column, and '+m.cols+' columns act in parallel.</p>'+
+    '<pre class="mat">Ec = 4700\u221Af\u2032c = '+fmt(m.Ec,1)+' MPa\nI  = bh\u00B3/12 = '+sci(m.I,4)+' m\u2074\nEI = '+fmt(m.EI,1)+' kN\u00B7m\u00B2\n'+m.hs.map(function(hh,ix){return 'k'+(ix+1)+' = '+m.cols+'\u00B712EI/'+fmt(hh,3)+'\u00B3 = '+fmt(m.kf[ix],1)+' kN/m';}).join('\n')+'</pre>'});
+  blocks.push({t:'Mass and stiffness matrices',b:
+    '<p>Assembling each spring twice with opposite signs gives the tri-diagonal stiffness matrix; the masses sit only on the diagonal.</p>'+
+    '<pre class="mat">K = '+mtx(Krows)+'   kN/m\n\nM = '+mtx(Mrows)+'   kg</pre>'+
+    '<p>The equation of motion for free vibration is <b>M x\u0308 + K x = 0</b>.</p>'});
+  blocks.push({t:'The eigenvalue problem',b:
+    '<p>Substituting x = \u03C6 sin(\u03C9t) gives <b>(K \u2212 \u03C9\u00B2M)\u03C6 = 0</b>. A non-trivial shape needs a singular matrix, so</p>'+
+    '<pre class="mat">det(K \u2212 \u03C9\u00B2M) = 0</pre>'+
+    '<p>Dividing the whole equation by m\u2081 gives the scaled system used on screen, with B = \u03C9\u00B2:</p>'+
+    '<pre class="mat">K\u2032 = K/m\u2081 =\n'+mtx(Kp)+'   1/s\u00B2\n\nM\u2032 = M/m\u2081 = diag('+m.ms.map(function(v){return fmt(v/m.ms[0],4);}).join(', ')+')</pre>'});
+  blocks.push({t:'Characteristic polynomial',b:
+    '<p>Expanding the determinant gives a polynomial of degree '+n+' in B. Its roots are the squared frequencies.</p>'+
+    '<pre class="mat">'+pnum(co,4)+' = 0\n\nmonic form:\n'+pnum(mono,4)+' = 0</pre>'+
+    '<p>Roots:</p><pre class="mat">'+m.lam.map(function(L,ix){return 'B'+(ix+1)+' = '+fmt(L,4)+'   \u2192  \u03C9 = '+fmt(m.omega[ix],4)+' rad/s  \u2192  f = '+fmt(m.freq[ix],4)+' Hz  \u2192  T = '+fmt(m.per[ix],5)+' s';}).join('\n')+'</pre>'});
+  var bs='<p>With the roof fixed at 1.000, the shape follows from the rows of (K \u2212 \u03BBM) taken from the top down. For storey <i>f</i>:</p>'+
+    '<pre class="mat">\u03C6(f\u22121) = [ (k_f + k_(f+1) \u2212 \u03BB m_f)\u00B7\u03C6(f) \u2212 k_(f+1)\u00B7\u03C6(f+1) ] / k_f</pre>'+
+    '<p>with k_(n+1) = 0 at the roof. The bottom row is not used \u2014 it is the check.</p><pre class="mat">';
+  for(i=0;i<n;i++)bs+='\u03C6'+(i+1)+' = [ '+m.phi[i].map(function(v){return fmt(v,4);}).join(',  ')+' ]\n';
+  bs+='</pre>';
+  blocks.push({t:'Mode shapes by back-substitution',b:bs});
+  blocks.push({t:'Checks that were run',b:
+    '<p>Every number on the page comes from these identities; they are recomputed live.</p>'+
+    '<ul style="margin:8px 0 0 18px;padding:0">'+
+    '<li><b>(K \u2212 \u03BB\u1D63M)\u03C6\u1D63 = 0</b> \u2014 the eigenvalue equation, residual near machine precision.</li>'+
+    '<li><b>\u03A3\u03BB\u1D63 = trace(M\u207B\u00B9K)</b> \u2014 the sum of the roots equals the trace.</li>'+
+    '<li><b>\u03C6\u1D63\u1D40M\u03C6\u209B = 0</b> for r \u2260 s \u2014 modes are orthogonal through the mass matrix.</li>'+
+    '<li><b>\u03A6\u03A6\u1D40M = I</b> with mass-normalised shapes \u2014 the modal basis is complete.</li>'+
+    '<li>The static shape under self weight gives a Rayleigh estimate of f\u2081 within a fraction of a percent.</li>'+
+    '</ul>'});
+  blocks.push({t:'How the motion is computed',b:
+    '<p>With x\u2080 and v\u2080 the initial displacement and velocity, each modal coordinate follows</p>'+
+    '<pre class="mat">q\u1D63(t) = q\u1D63(0)\u00B7cos(\u03C9\u1D63t) + q\u0307\u1D63(0)/\u03C9\u1D63\u00B7sin(\u03C9\u1D63t)\nx(t) = \u03A3 \u03C6\u0302\u1D63 q\u1D63(t)</pre>'+
+    '<p>where \u03C6\u0302 are mass-normalised. Damping (if you set \u03B6 &gt; 0) multiplies each mode by e^(\u2212\u03B6\u03C9t) and shortens its period to \u03C9\u221A(1\u2212\u03B6\u00B2).</p>'+
+    '<p>The animation slows the real motion down by roughly 13\u201315\u00D7 so the eye can follow it; the relative speeds of the modes are kept exact \u2014 a mode with twice the frequency really does vibrate twice as fast on screen.</p>'});
+  var h='';
+  for(i=0;i<blocks.length;i++)h+='<details class="mtd" '+(i===0?'open':'')+'><summary>'+blocks[i].t+'</summary><div class="mtd-body">'+blocks[i].b+'</div></details>';
+  $('#method-list').innerHTML=h;
+}
+
+/* ================= 6b. calculator keys ================= */
+function calcNum(v){return Math.abs(v-1)<1e-12?'1':String(Number(v.toPrecision(10))).replace('-','\u2212');}
+function renderCalc(){
+  var m=model,n=m.N,sm=scaledMat(m),P=detPolyN(sm.Kp,sm.Mp),lead=P[0],i,h='';
+  function key(s){return '<kbd>'+s+'</kbd>';}
+  h+='<div class="calc-grid"><div><div class="calc-h">fx-991ES PLUS</div><ol class="calc-steps">'+
+     '<li>'+key('MODE')+' '+key('5')+' <span>EQN</span></li>'+
+     '<li>'+key(n===3?'4':'3')+' <span>'+(n===3?'aX\u00B3+bX\u00B2+cX+d=0':'aX\u00B2+bX+c=0')+'</span></li></ol></div>'+
+     '<div><div class="calc-h">fx-991EX ClassWiz</div><ol class="calc-steps">'+
+     '<li>'+key('MENU')+' '+key('A')+' <span>Equation/Func</span></li>'+
+     '<li>'+key('2')+' <span>Polynomial</span> '+key(String(n))+'</li></ol></div></div>';
+  h+='<div class="hint" style="margin:12px 0 6px">Type each coefficient and press '+key('=')+'. A negative number starts with '+key('(\u2212)')+'. These are the determinant from the tour divided by its leading term, so a = 1.</div>';
+  h+='<table class="t"><tbody>';
+  for(i=0;i<=n;i++)h+='<tr><td>'+'abcd'.charAt(i)+'</td><td style="text-align:right;font-family:var(--mono)">'+calcNum(P[i]/lead)+'</td></tr>';
+  h+='</tbody></table>';
+  h+='<div class="hint" style="margin:12px 0 6px">Keep pressing '+key('=')+' to read the roots. Each one is B = \u03C9\u00B2 \u2014 sort them smallest first, then \u03C9 = \u221AB and f = \u03C9 \u00F7 2\u03C0:</div>';
+  for(i=0;i<n;i++)h+='<div class="kv"><span class="k">B'+sub(i)+' = \u03C9'+sub(i)+'\u00B2 = '+fmt(m.lam[i],2)+'</span><span class="v">\u03C9 = '+fmt(m.omega[i],3)+' \u00B7 f = '+fmt(m.freq[i],3)+' Hz</span></div>';
+  $('#ans-calc').innerHTML=h;
+}
+
+/* ================= 6c. shareable links ================= */
+function stateQuery(){
+  var q=['n='+S.n,'g='+(S.geom?1:0)];
+  if(S.geom)q.push('fc='+S.fc,'b='+S.b,'c='+S.cols);else q.push('k='+S.ks.join(','));
+  q.push('h='+S.hs.join(','),'m='+S.ms.join(','),'z='+S.zeta,'a='+S.amp,'ic='+S.ic);
+  return q.join('&');
+}
+function syncURL(){
+  var keep=S;S=freshState();var def=stateQuery();S=keep;
+  var q=stateQuery();q=(q===def?'':q);
+  if(VIEW!==VDEF)q+=(q?'&':'')+'v='+VIEW;
+  try{history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}
+}
+/* untrusted input: every value range-checked, anything odd falls back to the exam numbers */
+function readURL(){
+  var p=new URLSearchParams(location.search),v;
+  function num(k,lo,hi){var x=parseFloat(p.get(k));return isFinite(x)&&x>=lo&&x<=hi?x:null;}
+  function arr(k,lo,hi){
+    var s=p.get(k);if(!s)return null;
+    var a=s.split(',').map(parseFloat),j;
+    if(a.length<2||a.length>3)return null;
+    for(j=0;j<a.length;j++)if(!(isFinite(a[j])&&a[j]>=lo&&a[j]<=hi))return null;
+    while(a.length<3)a.push(a[a.length-1]);
+    return a;
+  }
+  if((v=num('n',2,3))!==null)S.n=Math.round(v);
+  if(p.get('g')==='0')S.geom=false;
+  if((v=num('fc',10,120))!==null)S.fc=v;
+  if((v=num('b',100,2000))!==null)S.b=v;
+  if((v=num('c',1,12))!==null)S.cols=Math.round(v);
+  if((v=arr('k',1,1e7)))S.ks=v;
+  if((v=arr('h',0.5,30)))S.hs=v;
+  if((v=arr('m',1,1e8)))S.ms=v;
+  if((v=num('z',0,20))!==null)S.zeta=v;
+  if((v=num('a',5,120))!==null)S.amp=v;
+  v=p.get('ic');if(v==='roof'||v==='uniform'||v==='mode1')S.ic=v;
+  v=p.get('v');return (v==='2d'||v==='3d'||v==='both')?v:null;
+}
+function copyText(txt,msg){
+  function fallback(){
+    var ta=document.createElement('textarea');ta.value=txt;
+    ta.style.cssText='position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast(msg);}catch(err){toast('Copy was blocked by the browser',false);}
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){toast(msg);},fallback);
+  else fallback();
+}
+
+/* ================= 7. wiring ================= */
+function recompute(){
+  compute();
+  var keepCh=FI.ch,keepFr=FI.fr;
+  CHAPTERS=buildTour();
+  FI.ch=Math.min(keepCh,CHAPTERS.length-1);
+  FI.fr=Math.min(keepFr,CHAPTERS[FI.ch].frames.length-1);
+  renderChapters();
+  renderHero();renderAnswers();renderCalc();renderStoreys();renderPreview();renderMethod();syncInputs();
+  syncSegs();
+  show(FI.ch,FI.fr);
+  syncURL();
+}
+function boot(){
+  document.head.insertAdjacentHTML('beforeend','<style>'
+  +'pre.mat{background:#fbfbfd;border:1px solid var(--line);border-radius:12px;padding:12px 14px;overflow-x:auto;font:12px/1.7 var(--mono);color:#26272e;margin:8px 0}'
+  +'.narr .body ul{margin:6px 0 0 18px;padding:0}.narr .body li{margin:3px 0}'
+  +'.stage-cap .live[hidden],.note[hidden],.narr .formula[hidden]{display:none}'
+  +'#answers,#build,#method,#tour,#hero{scroll-margin-top:86px}'
+  +'section[id]{scroll-margin-top:74px}'
+  +'.storeys .hd,.storeys .sr{grid-template-columns:52px 1fr 1fr 74px}'
+  +'.storeys .sk{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right}'
+  +'.chapters{overflow-x:auto;scrollbar-width:none}.chapters::-webkit-scrollbar{display:none}'
+  +'.stage-views{position:relative;display:flex;gap:14px;align-items:center}.stage-views>div{flex:1 1 0;min-width:0}'
+  +'#stage-3d{position:relative;align-self:stretch;min-height:430px;border-radius:18px;overflow:hidden;background:radial-gradient(90% 80% at 50% 30%,#fff,#f1f1f7)}'
+  +'#stage-3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}#stage-3d canvas:active{cursor:grabbing}'
+  +'#stage-3d .v3-hint{position:absolute;left:12px;bottom:10px;z-index:1;font-size:11px;color:var(--faint);pointer-events:none}'
+  +'.stage-cap .v3n{text-transform:none;letter-spacing:0;font-weight:500}.stage-cap .v3n[hidden]{display:none}'
+  +'#ans-calc kbd{display:inline-block;min-width:26px;padding:2px 7px;border:1px solid var(--line);border-bottom-width:2px;border-radius:7px;background:#fff;font:650 11.5px/1.4 var(--mono);text-align:center;color:var(--ink)}'
+  +'.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.calc-h{font-size:12.5px;font-weight:700;margin-bottom:4px}'
+  +'.calc-steps{margin:0;padding-left:18px;line-height:2.2;font-size:13px}.calc-steps span{color:var(--muted);font-size:12px}'
+  +'@media (max-width:980px){.stage-views.both{flex-direction:column}#stage-3d{min-height:300px}.stage-views.both #stage-3d{min-height:260px;width:100%}}'
+  +'@media (max-width:560px){.calc-grid{grid-template-columns:1fr}}'
+  +'</style>');
+  S=freshState();
+  var qv=readURL();
+  VDEF=(window.matchMedia&&window.matchMedia('(max-width:980px)').matches)?'3d':'both';
+  VIEW=qv||VDEF;
+  compute();
+  CHAPTERS=buildTour();
+  renderChapters();
+  renderHero();renderAnswers();renderCalc();renderStoreys();renderPreview();renderMethod();syncInputs();
+  show(0,0);
+  setView(VIEW,true);
+  $$('#view-seg button').forEach(function(b){b.addEventListener('click',function(){setView(b.getAttribute('data-v'));});});
+  $('#share').addEventListener('click',function(){
+    syncURL();var u=location.href.split('#')[0];
+    if(navigator.share&&/^https?:/.test(u)){navigator.share({title:document.title,url:u}).catch(function(){});return;}
+    copyText(u,'Link copied \u2014 it opens with these exact numbers');
+  });
+  if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(function(){});
+
+  $('#prev').addEventListener('click',function(){
+    setPlay(false);
+    if(FI.fr>0)show(FI.ch,FI.fr-1);
+    else if(FI.ch>0)show(FI.ch-1,CHAPTERS[FI.ch-1].frames.length-1);
+  });
+  $('#next').addEventListener('click',function(){
+    setPlay(false);
+    if(FI.fr<CHAPTERS[FI.ch].frames.length-1)show(FI.ch,FI.fr+1);
+    else if(FI.ch<CHAPTERS.length-1)show(FI.ch+1,0);
+  });
+  $('#replay').addEventListener('click',function(){setPlay(false);show(FI.ch,FI.fr);});
+  $('#tspeed').addEventListener('click',function(){STrue=!STrue;setPlay(false);show(FI.ch,FI.fr);});
+  $('#play').addEventListener('click',function(){setPlay(!FI.playing);});
+  $$('#speed button').forEach(function(b){
+    b.addEventListener('click',function(){
+      $$('#speed button').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      syncSeg($('#speed'));
+      FI.speed=+b.getAttribute('data-s');
+      if(FI.playing)setPlay(true);
+    });
+  });
+  document.addEventListener('keydown',function(e){
+    if(/input|select|textarea/i.test((e.target.tagName||'')))return;
+    if(e.key===' '||e.code==='Space'){e.preventDefault();setPlay(!FI.playing);return;}
+    if(e.key==='ArrowRight'){setPlay(false);$('#next').click();}
+    if(e.key==='ArrowLeft'){setPlay(false);$('#prev').click();}
+    if(e.key==='r'||e.key==='R'){setPlay(false);show(FI.ch,FI.fr);}
+  });
+  window.addEventListener('resize',function(){movePill();syncSegs();});
+
+  /* spotlight follows the pointer across the hero stat cards */
+  $$('.stat').forEach(function(el){
+    el.addEventListener('pointermove',function(e){
+      var r=el.getBoundingClientRect();
+      el.style.setProperty('--mx',(e.clientX-r.left)+'px');
+      el.style.setProperty('--my',(e.clientY-r.top)+'px');
+    });
+  });
+
+  /* copy the solved numbers */
+  $('#copy').addEventListener('click',function(){copyText(reportText(),'Copied \u2014 '+model.N+' storeys of results');});
+
+  /* builder */
+  $$('#floors-seg button').forEach(function(b){
+    b.addEventListener('click',function(){S.n=+b.getAttribute('data-n');recompute();toast('Rebuilt for '+S.n+' storeys \u00B7 '+model.freq.length+' modes');});
+  });
+  $$('#geom-seg button').forEach(function(b){
+    b.addEventListener('click',function(){S.geom=(+b.getAttribute('data-g')===1);recompute();toast(S.geom?'Stiffness rebuilt from geometry':'Stiffness now typed directly');});
+  });
+  [['in-fc','fc',1],['in-cols','cols',1],['in-b','b',10]].forEach(function(p){
+    $('#'+p[0]).addEventListener('input',function(){
+      var v=parseFloat(this.value);
+      if(!isFinite(v))return;
+      S[p[1]]=v;
+      recompute();
+    });
+  });
+  $('#in-zeta').addEventListener('input',function(){var v=parseFloat(this.value);if(isFinite(v)){S.zeta=Math.max(0,Math.min(20,v));recompute();}});
+  $('#in-ic').addEventListener('change',function(){S.ic=this.value;recompute();});
+  $('#in-amp').addEventListener('input',function(){S.amp=+this.value;recompute();});
+  $('#reset').addEventListener('click',function(){S=freshState();recompute();toast('Back to the exam numbers');});
+  $('#rerun').addEventListener('click',function(){setPlay(false);show(0,0);$('#tour').scrollIntoView({behavior:'smooth',block:'start'});});
+
+  /* reveal + nav */
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+    },{rootMargin:'0px 0px -8% 0px',threshold:.06});
+    $$('.rv').forEach(function(el){io.observe(el);});
+    var secs=$$('section[id]'),nav=$$('.nav a');
+    var io2=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){
+          nav.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id);});
+        }
+      });
+    },{rootMargin:'-45% 0px -50% 0px'});
+    secs.forEach(function(s){io2.observe(s);});
+  } else {
+    $$('.rv').forEach(function(el){el.classList.add('in');});
+  }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+else boot();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mdof-calculator.vercel.app/sitemap.xml

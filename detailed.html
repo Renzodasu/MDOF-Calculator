@@ -1,0 +1,1839 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free vibration of a three-storey frame · an interactive MDOF solution</title>
+<meta name="description" content="Step-by-step solution of a three-DOF shear building: storey stiffness, eigenvalue problem, mode shapes and the total free-vibration response, with live parameters and animations.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Free vibration of a three-storey frame — interactive MDOF solution">
+<meta property="og:description" content="Storey stiffness, the eigenvalue problem, the three mode shapes and the total free-vibration response of a 3-DOF shear frame — every number recomputed live in the browser.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2315181d'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='12' fill='%23f4f1e9' text-anchor='middle'%3EM3%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#f4f1e9;
+  --paper-2:#fcfaf4;
+  --ink:#15181d;
+  --muted:#5e646d;
+  --faint:#8b9098;
+  --line:#d8d1c3;
+  --line-2:#eee8dc;
+  --blue:#1e46c4;
+  --blue-2:#dfe6fa;
+  --red:#a83b21;
+  --dark:#0c121a;
+  --dark-2:#121b25;
+  --cream:#ece6d8;
+  --teal:#6fd3c1;
+  --coral:#e8785f;
+  --amber:#f0b45a;
+  --mono:"Cascadia Mono","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --sans:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{margin:0;font-family:var(--sans);font-size:16px;line-height:1.6;color:var(--ink);
+  background:radial-gradient(900px 420px at 10% -8%,#fffdf7 0%,rgba(255,253,247,0) 68%),
+             radial-gradient(1100px 600px at 94% 2%,#faf6ec 0%,rgba(250,246,236,0) 62%),var(--paper);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,h4,p,figure{margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit}
+::selection{background:#cfd9f6;color:#0b1230}
+.wrap{width:min(1180px,calc(100% - 48px));margin-inline:auto}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+sup,sub{font-size:.68em;line-height:0}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(244,241,233,.84);
+  backdrop-filter:blur(14px) saturate(1.15);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:24px;height:64px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-family:var(--mono);
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);flex:none}
+.brand-mark{width:26px;height:26px;border:1px solid var(--ink);display:grid;place-items:center;
+  font-family:var(--serif);font-size:13px;letter-spacing:0;position:relative}
+.brand-mark::after{content:"";position:absolute;inset:3px;border:1px solid rgba(22,25,30,.16)}
+.brand b{font-weight:600}
+.nav{margin-left:auto;display:flex;gap:2px}
+.nav a{font-size:12px;text-decoration:none;color:var(--muted);padding:7px 10px;transition:color .2s,background .2s}
+.nav a:hover{color:var(--ink);background:rgba(22,25,30,.05)}
+.nav a.active{color:var(--ink);background:rgba(30,70,196,.07)}
+.btn-param{border:1px solid var(--ink);background:transparent;padding:8px 13px;font-family:var(--mono);
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s;flex:none}
+.btn-param:hover{background:var(--ink);color:var(--paper)}
+.progress{position:absolute;left:0;bottom:-1px;height:2px;width:0;background:var(--blue);transition:width .1s linear}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:60px 0 56px;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.85;
+  background-image:linear-gradient(rgba(30,70,196,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(30,70,196,.06) 1px,transparent 1px);
+  background-size:34px 34px;
+  -webkit-mask-image:radial-gradient(72% 82% at 34% 18%,#000 8%,transparent 72%);
+  mask-image:radial-gradient(72% 82% at 34% 18%,#000 8%,transparent 72%)}
+.hero-grid{position:relative;display:grid;grid-template-columns:minmax(0,1.06fr) minmax(370px,.94fr);gap:54px;align-items:center}
+.eyebrow{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--ink)}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(41px,5.3vw,66px);line-height:1.01;
+  letter-spacing:-.024em;margin-bottom:20px}
+h1 em{font-style:italic;color:var(--blue);white-space:nowrap}
+.lede{font-size:15.5px;line-height:1.7;color:var(--muted);max-width:48ch}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.btn{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--ink);padding:11px 16px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;
+  cursor:pointer;transition:background .2s,color .2s,transform .2s;background:transparent}
+.btn span{font-size:13px;line-height:1}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-primary:hover{background:var(--blue);border-color:var(--blue)}
+.btn-ghost:hover{background:rgba(22,25,30,.06)}
+.btn:active{transform:translateY(1px)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px;
+  border-top:1px solid var(--line);padding-top:15px}
+.stat .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:5px}
+.stat .v{font-family:var(--mono);font-size:25px;letter-spacing:-.035em;line-height:1.1}
+.stat .u{font-size:10.5px;color:var(--muted);margin-left:3px;letter-spacing:0}
+
+/* exam sheet */
+.exam{background:#fdfbf5;border:1px solid #cbc2b0;padding:22px 22px 18px;position:relative;
+  transform:rotate(-.55deg);
+  box-shadow:0 30px 60px -44px rgba(20,23,28,.65),0 1px 0 #fff inset}
+.exam::before{content:"";position:absolute;inset:7px;border:1px solid rgba(20,23,28,.06);pointer-events:none}
+.exam-title{font-family:var(--serif);font-size:13px;line-height:1.32;letter-spacing:.05em;text-align:center;
+  text-transform:uppercase;padding-bottom:9px;border-bottom:2px solid var(--ink);margin-bottom:13px}
+.given{list-style:none;padding:0;margin:0 0 4px;font-size:11.5px;line-height:1.52}
+.given li{position:relative;padding-left:12px;margin-bottom:4.5px;color:#2c3036}
+.given li::before{content:"";position:absolute;left:0;top:6px;width:4px;height:4px;background:var(--red);transform:rotate(45deg)}
+.given b{font-weight:600;color:var(--ink)}
+.sketch{color:#2f4f8f;margin:6px -4px 0}
+.sketch svg{width:100%;height:auto;display:block}
+.exam-foot{font-size:10px;line-height:1.5;color:var(--muted);border-top:1px dashed #cfc6b4;padding-top:9px;margin-top:4px}
+
+/* ---------- sections ---------- */
+.sec{padding:74px 0;border-top:1px solid var(--line);position:relative}
+.sec-head{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:26px;align-items:start;margin-bottom:36px}
+.sec-index{font-family:var(--serif);font-size:56px;line-height:.82;color:#d3cbbb;letter-spacing:-.05em}
+.sec-kicker{font-family:var(--mono);font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:var(--muted);margin-bottom:11px}
+.sec h2{font-family:var(--serif);font-weight:400;font-size:clamp(29px,3.4vw,42px);line-height:1.07;
+  letter-spacing:-.02em;margin-bottom:10px;max-width:20ch}
+.sec-sub{font-size:14.5px;line-height:1.66;color:var(--muted);max-width:66ch}
+.sec-chip{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line);padding:8px 11px;
+  color:var(--muted);white-space:nowrap;background:rgba(252,250,244,.6)}
+.split{display:grid;grid-template-columns:1.02fr .98fr;gap:26px;align-items:start}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.stack{display:flex;flex-direction:column;gap:18px}
+
+.card{background:var(--paper-2);border:1px solid var(--line);padding:24px;position:relative}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}
+.card-t{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.card-n{font-family:var(--mono);font-size:9.5px;color:var(--faint)}
+.card-note{font-size:12px;line-height:1.6;color:var(--muted);margin-top:14px;padding-top:13px;border-top:1px dashed var(--line)}
+
+.figure-card{background:linear-gradient(180deg,#fdfbf5,#f8f4ea);border:1px solid var(--line);padding:12px 12px 6px;position:relative}
+.figure-card svg{width:100%;height:auto;display:block}
+.fig-cap{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:9px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);padding:9px 4px 4px;margin-top:6px}
+
+.calc{margin-top:2px}
+.calc-row{display:grid;grid-template-columns:52px 1fr auto;gap:12px;padding:10px 0;
+  border-bottom:1px dotted var(--line);align-items:baseline}
+.calc-row:last-child{border-bottom:0}
+.calc-row .sym{font-family:var(--serif);font-size:17px}
+.calc-row .expr{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.5}
+.calc-row .res{font-family:var(--mono);font-size:14.5px;white-space:nowrap}
+.big-eq{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-family:var(--serif);font-size:21px;
+  margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.big-eq .num{font-size:16px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+  margin:0 .22em;text-align:center;line-height:1.15}
+.frac .n{border-bottom:1px solid currentColor;padding:0 .32em 3px;font-size:.86em}
+.frac .d{padding:3px .32em 0;font-size:.86em}
+
+.stories{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.story{background:var(--paper-2);border:1px solid var(--line);padding:16px 16px 14px;position:relative;overflow:hidden}
+.story::after{content:"";position:absolute;left:0;top:0;width:100%;height:2px;background:var(--blue);opacity:.85}
+.story-top{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:8.5px;
+  letter-spacing:.11em;color:var(--muted);text-transform:uppercase}
+.story-k{margin-top:13px;font-family:var(--mono);font-size:25px;letter-spacing:-.035em;line-height:1}
+.story-k .unit{font-size:9.5px;color:var(--muted);margin-left:3px;letter-spacing:0}
+.story-sub{font-size:10.5px;color:var(--muted);margin-top:4px}
+.story-bar{height:5px;background:#e9e3d5;margin:13px 0 10px;position:relative;overflow:hidden}
+.story-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);width:0;
+  transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.story-total{display:flex;justify-content:space-between;gap:6px;font-size:10.5px;
+  border-top:1px dotted var(--line);padding-top:8px;color:var(--muted)}
+.story-total b{font-family:var(--mono);font-size:10.5px;color:var(--ink);font-weight:400}
+
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);text-align:right;padding:0 8px 8px;border-bottom:1px solid var(--ink);font-weight:400;white-space:nowrap}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:10px 8px;border-bottom:1px solid var(--line-2);text-align:right;
+  font-family:var(--mono);font-size:12px;white-space:nowrap}
+.tbl td:first-child{text-align:left;font-family:var(--sans);font-size:12.5px}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover td{background:rgba(30,70,196,.035)}
+.tbl .em{color:var(--blue)}
+.tbl .dim{color:var(--muted)}
+
+.mat-row{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.mat-box{display:flex;flex-direction:column;gap:7px}
+.mat-name{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.mat{position:relative;display:grid;grid-template-columns:repeat(3,minmax(70px,1fr));gap:3px 12px;
+  padding:8px 14px;font-family:var(--mono);font-size:12px}
+.mat::before,.mat::after{content:"";position:absolute;top:0;bottom:0;width:6px;
+  border-top:1.3px solid #8b9098;border-bottom:1.3px solid #8b9098}
+.mat::before{left:0;border-left:1.3px solid #8b9098}
+.mat::after{right:0;border-right:1.3px solid #8b9098}
+.mat span{text-align:right;white-space:nowrap}
+
+.poly{font-family:var(--mono);font-size:12.5px;line-height:2;overflow-x:auto;white-space:nowrap;padding:2px 0;color:#24282e}
+.poly .op{color:var(--faint)}
+.poly .em{color:var(--blue)}
+.deriv-step{display:grid;grid-template-columns:26px 1fr;gap:10px;padding:9px 0;border-bottom:1px dotted var(--line);align-items:baseline}
+.deriv-step:last-child{border-bottom:0}
+.deriv-step .idx{font-family:var(--mono);font-size:9px;color:var(--faint)}
+.deriv-step .txt{font-size:13px;line-height:1.55;color:#2a2f36}
+.deriv-step .val{font-family:var(--mono);font-size:12px;color:var(--ink);margin-top:6px;display:block}
+.deriv-step.hot{background:linear-gradient(90deg,rgba(30,70,196,.06),transparent);}
+.deriv-step.hot .idx{color:var(--blue)}
+
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mode-card{background:radial-gradient(120% 90% at 50% 0%,#16202c,#0b1118 74%);border:1px solid #1c2633;
+  color:var(--cream);padding:15px 15px 13px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.mode-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);
+  font-size:8.5px;letter-spacing:.16em;color:#8ea0b4;text-transform:uppercase;position:relative;z-index:1}
+.mode-svg{width:100%;height:auto;display:block;margin:4px 0 0}
+.mode-f{font-family:var(--mono);font-size:21px;letter-spacing:-.03em;color:#f4eee0;line-height:1.1}
+.mode-f .unit{font-size:9.5px;color:#8ea0b4;margin-left:3px}
+.mode-meta{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:9.5px;
+  color:#9fb0c2;border-top:1px solid #202b38;padding-top:7px;margin-top:7px}
+.mode-phi{font-family:var(--mono);font-size:10px;color:#c8d4e2;margin-top:7px;line-height:1.5}
+.mode-desc{font-size:10.5px;line-height:1.5;color:#93a5b8;margin-top:6px}
+
+.stage{background:radial-gradient(120% 92% at 50% -12%,#17222e 0%,#0b1118 62%,#080d13 100%);
+  border:1px solid #1b2430;color:var(--cream);padding:20px;position:relative;overflow:hidden}
+.stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(236,230,216,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(236,230,216,.045) 1px,transparent 1px);
+  background-size:28px 28px;
+  -webkit-mask-image:radial-gradient(72% 72% at 50% 38%,#000,transparent 78%);
+  mask-image:radial-gradient(72% 72% at 50% 38%,#000,transparent 78%)}
+.stage-grid{position:relative;display:grid;grid-template-columns:1.06fr .94fr;gap:20px;align-items:start}
+.stage-svg{width:100%;height:auto;display:block}
+.stage-info{display:flex;flex-direction:column;gap:11px;min-width:0}
+.stage-title{font-family:var(--serif);font-size:19px;color:#f2ecdf;line-height:1.2}
+.stage-sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:#8ea0b4;text-transform:uppercase}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.readout div{border:1px solid #223040;padding:7px 8px;background:rgba(18,27,37,.55)}
+.readout .k{font-family:var(--mono);font-size:8px;letter-spacing:.13em;color:#7f92a6}
+.readout .v{font-family:var(--mono);font-size:14px;margin-top:3px;color:#f0eadc}
+.readout .v span{font-size:9px;color:#8ea0b4;margin-left:2px}
+.controls{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:14px;padding-top:13px;
+  border-top:1px solid #1d2836;position:relative}
+.seg{display:inline-flex;border:1px solid #2a3646;background:#0e1620;padding:2px}
+.seg button{border:0;background:transparent;color:#93a5b8;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.08em;padding:6px 9px;cursor:pointer;transition:background .2s,color .2s}
+.seg button:hover{color:#fff}
+.seg button.on{background:#ece6d8;color:#101822}
+.ctl{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;color:#8ea0b4;letter-spacing:.06em}
+.ctl input[type=range]{width:78px;accent-color:#8ea0b4;height:14px}
+.icon-btn{width:30px;height:28px;display:grid;place-items:center;border:1px solid #2a3646;background:#0e1620;
+  color:#c8d4e2;cursor:pointer;font-size:11px;line-height:1}
+.icon-btn:hover{border-color:#4a5a6e;color:#fff}
+.select{background:#0e1620;color:#c8d4e2;border:1px solid #2a3646;font-family:var(--mono);
+  font-size:9.5px;padding:6px 7px;max-width:210px;cursor:pointer}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:8.5px;color:#8ea0b4}
+.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:5px}
+.chart{width:100%;height:auto;display:block}
+.panel-note{font-size:10px;line-height:1.5;color:#8ea0b4}
+.formula-small{font-family:var(--mono);font-size:9.5px;color:#a9b8c8;line-height:1.7}
+
+/* rayleigh */
+.slider-row{display:grid;grid-template-columns:58px 1fr 54px;gap:12px;align-items:center;margin:13px 0}
+.slider-row label{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.slider-row input[type=range]{width:100%;accent-color:var(--blue)}
+.slider-row .val{font-family:var(--mono);font-size:12px;text-align:right}
+.ray-out{display:flex;align-items:baseline;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.ray-out .big{font-family:var(--mono);font-size:32px;letter-spacing:-.04em;line-height:1}
+.ray-out .u{font-size:11px;color:var(--muted)}
+.err{font-family:var(--mono);font-size:11px;padding:3px 7px;border:1px solid var(--line);display:inline-block}
+.err.good{color:#0f6b52;border-color:#b9d8cd;background:#eff8f4}
+.err.bad{color:var(--red);border-color:#e4c4b8;background:#fbf1ed}
+.check{display:grid;grid-template-columns:22px 1fr auto;gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--line-2);align-items:baseline;font-size:12.5px}
+.check:last-child{border-bottom:0}
+.check .tick{color:#0f6b52;font-size:12px}
+.check .res{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
+
+.note{border-left:2px solid var(--ink);padding:2px 0 2px 14px;font-size:12.5px;line-height:1.65;color:var(--muted)}
+.note b{color:var(--ink);font-weight:600}
+.note.warn{border-color:var(--red)}
+.note.blue{border-color:var(--blue)}
+.note p+p{margin-top:6px}
+
+/* footer */
+.footer{border-top:1px solid var(--line);padding:38px 0 64px;color:var(--muted);font-size:11.5px}
+.footer .credit{margin-top:14px;font-size:11.5px;color:var(--faint)}
+.footer .credit b{color:var(--ink);font-weight:600}
+.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:30px}
+.footer h4{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:10px}
+.footer a{text-decoration:none;border-bottom:1px solid var(--line)}
+.footer a:hover{border-color:var(--ink);color:var(--ink)}
+.footer p{line-height:1.7}
+.footer .sig{margin-top:26px;display:flex;justify-content:space-between;gap:20px;
+  border-top:1px solid var(--line);padding-top:14px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(12,18,26,.42);backdrop-filter:blur(2px);opacity:0;
+  pointer-events:none;transition:opacity .35s;z-index:90}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(410px,94vw);background:var(--paper-2);z-index:100;
+  transform:translateX(103%);transition:transform .45s cubic-bezier(.2,.8,.2,1);
+  box-shadow:-30px 0 70px -40px rgba(0,0,0,.55);overflow-y:auto;padding:24px 24px 40px;border-left:1px solid var(--line)}
+.drawer.open{transform:none}
+.drawer-head{display:flex;justify-content:space-between;align-items:start;gap:12px;
+  border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.drawer-head h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.1;margin-top:4px}
+.drawer-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.drawer-close{background:none;border:1px solid var(--line);width:30px;height:30px;cursor:pointer;font-size:14px;line-height:1}
+.drawer-close:hover{border-color:var(--ink)}
+.field{display:grid;grid-template-columns:1fr 96px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px dotted var(--line)}
+.field label{font-size:12.5px}
+.field label small{display:block;font-family:var(--mono);font-size:8.5px;color:var(--faint);letter-spacing:.04em;margin-top:2px}
+.field input{width:100%;border:1px solid var(--line);background:#fff;padding:7px 8px;font-family:var(--mono);
+  font-size:12px;text-align:right;color:var(--ink)}
+.field input:focus{outline:2px solid var(--blue);outline-offset:0;border-color:transparent}
+.presets{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 16px}
+.presets button{border:1px solid var(--line);background:transparent;padding:7px 9px;font-family:var(--mono);
+  font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:var(--muted)}
+.presets button:hover{border-color:var(--ink);color:var(--ink)}
+.drawer-actions{display:flex;gap:8px;margin-top:14px}
+.drawer-actions .btn{flex:1;justify-content:center;padding:10px}
+.drawer p.hint{font-size:11px;line-height:1.6;color:var(--muted);margin-top:12px}
+.live-dot{display:inline-block;width:6px;height:6px;background:#0f6b52;border-radius:50%;margin-right:6px;vertical-align:1px}
+.live-dot.off{background:var(--red)}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .65s ease,transform .65s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.d1{transition-delay:.06s}.d2{transition-delay:.12s}.d3{transition-delay:.18s}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none;transition:none}
+  *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+@media (max-width:1040px){
+  .hero-grid{grid-template-columns:1fr;gap:38px}
+  .exam{max-width:520px;transform:none}
+  .split{grid-template-columns:1fr}
+  .stage-grid{grid-template-columns:1fr}
+  .modes{grid-template-columns:1fr 1fr}
+  .sec-head{grid-template-columns:64px 1fr;gap:18px}
+  .sec-chip{grid-column:2;justify-self:start}
+  .sec-index{font-size:44px}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:760px){
+  .wrap{width:calc(100% - 32px)}
+  .nav{display:none}
+  .btn-param{margin-left:auto}
+  .hero{padding:42px 0 40px}
+  h1{font-size:clamp(36px,9vw,48px)}
+  .stats{grid-template-columns:1fr 1fr;gap:14px}
+  .stat:last-child{grid-column:1/-1}
+  .sec{padding:56px 0}
+  .stories{grid-template-columns:1fr}
+  .g2,.g3,.modes{grid-template-columns:1fr}
+  .tbl th,.tbl td{padding-left:5px;padding-right:5px}
+  .stage{padding:14px}
+  .controls{gap:7px}
+  .footer-grid{grid-template-columns:1fr}
+  .exam{max-width:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="brand-mark">M3</span><span>MDOF&nbsp;/&nbsp;<b>worked example</b></span></a>
+    <nav class="nav" id="nav">
+      <a href="#model">Model</a>
+      <a href="#step1">Stiffness</a>
+      <a href="#step2">Eigen</a>
+      <a href="#step3">Modes</a>
+      <a href="#step4">Response</a>
+      <a href="#check">Check</a>
+    </nav>
+    <button class="btn-param" data-open-lab>Parameters</button>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow">Structural dynamics · worked example</div>
+      <h1>Free vibration of a <em>three-storey</em> frame.</h1>
+      <p class="lede">Four concrete columns per floor, three lumped masses, three lateral degrees of freedom. This sheet follows the problem from section properties to storey stiffness, solves the eigenvalue problem, and finishes with the mode shapes and the total free-vibration response — every number recomputed live.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#step1">Walk through the solution <span>↓</span></a>
+        <button class="btn btn-ghost" data-open-lab>Open parameter lab</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">Fundamental frequency</div><div class="v"><span id="hero-f1">5.315</span><span class="u">Hz</span></div></div>
+        <div class="stat"><div class="k">Fundamental period</div><div class="v"><span id="hero-T1">0.1881</span><span class="u">s</span></div></div>
+        <div class="stat"><div class="k">Circular frequency</div><div class="v"><span id="hero-w1">33.39</span><span class="u">rad/s</span></div></div>
+      </div>
+    </div>
+
+    <aside class="exam" aria-label="Problem statement">
+      <h2 class="exam-title">Free vibration response of MDOF systems</h2>
+      <ul class="given">
+        <li>The structure is supported by <b>4 concrete square columns</b> per floor, modelled as shown.</li>
+        <li>f′c of the structural members is <b>21 MPa</b>.</li>
+        <li>Dimensions of the columns are <b>300 mm × 300 mm</b>.</li>
+        <li>h₁ = 1.25h₂ = 1.333333h₃ = <b>4 m</b>.</li>
+        <li>Mode-shape factor for the topmost floor = <b>1.0</b>.</li>
+      </ul>
+      <div class="sketch" aria-hidden="true">
+        <svg viewBox="0 0 360 332">
+          <defs>
+            <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.032" numOctaves="2" seed="7" result="n"></feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="1.3"></feDisplacementMap>
+            </filter>
+          </defs>
+          <g filter="url(#rough)" fill="none" stroke="#2f4f8f" stroke-width="1.9" stroke-linecap="round">
+            <path d="M26 286 H334"></path>
+            <path d="M34 292 l-7 9 M58 292 l-7 9 M82 292 l-7 9 M106 292 l-7 9 M130 292 l-7 9 M154 292 l-7 9 M178 292 l-7 9 M202 292 l-7 9 M226 292 l-7 9 M250 292 l-7 9 M274 292 l-7 9 M298 292 l-7 9 M322 292 l-7 9" stroke-width="1" opacity=".65"></path>
+            <path d="M74 286 V72"></path>
+            <path d="M296 286 V72"></path>
+            <path d="M54 203 H316" stroke-width="3.4"></path>
+            <path d="M54 137 H316" stroke-width="3.4"></path>
+            <path d="M54 76 H316" stroke-width="3.4"></path>
+            <path d="M340 286 V76" stroke-width="1.1"></path>
+            <path d="M334 286 H346 M334 203 H346 M334 137 H346 M334 76 H346" stroke-width="1.1"></path>
+          </g>
+          <g font-family="'Segoe Print','Bradley Hand','Comic Sans MS',cursive" font-size="11" fill="#2f4f8f">
+            <text x="92" y="196">m₁ = 5,000 kg</text>
+            <text x="92" y="130">m₂ = 2,500 kg</text>
+            <text x="92" y="69">m₃ = 1,250 kg</text>
+            <text x="352" y="247" text-anchor="middle" transform="rotate(-90 352 247)">h₁ = 4.0 m</text>
+            <text x="352" y="173" text-anchor="middle" transform="rotate(-90 352 173)">h₂ = 3.2 m</text>
+            <text x="352" y="108" text-anchor="middle" transform="rotate(-90 352 108)">h₃ = 3.0 m</text>
+            <text x="330" y="320" font-size="9.5" text-anchor="end" fill="#5e7aa8">elevation · 2 of 4 column lines shown</text>
+          </g>
+        </svg>
+      </div>
+      <div class="exam-foot">Determine (1) the stiffness of one column and the equivalent stiffness per floor, (2) the natural frequencies and periods, (3) the mode-shape factors per floor, and (4) sketch the mode shapes and the total mode shape.</div>
+    </aside>
+  </div>
+</section>
+
+<section class="sec" id="model">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <div class="sec-index">00</div>
+      <div>
+        <div class="sec-kicker">The idealisation</div>
+        <h2>Three floors, three degrees of freedom</h2>
+        <p class="sec-sub">The floor slabs are axially rigid and carry all the mass; the columns are massless, axially rigid and fixed at both ends. That shear-building idealisation leaves one lateral translation per floor, so the structure is a 3-DOF system with a tridiagonal stiffness matrix.</p>
+      </div>
+      <div class="sec-chip" id="liveChip"><span class="live-dot"></span>live model</div>
+    </header>
+
+    <div class="split">
+      <figure class="figure-card reveal" id="model-figure">
+        <div class="fig-cap"><span>Fig. 1 · elevation and plan</span><span id="fig-scale">heights to scale</span></div>
+      </figure>
+      <div class="stack">
+        <div class="card reveal d1">
+          <div class="card-h"><span class="card-t">Model data</span><span class="card-n" id="data-note">as given</span></div>
+          <table class="tbl">
+            <tbody id="data-table"></tbody>
+          </table>
+        </div>
+        <div class="note reveal d2">
+          <p><b>Assumptions.</b> Linear elastic behaviour; floor diaphragms rigid in their own plane; columns fixed against rotation at every slab; no axial deformation of columns; damping neglected — this is free vibration. The concrete modulus uses the normal-weight ACI 318 relation E<sub>c</sub> = 4700√f′<sub>c</sub> (MPa).</p>
+          <p>The sketch gives m₃ = <b>1,250 kg</b>, a very light roof. If the intended value was 12,500 kg, open the parameter lab and use the preset — every result on the page will recompute.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="step1">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <div class="sec-index">01</div>
+      <div>
+        <div class="sec-kicker">Question 1 · stiffness</div>
+        <h2>One column, then a whole floor</h2>
+        <p class="sec-sub">A column held against rotation at both ends and pushed sideways by δ carries a shear of 12EIδ/h³. Four identical columns share the floor displacement, so the storey stiffness is simply four times the column stiffness. Height enters cubed, so the short top storey is by far the stiffest.</p>
+      </div>
+      <div class="sec-chip">k = 12EI / h³</div>
+    </header>
+
+    <div class="split">
+      <div class="card reveal">
+        <div class="card-h"><span class="card-t">Section &amp; column stiffness</span><span class="card-n">SI units</span></div>
+        <div class="calc" id="calc-step1"></div>
+        <div class="big-eq">
+          <span>k<sub>col</sub> =</span>
+          <span class="frac"><span class="n">12EI</span><span class="d">h³</span></span>
+          <span class="muted" style="font-size:14px">and</span>
+          <span>K<sub>floor</sub> = 4 k<sub>col</sub></span>
+        </div>
+        <p class="card-note">For a fixed–fixed column the end moments are 6EIδ/h² and the shear is 12EIδ/h³, with the inflection point at mid-height. Halving a storey height would multiply its lateral stiffness by eight.</p>
+      </div>
+      <div class="reveal d1">
+        <div class="stories" id="story-cards"></div>
+        <div class="note blue" style="margin-top:16px">
+          <p><b>The top storey is the stiffest.</b> It is the shortest (3.0 m) and carries the lightest mass, which is why the third mode ends up localised in the roof. The first storey is the softest, so it attracts most of the drift in the fundamental sway.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card reveal d2" style="margin-top:22px">
+      <div class="card-h"><span class="card-t">Storey stiffness summary</span><span class="card-n" id="stiff-sum"></span></div>
+      <div style="overflow-x:auto"><table class="tbl" id="stiff-table"></table></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="step2">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <div class="sec-index">02</div>
+      <div>
+        <div class="sec-kicker">Question 2 · natural frequencies &amp; periods</div>
+        <h2>The eigenvalue problem</h2>
+        <p class="sec-sub">With the mass and stiffness matrices assembled, free vibration (K − ω²M)φ = 0 has non-trivial solutions only when the determinant vanishes. For three floors that condition is a cubic in λ = ω²; its three roots are the squared natural frequencies.</p>
+      </div>
+      <div class="sec-chip">det(K − ω²M) = 0</div>
+    </header>
+
+    <div class="g3">
+      <div class="card reveal">
+        <div class="card-h"><span class="card-t">Stiffness matrix K</span><span class="card-n">kN/m</span></div>
+        <div id="mat-k"></div>
+      </div>
+      <div class="card reveal d1">
+        <div class="card-h"><span class="card-t">Mass matrix M</span><span class="card-n">kg</span></div>
+        <div id="mat-m"></div>
+      </div>
+      <div class="card reveal d2">
+        <div class="card-h"><span class="card-t">Generalised eigenproblem</span><span class="card-n">3 × 3</span></div>
+        <div class="big-eq" style="margin-top:0;border-top:0;padding-top:0;font-size:19px">( K − ω²M ) φ = 0</div>
+        <p class="card-note">M is diagonal because the mass is lumped at the floor levels. The off-diagonal −K<sub>i</sub> terms in K are the coupling between adjacent storeys.</p>
+      </div>
+    </div>
+
+    <div class="card reveal d1" style="margin-top:22px">
+      <div class="card-h">
+        <span class="card-t">Characteristic equation</span>
+        <button class="btn" id="traceBtn" style="padding:6px 10px;font-size:8.5px">Trace the roots</button>
+      </div>
+      <div class="split">
+        <div>
+          <div class="poly" id="det-line"></div>
+          <div class="poly" id="monic-line" style="margin-top:2px"></div>
+          <div style="margin-top:14px" id="deriv"></div>
+        </div>
+        <div>
+          <svg id="poly-chart" class="chart" viewBox="0 0 460 300" role="img" aria-label="Characteristic polynomial with three roots"></svg>
+          <div class="fig-cap" style="border-top:0;text-transform:none;letter-spacing:.05em"><span>normalised det(K − λM)</span><span>λ = ω²</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card reveal d2" style="margin-top:22px">
+      <div class="card-h"><span class="card-t">Natural frequencies &amp; periods</span><span class="card-n">ω = √λ, f = ω/2π, T = 2π/ω</span></div>
+      <div style="display:grid;grid-template-columns:1.35fr .65fr;gap:26px;align-items:start" id="freq-wrap">
+        <div style="overflow-x:auto"><table class="tbl" id="freq-table"></table></div>
+        <div id="freq-ruler"></div>
+      </div>
+      <p class="card-note">The fundamental period T₁ ≈ <span class="mono" id="t1-dup">0.188 s</span> is the one an earthquake would feel first. The higher modes run five to six times faster, and their contribution to the total response dies out rapidly once any damping is present.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="step3">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <div class="sec-index">03</div>
+      <div>
+        <div class="sec-kicker">Question 3 · mode-shape factors</div>
+        <h2>Three ways to sway</h2>
+        <p class="sec-sub">Back-substituting each root into (K − λM)φ = 0 gives its eigenvector. Normalised so that the top-floor factor is 1.0, the components are the mode-shape factors the problem asks for. Only the shape matters: any scalar multiple is the same mode.</p>
+      </div>
+      <div class="sec-chip">φ<sub>roof</sub> = 1.0</div>
+    </header>
+
+    <div class="modes reveal" id="mode-cards"></div>
+
+    <div class="split" style="margin-top:22px">
+      <div class="card reveal d1">
+        <div class="card-h"><span class="card-t">Mode-shape factors</span><span class="card-n">roof = 1.0</span></div>
+        <div style="overflow-x:auto"><table class="tbl" id="shape-table"></table></div>
+        <p class="card-note">The problem fixes the top-floor factor at 1.0. That is a choice of scale, not extra physics — any scalar multiple describes the same mode.</p>
+      </div>
+      <div class="card reveal d2">
+        <div class="card-h"><span class="card-t">Orthogonality &amp; modal mass</span><span class="card-n">φᵣᵀMφₛ</span></div>
+        <div id="modal-mass"></div>
+        <p class="card-note">The modes are orthogonal with respect to the mass matrix, so the off-diagonal terms vanish. Each diagonal term is the modal mass used in the superposition.</p>
+      </div>
+    </div>
+
+    <div class="note warn reveal" style="margin-top:20px">
+      <p><b>Why modes 2 and 3 look unusual.</b> The roof mass (1.25 t) is tiny next to the second-floor mass (21.5 t), so the upper part of the frame has very little inertia to resist the stiff top storey. Mode 2 is dominated by the soft first storey (φ₁ = −4.45 with the upper floors barely moving), and mode 3 is a local oscillation of the light roof against the second floor. A useful check: the top storey acting alone would vibrate at √(K₃/m₃) ≈ 144 rad/s, almost exactly ω₃ = 148 rad/s.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="step4">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <div class="sec-index">04</div>
+      <div>
+        <div class="sec-kicker">Question 4 · sketches &amp; total response</div>
+        <h2>The shape, and the shape in motion</h2>
+        <p class="sec-sub">A mode shape is a fixed pattern; the total shape is what the frame actually does when the three modes are added together, each oscillating at its own frequency. Pull the roof (or the whole frame) sideways, release it from rest, and watch the superposition.</p>
+      </div>
+      <div class="sec-chip">x(t) = Σ φᵣ qᵣ(t)</div>
+    </header>
+
+    <div class="stage reveal" id="stage">
+      <div class="stage-grid">
+        <div>
+          <svg id="stage-svg" class="stage-svg" viewBox="0 0 560 470" role="img" aria-label="Animated frame"></svg>
+          <div class="fig-cap" style="border-top:0;color:#6f8296"><span id="stage-scale-note">exaggerated ×1</span><span id="stage-clock">t = 0.00 s</span></div>
+        </div>
+        <div class="stage-info">
+          <div>
+            <div class="stage-sub" id="stage-kicker">TOTAL RESPONSE</div>
+            <div class="stage-title" id="stage-title">Superposition of three modes</div>
+          </div>
+          <div class="readout">
+            <div><div class="k">FLOOR 1</div><div class="v" id="u1">0.0<span>mm</span></div></div>
+            <div><div class="k">FLOOR 2</div><div class="v" id="u2">0.0<span>mm</span></div></div>
+            <div><div class="k">ROOF</div><div class="v" id="u3">0.0<span>mm</span></div></div>
+          </div>
+          <div id="panel-chart">
+            <div class="legend">
+              <span><i style="background:#6fd3c1"></i>floor 1</span>
+              <span><i style="background:#f0b45a"></i>floor 2</span>
+              <span><i style="background:#e8785f"></i>roof</span>
+            </div>
+            <svg id="resp-chart" class="chart" viewBox="0 0 460 178" role="img" aria-label="Displacement time history"></svg>
+          </div>
+          <div id="panel-mode" hidden>
+            <div class="formula-small" id="mode-factors"></div>
+          </div>
+          <div class="panel-note" id="stage-note"></div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="seg" id="mode-seg">
+          <button data-mode="1">Mode 1</button>
+          <button data-mode="2">Mode 2</button>
+          <button data-mode="3">Mode 3</button>
+          <button data-mode="0" class="on">Total</button>
+        </div>
+        <button class="icon-btn" id="playBtn" aria-label="Pause">❚❚</button>
+        <button class="icon-btn" id="resetBtn" aria-label="Restart">↺</button>
+        <div class="ctl"><span>speed</span><input id="speed" type="range" min="0.3" max="2" step="0.1" value="1" aria-label="Speed"></div>
+        <div class="ctl"><span>scale</span><input id="amp" type="range" min="0.4" max="1.6" step="0.05" value="1" aria-label="Motion scale"></div>
+        <select class="select" id="ic-select" aria-label="Initial condition">
+          <option value="uniform">Uniform sway · 20 mm</option>
+          <option value="roof">Roof pull · 50 mm</option>
+          <option value="mode1">Pure mode 1 · 20 mm</option>
+          <option value="impulse">Base impulse · 0.15 m/s</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-top:22px">
+      <div class="card reveal">
+        <div class="card-h"><span class="card-t">Mode shape vs total shape</span><span class="card-n">superposition</span></div>
+        <p style="font-size:13.5px;line-height:1.7;color:var(--muted)">Each mode shape φᵣ is a <b style="color:var(--ink)">fixed deformed form</b>: all floors move together in one pattern whose amplitude changes with time. The total shape x(t) is the <b style="color:var(--ink)">sum of the three modes</b>, each running at its own frequency, with the amplitude of each fixed by the initial conditions.</p>
+        <div class="big-eq" style="font-size:17px;border-top:1px solid var(--line);margin-top:16px">x(t) = Σ φᵣ [ qᵣ(0) cos ωᵣt + q̇ᵣ(0)/ωᵣ sin ωᵣt ]</div>
+      </div>
+      <div class="card reveal d1">
+        <div class="card-h"><span class="card-t">Initial conditions in use</span><span class="card-n" id="ic-label">uniform sway</span></div>
+        <div class="calc" id="ic-calc"></div>
+        <p class="card-note">The generalised coordinate qᵣ(0) = φᵣᵀMx₀. Switching the initial condition changes these amplitudes — and therefore the shape you see — but not the mode shapes themselves.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="check">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <div class="sec-index">05</div>
+      <div>
+        <div class="sec-kicker">Check · independent methods</div>
+        <h2>Does the answer hold up?</h2>
+        <p class="sec-sub">Two hand methods and two independent implementations of the same matrices. Rayleigh's quotient gives an upper bound on the fundamental frequency; Stodola iteration converges to the fundamental mode; the Python and C reference solvers should reproduce these digits.</p>
+      </div>
+      <div class="sec-chip">6 independent checks</div>
+    </header>
+
+    <div class="split">
+      <div class="card reveal">
+        <div class="card-h"><span class="card-t">Rayleigh quotient</span><span class="card-n">upper bound on ω₁</span></div>
+        <p class="card-note" style="border-top:0;margin-top:0;padding-top:0">Assume a shape with the roof fixed at 1.0 — exactly the factor given in the problem — then move the two lower factors. The quotient always overestimates ω₁, and the closer the shape is to the true mode, the smaller the error.</p>
+        <div class="slider-row"><label>φ₁</label><input id="ray-p1" type="range" min="0" max="1.4" step="0.001" value="0.695" aria-label="Assumed shape factor floor 1"><span class="val" id="ray-p1v">0.695</span></div>
+        <div class="slider-row"><label>φ₂</label><input id="ray-p2" type="range" min="0" max="1.4" step="0.001" value="0.987" aria-label="Assumed shape factor floor 2"><span class="val" id="ray-p2v">0.987</span></div>
+        <div class="ray-out"><span class="big" id="ray-f">5.3188</span><span class="u">Hz</span><span class="err good" id="ray-err">+0.07 %</span></div>
+        <p class="card-note">ω² = φᵀKφ / φᵀMφ. The exact fundamental is <b class="mono" id="ray-exact">5.3149 Hz</b>.</p>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn" data-ray="static" style="padding:8px 11px;font-size:8.5px">Use static shape</button>
+          <button class="btn" data-ray="exact" style="padding:8px 11px;font-size:8.5px">Use exact mode</button>
+        </div>
+      </div>
+      <div class="card reveal d1">
+        <div class="card-h"><span class="card-t">Stodola iteration</span><span class="card-n">converges to mode 1</span></div>
+        <div id="stodola-table"></div>
+        <p class="card-note">Starting from a straight line and repeatedly solving K u = M φ converges on the fundamental mode in three iterations — a useful hand check when no eigensolver is available.</p>
+      </div>
+    </div>
+
+    <div class="card reveal d2" style="margin-top:22px">
+      <div class="card-h"><span class="card-t">Verification</span><span class="card-n">independent implementations</span></div>
+      <div id="checks"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>About this sheet</h4>
+        <p>An interactive worked solution for a three-storey shear building with four 300 mm square concrete columns per floor. All numbers are recomputed in the browser from the parameters; the Python and C files are independent reference implementations of the same matrices.</p>
+        <div class="sig"><span>MDOF / 03 · free vibration</span><span id="foot-time">2025</span></div>
+        <p class="credit"><b>Created by Nezzar</b> <span>with the help of DeepSeek Harness</span></p>
+      </div>
+      <div>
+        <h4>Reference files</h4>
+        <p><a href="mdof_solver.py">mdof_solver.py</a><br><a href="mdof_eigen.c">mdof_eigen.c</a><br><a href="README.md">README.md</a><br><a href="results.json">results.json</a></p>
+      </div>
+      <div>
+        <h4>Notation</h4>
+        <p>k<sub>col</sub> column stiffness · K<sub>floor</sub> storey stiffness · M mass matrix · K stiffness matrix · λ = ω² · φ mode shape · q modal coordinate · T period.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Parameter lab" aria-hidden="true">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-k">Parameter lab</div>
+      <h3>Change the building.</h3>
+    </div>
+    <button class="drawer-close" id="closeLab" aria-label="Close">✕</button>
+  </div>
+  <p class="hint" style="margin-top:0">Every table, matrix, mode shape and animation recomputes as you type. The problem sheet at the top stays as given.</p>
+
+  <div class="presets">
+    <button data-preset="original">As written</button>
+    <button data-preset="roof12500">m₃ = 12,500 kg</button>
+    <button data-preset="equal">Equal masses · 10 t</button>
+  </div>
+
+  <div class="field"><label>Concrete strength f′c<small>MPa</small></label><input id="in-fc" type="number" min="15" max="70" step="1" value="21"></div>
+  <div class="field"><label>Column width b<small>mm</small></label><input id="in-b" type="number" min="150" max="800" step="10" value="300"></div>
+  <div class="field"><label>Column depth h<small>mm</small></label><input id="in-h" type="number" min="150" max="800" step="10" value="300"></div>
+  <div class="field"><label>Columns per floor n<small>count</small></label><input id="in-n" type="number" min="1" max="12" step="1" value="4"></div>
+  <div class="field"><label>Storey height h₁<small>m</small></label><input id="in-h1" type="number" min="2" max="8" step="0.1" value="4"></div>
+  <div class="field"><label>Storey height h₂<small>m</small></label><input id="in-h2" type="number" min="2" max="8" step="0.1" value="3.2"></div>
+  <div class="field"><label>Storey height h₃<small>m</small></label><input id="in-h3" type="number" min="2" max="8" step="0.1" value="3"></div>
+  <div class="field"><label>Mass m₁<small>kg</small></label><input id="in-m1" type="number" min="200" max="60000" step="100" value="5000"></div>
+  <div class="field"><label>Mass m₂<small>kg</small></label><input id="in-m2" type="number" min="200" max="60000" step="100" value="2500"></div>
+  <div class="field"><label>Mass m₃<small>kg</small></label><input id="in-m3" type="number" min="200" max="60000" step="100" value="1250"></div>
+
+  <div class="drawer-actions">
+    <button class="btn" id="resetLab">Reset to problem</button>
+    <button class="btn btn-primary" id="applyLab">Done</button>
+  </div>
+  <p class="hint">Tip: the frequency of a shear building scales roughly as √(K/M) — make the columns stockier and every frequency climbs; add mass and they drop.</p>
+</aside>
+<script>
+(function(){
+"use strict";
+
+var U="\u2212";
+var MODE_LIGHT=["#0f7d6a","#a86a12","#a8402a"];
+var MODE_DARK=["#6fd3c1","#f0b45a","#e8785f"];
+
+/* ---------------- helpers ---------------- */
+function qs(s,r){return (r||document).querySelector(s);}
+function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+function set(el,v){if(el)el.textContent=v;}
+function html(el,v){if(el)el.innerHTML=v;}
+
+function num(x,d){
+  if(x==null||!isFinite(x))return "\u2014";
+  d=(d==null)?2:d;
+  var s=Math.abs(x).toFixed(d), parts=s.split("."), ip=parts[0], out="", c=0, i;
+  for(i=ip.length-1;i>=0;i--){out=ip.charAt(i)+out;c++;if(c%3===0&&i>0)out=","+out;}
+  if(parts.length>1)out+="."+parts[1];
+  if(x<0&&parseFloat(s)!==0)out=U+out;
+  return out;
+}
+var SUP={"-":"\u207B","0":"\u2070","1":"\u00B9","2":"\u00B2","3":"\u00B3","4":"\u2074","5":"\u2075","6":"\u2076","7":"\u2077","8":"\u2078","9":"\u2079"};
+function supstr(n){var s=String(n),o="",i;for(i=0;i<s.length;i++)o+=SUP[s.charAt(i)]||s.charAt(i);return o;}
+function sci(x,d){
+  if(!isFinite(x))return "\u2014";
+  if(x===0)return "0";
+  d=(d==null)?2:d;
+  var a=Math.abs(x),e=Math.floor(Math.log(a)/Math.LN10),m=x/Math.pow(10,e);
+  if(Math.abs(m)>=9.995){m=m/10;e+=1;}
+  return num(m,d)+"\u00D710"+supstr(e);
+}
+function pad2(n){return n<10?"0"+n:String(n);}
+
+/* ---------------- linear algebra ---------------- */
+function dot(u,v){return u[0]*v[0]+u[1]*v[1]+u[2]*v[2];}
+function mvec(A,v){
+  return [A[0][0]*v[0]+A[0][1]*v[1]+A[0][2]*v[2],
+          A[1][0]*v[0]+A[1][1]*v[1]+A[1][2]*v[2],
+          A[2][0]*v[0]+A[2][1]*v[1]+A[2][2]*v[2]];
+}
+function solve3(A,b){
+  var M=[[0,0,0,0],[0,0,0,0],[0,0,0,0]],i,j,k;
+  for(i=0;i<3;i++){for(j=0;j<3;j++)M[i][j]=A[i][j];M[i][3]=b[i];}
+  for(i=0;i<3;i++){
+    var piv=i;
+    for(k=i+1;k<3;k++)if(Math.abs(M[k][i])>Math.abs(M[piv][i]))piv=k;
+    if(Math.abs(M[piv][i])<1e-300)return [0,0,0];
+    var tmp=M[i];M[i]=M[piv];M[piv]=tmp;
+    for(k=i+1;k<3;k++){
+      var f=M[k][i]/M[i][i];
+      for(j=i;j<4;j++)M[k][j]-=f*M[i][j];
+    }
+  }
+  var x=[0,0,0];
+  for(i=2;i>=0;i--){
+    var s=M[i][3];
+    for(j=i+1;j<3;j++)s-=M[i][j]*x[j];
+    x[i]=s/M[i][i];
+  }
+  return x;
+}
+
+/* Jacobi on the symmetric problem A = M^-1/2 K M^-1/2, M diagonal */
+function jacobi3(K,M){
+  var A=[[0,0,0],[0,0,0],[0,0,0]],V=[[1,0,0],[0,1,0],[0,0,1]],i,j,k;
+  var s=[1/Math.sqrt(M[0][0]),1/Math.sqrt(M[1][1]),1/Math.sqrt(M[2][2])];
+  for(i=0;i<3;i++)for(j=0;j<3;j++)A[i][j]=K[i][j]*s[i]*s[j];
+  for(var sweep=0;sweep<80;sweep++){
+    var off=Math.abs(A[0][1])+Math.abs(A[0][2])+Math.abs(A[1][2]);
+    var nn=Math.abs(A[0][0])+Math.abs(A[1][1])+Math.abs(A[2][2]);
+    if(off<1e-14*nn||off<1e-300)break;
+    for(var p=0;p<2;p++){
+      for(var q=p+1;q<3;q++){
+        if(Math.abs(A[p][q])<1e-16*(Math.abs(A[p][p])+Math.abs(A[q][q])))continue;
+        var th=(A[q][q]-A[p][p])/(2*A[p][q]);
+        var tt=(th>=0?1:-1)/(Math.abs(th)+Math.sqrt(th*th+1));
+        var cc=1/Math.sqrt(tt*tt+1), ss=tt*cc;
+        for(k=0;k<3;k++){
+          var akp=A[k][p],akq=A[k][q];
+          A[k][p]=cc*akp-ss*akq;
+          A[k][q]=ss*akp+cc*akq;
+        }
+        for(k=0;k<3;k++){
+          var apk=A[p][k],aqk=A[q][k];
+          A[p][k]=cc*apk-ss*aqk;
+          A[q][k]=ss*apk+cc*aqk;
+        }
+        for(k=0;k<3;k++){
+          var vkp=V[k][p],vkq=V[k][q];
+          V[k][p]=cc*vkp-ss*vkq;
+          V[k][q]=ss*vkp+cc*vkq;
+        }
+      }
+    }
+  }
+  var idx=[0,1,2].sort(function(a,b){return A[a][a]-A[b][b];});
+  var vals=idx.map(function(z){return A[z][z];});
+  var vecs=idx.map(function(z){return [V[0][z],V[1][z],V[2][z]];});
+  /* enforce a deterministic sign: largest component positive */
+  vecs.forEach(function(v){
+    var m=Math.abs(v[0]),c=0,ii;
+    for(ii=1;ii<3;ii++)if(Math.abs(v[ii])>m){m=Math.abs(v[ii]);c=ii;}
+    if(v[c]<0)for(ii=0;ii<3;ii++)v[ii]=-v[ii];
+  });
+  return {vals:vals,vecs:vecs};
+}
+
+/* polynomial helpers, descending powers */
+function ptrim(a){var b=a.slice();while(b.length>1&&Math.abs(b[0])<1e-300)b.shift();return b;}
+function pnorm(a,b){
+  var A=a.slice(),B=b.slice();
+  while(A.length<B.length)A.unshift(0);
+  while(B.length<A.length)B.unshift(0);
+  return [A,B];
+}
+function padd(a,b){var z=pnorm(a,b),o=[],i;for(i=0;i<z[0].length;i++)o.push(z[0][i]+z[1][i]);return ptrim(o);}
+function psub(a,b){var z=pnorm(a,b),o=[],i;for(i=0;i<z[0].length;i++)o.push(z[0][i]-z[1][i]);return ptrim(o);}
+function pmul(a,b){
+  var o=[],i,j;
+  for(i=0;i<a.length+b.length-1;i++)o.push(0);
+  for(i=0;i<a.length;i++)for(j=0;j<b.length;j++)o[i+j]+=a[i]*b[j];
+  return ptrim(o);
+}
+function detPoly(K,M){
+  function a(i,j){return [-M[i][j],K[i][j]];}
+  var t1=pmul(a(0,0),psub(pmul(a(1,1),a(2,2)),pmul(a(1,2),a(2,1))));
+  var t2=pmul(a(0,1),psub(pmul(a(1,0),a(2,2)),pmul(a(1,2),a(2,0))));
+  var t3=pmul(a(0,2),psub(pmul(a(1,0),a(2,1)),pmul(a(1,1),a(2,0))));
+  return psub(padd(t1,t3),t2);
+}
+function peval(c,x){var v=0,i;for(i=0;i<c.length;i++)v=v*x+c[i];return v;}
+
+/* ---------------- the model ---------------- */
+var DEFAULTS={fc:21,b:300,h:300,n:4,h1:4,h2:3.2,h3:3,m1:5000,m2:2500,m3:1250};
+var model=null, anim={t:0,playing:true,speed:1,amp:1,ic:"uniform",mode:0};
+var stageView=null, chartView=null, polyView=null;
+
+function buildModel(p){
+  var Ec=4700*Math.sqrt(p.fc);
+  var b=p.b/1000, hc=p.h/1000;
+  var I=b*hc*hc*hc/12;
+  var EI=Ec*1000*I;
+  var hs=[p.h1,p.h2,p.h3], ms=[p.m1,p.m2,p.m3];
+  var kc=hs.map(function(x){return 12*EI/(x*x*x);});
+  var kf=kc.map(function(k){return k*p.n;});
+  var KN=[[kf[0]+kf[1],-kf[1],0],[-kf[1],kf[1]+kf[2],-kf[2]],[0,-kf[2],kf[2]]];
+  var K=KN.map(function(r){return r.map(function(v){return v*1000;});});
+  var M=[[ms[0],0,0],[0,ms[1],0],[0,0,ms[2]]];
+  var e=jacobi3(K,M);
+  var lam=e.vals;
+  /* phi is indexed [mode][dof]; undo the M^-1/2 scaling per DOF, then set roof = 1 */
+  var phi=[0,1,2].map(function(r){
+    var o=[],j;
+    for(j=0;j<3;j++)o.push(e.vecs[r][j]/Math.sqrt(M[j][j]));
+    return o;
+  });
+  var modes=phi.map(function(v){
+    var s=v[2];
+    if(Math.abs(s)<1e-12)s=1;
+    return v.map(function(x){return x/s;});
+  });
+  var mu=modes.map(function(v){
+    var s=0,i;
+    for(i=0;i<3;i++)s+=M[i][i]*v[i]*v[i];
+    return s;
+  });
+  var phihat=modes.map(function(v,r){
+    var k=1/Math.sqrt(mu[r]);
+    return v.map(function(x){return x*k;});
+  });
+  var omega=lam.map(function(L){return Math.sqrt(Math.max(L,0));});
+  var freq=omega.map(function(w){return w/(2*Math.PI);});
+  var per=freq.map(function(f){return f>0?1/f:Infinity;});
+  var co=detPoly(K,M);
+  var lead=co[0];
+  var monic=co.map(function(c){return c/lead;});
+  /* static shape under lateral inertia: K u = M 1 */
+  var st=solve3(K,[ms[0],ms[1],ms[2]]);
+  var stMax=st[2]||1;
+  var staticShape=st.map(function(v){return v/stMax;});
+  /* Rayleigh quotient on any roof-normalised shape */
+  function rayleigh(v){
+    var num1=dot(v,mvec(K,v)), den=0,i;
+    for(i=0;i<3;i++)den+=M[i][i]*v[i]*v[i];
+    var w2=num1/den;
+    return {w2:w2,f:Math.sqrt(Math.max(w2,0))/(2*Math.PI)};
+  }
+  /* Stodola iteration from a straight line */
+  var sto=[], cur=[1/3,2/3,1], it;
+  sto.push({iter:0,shape:cur.slice(),f:rayleigh(cur).f});
+  for(it=1;it<=4;it++){
+    var rhs=mvec(M,cur);
+    var u=solve3(K,rhs);
+    var roof=u[2]||1;
+    u=u.map(function(v){return v/roof;});
+    sto.push({iter:it,shape:u.slice(),f:rayleigh(u).f});
+    cur=u;
+  }
+  return {p:p,Ec:Ec,I:I,EI:EI,hs:hs,ms:ms,kc:kc,kf:kf,KN:KN,K:K,M:M,
+          lam:lam,omega:omega,freq:freq,per:per,phi:modes,mu:mu,phihat:phihat,
+          co:co,monic:monic,staticShape:staticShape,rayleigh:rayleigh,stodola:sto};
+}
+
+/* ---------------- free vibration response ---------------- */
+function icVectors(ic,m){
+  if(ic==="uniform")return {x0:[0.020,0.020,0.020],v0:[0,0,0]};
+  if(ic==="roof")return {x0:[0,0,0.050],v0:[0,0,0]};
+  if(ic==="mode1"){
+    var v=m.phi[0].map(function(x){return x*0.020;});
+    return {x0:v,v0:[0,0,0]};
+  }
+  return {x0:[0,0,0],v0:[0.15,0.15,0.15]};
+}
+function modalCoefs(m,ic){
+  var iv=icVectors(ic,m);
+  return [0,1,2].map(function(r){
+    var ph=m.phihat[r],q0=0,qd0=0,i;
+    for(i=0;i<3;i++){
+      q0+=ph[i]*m.M[i][i]*iv.x0[i];
+      qd0+=ph[i]*m.M[i][i]*iv.v0[i];
+    }
+    return {q0:q0,qd0:qd0};
+  });
+}
+function responseAt(m,ic,t){
+  var c=modalCoefs(m,ic), out=[0,0,0], r,i;
+  for(r=0;r<3;r++){
+    var w=m.omega[r];
+    var q=c[r].q0*Math.cos(w*t)+(c[r].qd0/w)*Math.sin(w*t);
+    for(i=0;i<3;i++)out[i]+=m.phihat[r][i]*q;
+  }
+  return [out[0]*1000,out[1]*1000,out[2]*1000];
+}
+function modeAt(m,r,t){
+  var w=m.omega[r], a=m.phi[r][2]||1;
+  var amp=0.020/Math.abs(a);
+  return m.phi[r].map(function(x){return x*amp*Math.cos(w*t)*1000;});
+}
+function peakOf(m,ic,span){
+  var mx=0,t,i;
+  for(t=0;t<=span;t+=span/900){
+    var u=responseAt(m,ic,t);
+    for(i=0;i<3;i++)mx=Math.max(mx,Math.abs(u[i]));
+  }
+  return mx||1;
+}
+
+/* ---------------- render: hero + model ---------------- */
+function renderHero(m){
+  set(qs("#hero-f1"),num(m.freq[0],3));
+  set(qs("#hero-T1"),num(m.per[0],4));
+  set(qs("#hero-w1"),num(m.omega[0],2));
+  set(qs("#t1-dup"),num(m.per[0],3)+" s");
+}
+
+function figSVG(m){
+  var W=760,H=470;
+  var gb=392, xL=118, xR=236;
+  var totalH=m.hs[0]+m.hs[1]+m.hs[2];
+  var pxm=286/totalH;
+  var y=[gb, gb-m.hs[0]*pxm, gb-(m.hs[0]+m.hs[1])*pxm, gb-totalH*pxm];
+  var out=[];
+  out.push('<svg viewBox="0 0 '+W+' 470" role="img" aria-label="Elevation and plan of the three-storey frame">');
+  out.push('<defs>');
+  out.push('<pattern id="hatchG" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="9" stroke="#b9b1a0" stroke-width="1.2"/></pattern>');
+  out.push('<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8b9098"/></marker>');
+  out.push('</defs>');
+  /* ground */
+  out.push('<rect x="'+(xL-46)+'" y="'+gb+'" width="'+(xR-xL+92)+'" height="12" fill="url(#hatchG)" opacity=".9"/>');
+  out.push('<line x1="'+(xL-46)+'" y1="'+gb+'" x2="'+(xR+46)+'" y2="'+gb+'" stroke="#15181d" stroke-width="2"/>');
+  /* columns */
+  out.push('<line x1="'+xL+'" y1="'+gb+'" x2="'+xL+'" y2="'+y[3]+'" stroke="#15181d" stroke-width="5" stroke-linecap="square"/>');
+  out.push('<line x1="'+xR+'" y1="'+gb+'" x2="'+xR+'" y2="'+y[3]+'" stroke="#15181d" stroke-width="5" stroke-linecap="square"/>');
+  /* slabs */
+  var names=["m\u2081 = "+num(m.ms[0],0)+" kg","m\u2082 = "+num(m.ms[1],0)+" kg","m\u2083 = "+num(m.ms[2],0)+" kg"];
+  var lab=gb+4;
+  for(var i=1;i<=3;i++){
+    out.push('<line x1="'+(xL-16)+'" y1="'+y[i]+'" x2="'+(xR+16)+'" y2="'+y[i]+'" stroke="#15181d" stroke-width="7"/>');
+    out.push('<line x1="'+(xR+16)+'" y1="'+y[i]+'" x2="'+(xR+58)+'" y2="'+y[i]+'" stroke="#8b9098" stroke-width=".8" stroke-dasharray="2 3"/>');
+    out.push('<text x="'+(xR+64)+'" y="'+(y[i]+4)+'" font-family="Cascadia Mono,Consolas,monospace" font-size="12.5" fill="#15181d">'+names[i-1]+'</text>');
+    out.push('<text x="'+(xL-30)+'" y="'+(y[i]+4)+'" text-anchor="end" font-family="Cascadia Mono,Consolas,monospace" font-size="10" fill="#5e646d">'+(i===3?"roof":"L"+(i))+'</text>');
+  }
+  /* storey dimension chain */
+  var dimX=xL-52;
+  out.push('<line x1="'+dimX+'" y1="'+y[0]+'" x2="'+dimX+'" y2="'+y[3]+'" stroke="#8b9098" stroke-width=".9"/>');
+  for(var s=0;s<3;s++){
+    var ya=y[s+1],yb=y[s+2];
+    var mid=(ya+yb)/2;
+    out.push('<line x1="'+(dimX-7)+'" y1="'+ya+'" x2="'+(dimX+7)+'" y2="'+ya+'" stroke="#8b9098" stroke-width=".9"/>');
+    out.push('<text x="'+(dimX-13)+'" y="'+mid+'" text-anchor="middle" transform="rotate(-90 '+(dimX-13)+' '+mid+')" font-family="Cascadia Mono,Consolas,monospace" font-size="10.5" fill="#5e646d">h'+(s+1)+' = '+num(m.hs[s],2)+' m</text>');
+  }
+  out.push('<line x1="'+(dimX-7)+'" y1="'+y[3]+'" x2="'+(dimX+7)+'" y2="'+y[3]+'" stroke="#8b9098" stroke-width=".9"/>');
+  /* plan */
+  var px=520, py=96, ps=168;
+  out.push('<text x="'+px+'" y="'+(py-26)+'" font-family="Cascadia Mono,Consolas,monospace" font-size="10" letter-spacing="1.6" fill="#8b9098">PLAN \u00B7 FOUR COLUMNS PER FLOOR</text>');
+  out.push('<rect x="'+px+'" y="'+py+'" width="'+ps+'" height="'+ps+'" fill="#fdfbf5" stroke="#c9c1b0" stroke-width="1.2"/>');
+  var cs=22;
+  var pts=[[px,py],[px+ps-cs,py],[px,py+ps-cs],[px+ps-cs,py+ps-cs]];
+  pts.forEach(function(q){
+    out.push('<rect x="'+q[0]+'" y="'+q[1]+'" width="'+cs+'" height="'+cs+'" fill="#15181d"/>');
+  });
+  out.push('<line x1="'+(px-14)+'" y1="'+(py+ps+22)+'" x2="'+(px+ps+14)+'" y2="'+(py+ps+22)+'" stroke="#8b9098" stroke-width=".8" marker-start="url(#arr)" marker-end="url(#arr)"/>');
+  out.push('<text x="'+(px+ps/2)+'" y="'+(py+ps+40)+'" text-anchor="middle" font-family="Cascadia Mono,Consolas,monospace" font-size="11" fill="#5e646d">column '+num(m.p.b,0)+' \u00D7 '+num(m.p.h,0)+' mm</text>');
+  out.push('<text x="'+(px+ps/2)+'" y="'+(py+ps+62)+'" text-anchor="middle" font-family="Cascadia Mono,Consolas,monospace" font-size="10" fill="#8b9098">'+num(m.p.n,0)+' columns \u00B7 f\u2032c = '+num(m.p.fc,0)+' MPa</text>');
+  /* note */
+  out.push('<text x="'+(px)+'" y="'+(py+ps+96)+'" font-family="Cascadia Mono,Consolas,monospace" font-size="9.5" fill="#8b9098">heights are to scale</text>');
+  out.push('</svg>');
+  return out.join("");
+}
+
+function renderModel(m){
+  var fig=qs("#model-figure");
+  if(fig){
+    var svg=fig.querySelector("svg");
+    if(svg)svg.remove();
+    var wrap=document.createElement("div");
+    wrap.innerHTML=figSVG(m);
+    fig.insertBefore(wrap.firstChild,fig.firstChild);
+  }
+  set(qs("#fig-scale"),"heights to scale");
+  var rows=[
+    ["Concrete strength f\u2032<sub>c</sub>",num(m.p.fc,0)+" MPa"],
+    ["Modulus E<sub>c</sub> = 4700\u221A f\u2032<sub>c</sub>",num(m.Ec,1)+" MPa"],
+    ["Column section b \u00D7 h",num(m.p.b,0)+" \u00D7 "+num(m.p.h,0)+" mm"],
+    ["Second moment I = bh\u00B3/12",sci(m.I,3)+" m\u2074"],
+    ["Flexural rigidity EI",num(m.EI,1)+" kN\u00B7m\u00B2"],
+    ["Columns per floor n",num(m.p.n,0)],
+    ["Storey heights h\u2081 / h\u2082 / h\u2083",num(m.hs[0],2)+" / "+num(m.hs[1],2)+" / "+num(m.hs[2],2)+" m"],
+    ["Lumped masses m\u2081 / m\u2082 / m\u2083",num(m.ms[0],0)+" / "+num(m.ms[1],0)+" / "+num(m.ms[2],0)+" kg"],
+    ["Total seismic mass",num(m.ms[0]+m.ms[1]+m.ms[2],0)+" kg"]
+  ];
+  html(qs("#data-table"),rows.map(function(r){return "<tr><td>"+r[0]+"</td><td>"+r[1]+"</td></tr>";}).join(""));
+  var note=qs("#data-note");
+  if(note){
+    var orig=(m.p.fc===DEFAULTS.fc&&m.p.b===DEFAULTS.b&&m.p.h===DEFAULTS.h&&m.p.n===DEFAULTS.n&&
+      Math.abs(m.p.h1-DEFAULTS.h1)<1e-9&&Math.abs(m.p.h2-DEFAULTS.h2)<1e-9&&Math.abs(m.p.h3-DEFAULTS.h3)<1e-9&&
+      m.p.m1===DEFAULTS.m1&&m.p.m2===DEFAULTS.m2&&m.p.m3===DEFAULTS.m3);
+    set(note,orig?"as given":"edited in the lab");
+    var chip=qs("#liveChip");
+    if(chip)chip.innerHTML='<span class="live-dot'+(orig?'':' off')+'"></span>'+(orig?"live model":"edited");
+  }
+}
+
+/* ---------------- render: step 1 ---------------- */
+function renderStep1(m){
+  var rows=[];
+  function row(sym,expr,res){
+    rows.push('<div class="calc-row"><div class="sym">'+sym+'</div><div class="expr">'+expr+'</div><div class="res">'+res+'</div></div>');
+  }
+  row("E<sub>c</sub>","4700\u221A"+num(m.p.fc,0)+" MPa",num(m.Ec,1)+" MPa");
+  row("I","("+num(m.p.b,0)+" \u00D7 "+num(m.p.h,0)+"\u00B3) / 12",sci(m.I,3)+" m\u2074");
+  row("EI",num(m.Ec,1)+" \u00D7 10\u00B3 \u00D7 "+sci(m.I,3),num(m.EI,1)+" kN\u00B7m\u00B2");
+  m.kc.forEach(function(k,i){
+    row("k<sub>"+(i+1)+"</sub>","12 \u00D7 "+num(m.EI,1)+" / "+num(m.hs[i],3)+"\u00B3",num(k,1)+" kN/m");
+  });
+  html(qs("#calc-step1"),rows.join(""));
+
+  var maxk=Math.max.apply(null,m.kf);
+  var cards=m.kf.map(function(k,i){
+    var lvl=["FIRST STOREY","SECOND STOREY","TOP STOREY"][i];
+    var share=(k/maxk*100).toFixed(1);
+    return '<div class="story">'+
+      '<div class="story-top"><span>'+lvl+'</span><span>h = '+num(m.hs[i],2)+' m</span></div>'+
+      '<div class="story-k">'+num(k,0)+'<span class="unit">kN/m</span></div>'+
+      '<div class="story-sub">K<sub>floor</sub> = '+num(m.p.n,0)+' \u00D7 '+num(m.kc[i],1)+'</div>'+
+      '<div class="story-bar"><i data-w="'+share+'"></i></div>'+
+      '<div class="story-total"><span>one column</span><b>'+num(m.kc[i],1)+' kN/m</b></div>'+
+      '</div>';
+  }).join("");
+  html(qs("#story-cards"),cards);
+  setTimeout(function(){
+    qsa("#story-cards .story-bar i").forEach(function(b){b.style.width=(b.getAttribute("data-w")||0)+"%";});
+  },60);
+  html(qs("#stiff-sum"),"K<sub>floor</sub> = 12EI/h\u00B3 \u00D7 n");
+
+  var sum=0,mk=0,i;
+  for(i=0;i<3;i++){sum+=m.kf[i];mk=Math.max(mk,m.kf[i]);}
+  var tr=m.kf.map(function(k,i){
+    return "<tr><td>Storey "+(i+1)+"</td><td>"+num(m.hs[i],2)+"</td><td>"+num(m.kc[i],1)+"</td><td>"+num(k,1)+
+      "</td><td>"+num(k/sum*100,1)+" %</td><td>"+(k===mk?"<b class='em'>max</b>":"")+"</td></tr>";
+  }).join("");
+  html(qs("#stiff-table"),"<thead><tr><th>Storey</th><th>h (m)</th><th>k<sub>col</sub> (kN/m)</th><th>K<sub>floor</sub> (kN/m)</th><th>share</th><th></th></tr></thead><tbody>"+tr+"</tbody>");
+}
+
+/* ---------------- render: matrices ---------------- */
+function matBox(name,rows,fmt,unit){
+  var s='<div class="mat-box"><div class="mat-name">'+name+'</div><div class="mat">';
+  rows.forEach(function(r){
+    r.forEach(function(v){s+='<span>'+fmt(v)+'</span>';});
+  });
+  s+='</div>';
+  if(unit)s+='<div class="mat-name" style="margin-top:2px">'+unit+'</div>';
+  s+='</div>';
+  return s;
+}
+function renderMatrices(m){
+  html(qs("#mat-k"),matBox("K \u00B7 kN/m",m.KN,function(v){return num(v,1);},""));
+  html(qs("#mat-m"),matBox("M \u00B7 kg",m.M,function(v){return num(v,0);},""));
+}
+
+/* ---------------- render: characteristic equation ---------------- */
+function polyLine(co){
+  var names=["\u03BB\u00B3","\u03BB\u00B2","\u03BB",""];
+  var out="";
+  for(var i=0;i<4;i++){
+    var c=co[i];
+    if(Math.abs(c)<1e-30)continue;
+    var abs=Math.abs(c), body;
+    if(abs>=1e5||abs<1e-3)body=sci(abs,3);
+    else body=num(abs,4);
+    var term=body+(names[i]?" "+names[i]:"");
+    if(out==="")out=(c<0?U:"")+term;
+    else out+=' <span class="op">'+(c<0?U:"+")+'</span> '+term;
+  }
+  return out.trim();
+}
+function renderChar(m){
+  var co=m.co, mo=m.monic;
+  html(qs("#det-line"),'det(K \u2212 \u03BBM) = <span class="em">'+polyLine(co)+'</span> = 0');
+  html(qs("#monic-line"),'\u21D2 <span class="em">\u03BB\u00B3 '+(mo[1]<0?U:"+")+num(Math.abs(mo[1]),2)+' \u03BB\u00B2 '+(mo[2]<0?U:"+")+sci(Math.abs(mo[2]),4)+' \u03BB '+(mo[3]<0?U:"+")+sci(Math.abs(mo[3]),5)+' = 0</span>');
+  var steps=[
+    ["01","Free vibration of an undamped system gives the generalised eigenproblem. Non-trivial mode shapes exist only where the coefficient matrix is singular.",
+      "( K \u2212 \u03C9\u00B2M ) \u03C6 = 0 &nbsp;\u21D2&nbsp; det( K \u2212 \u03BBM ) = 0"],
+    ["02","Expand the 3 \u00D7 3 determinant. Because M is diagonal, only the diagonal entries carry \u03BB, so the determinant is a cubic.",
+      polyLine(co)+" = 0"],
+    ["03","Divide every term by the leading coefficient \u2212m\u2081m\u2082m\u2083 = \u2212"+sci(Math.abs(co[0]),4)+" to get the monic form.",
+      "\u03BB\u00B3 ".concat(mo[1]<0?U:"+",num(Math.abs(mo[1]),2)," \u03BB\u00B2 ",mo[2]<0?U:"+",sci(Math.abs(mo[2]),4)," \u03BB ",mo[3]<0?U:"+",sci(Math.abs(mo[3]),5)," = 0")],
+    ["04","The cubic has three positive real roots \u2014 one per degree of freedom, ordered by magnitude.",
+      "\u03BB\u2081 = "+num(m.lam[0],2)+" &nbsp; \u03BB\u2082 = "+num(m.lam[1],2)+" &nbsp; \u03BB\u2083 = "+num(m.lam[2],2)+" rad\u00B2/s\u00B2"],
+    ["05","Convert each root to a circular frequency, a frequency in hertz and a period.",
+      "\u03C9\u1D63 = \u221A\u03BB\u1D63 &nbsp;\u00B7&nbsp; f\u1D63 = \u03C9\u1D63/2\u03C0 &nbsp;\u00B7&nbsp; T\u1D63 = 2\u03C0/\u03C9\u1D63"]
+  ];
+  html(qs("#deriv"),steps.map(function(s,i){
+    return '<div class="deriv-step'+(i===3?" hot":"")+'"><div class="idx">'+s[0]+'</div><div class="txt">'+s[1]+'<span class="val">'+s[2]+'</span></div></div>';
+  }).join(""));
+}
+
+/* ---------------- polynomial chart + trace ---------------- */
+function renderPoly(m){
+  var svg=qs("#poly-chart");
+  if(!svg)return;
+  var W=460,H=300, x0=46,x1=444,y0=150, top=22,bot=268;
+  var lmax=Math.max(m.lam[2]*1.22,1);
+  var N=260, pts=[], i, x, y, mx=0;
+  for(i=0;i<=N;i++){
+    x=lmax*i/N;
+    var v=peval(m.monic,x);
+    mx=Math.max(mx,Math.abs(v));
+  }
+  if(mx<=0)mx=1;
+  var sy=(bot-top)/2/mx*0.86;
+  function X(l){return x0+(x1-x0)*(l/lmax);}
+  function Y(v){return y0-v*sy;}
+  for(i=0;i<=N;i++){
+    x=lmax*i/N;
+    pts.push([X(x),Y(peval(m.monic,x))]);
+  }
+  var d="",len=0;
+  for(i=0;i<pts.length;i++){
+    d+=(i?"L":"M")+pts[i][0].toFixed(2)+" "+pts[i][1].toFixed(2);
+    if(i)len+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);
+  }
+  var g=[];
+  g.push('<line x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y0+'" stroke="#c9c1b0" stroke-width="1"/>');
+  g.push('<line x1="'+x0+'" y1="'+top+'" x2="'+x0+'" y2="'+bot+'" stroke="#c9c1b0" stroke-width="1"/>');
+  g.push('<text x="'+(x1)+'" y="'+(y0+16)+'" text-anchor="end" font-family="Cascadia Mono,Consolas,monospace" font-size="9" fill="#8b9098">\u03BB (rad\u00B2/s\u00B2)</text>');
+  g.push('<path d="'+d+'" fill="none" stroke="#1e46c4" stroke-width="1.8" stroke-linejoin="round" id="polyPath" stroke-dasharray="'+len.toFixed(0)+'" stroke-dashoffset="0" opacity=".28" style="transition:none"/>');
+  g.push('<circle id="polyMark" r="4.2" cx="'+x0+'" cy="'+y0+'" fill="#1e46c4" opacity="0"/>');
+  for(i=0;i<3;i++){
+    var rx=X(m.lam[i]);
+    g.push('<line x1="'+rx+'" y1="'+(y0-6)+'" x2="'+rx+'" y2="'+(y0+6)+'" stroke="#a83b21" stroke-width="1.2"/>');
+    g.push('<circle class="proot" data-i="'+i+'" cx="'+rx+'" cy="'+y0+'" r="4" fill="#f4f1e9" stroke="#a83b21" stroke-width="1.6"/>');
+    g.push('<text class="plab" data-i="'+i+'" x="'+rx+'" y="'+(y0-14)+'" text-anchor="middle" font-family="Cascadia Mono,Consolas,monospace" font-size="9.5" fill="#a83b21" opacity=".35">\u03BB'+(i+1)+'</text>');
+  }
+  if(m.lam[0]>lmax*0.04){
+    g.push('<text x="'+(x0+4)+'" y="'+(top+12)+'" font-family="Cascadia Mono,Consolas,monospace" font-size="9" fill="#8b9098">det(K\u2212\u03BBl) normalised</text>');
+  }
+  svg.innerHTML=g.join("");
+  polyView={pts:pts,len:len,x0:x0,x1:x1,lmax:lmax,lam:m.lam,svg:svg,run:0};
+}
+
+function traceRoots(){
+  if(!polyView)return;
+  var pv=polyView, t0=null, dur=2600;
+  var path=qs("#polyPath",pv.svg), mark=qs("#polyMark",pv.svg);
+  if(!path||!mark)return;
+  path.setAttribute("opacity","1");
+  mark.setAttribute("opacity","1");
+  qsa(".proot",pv.svg).forEach(function(c){c.setAttribute("r","4");c.setAttribute("fill","#f4f1e9");});
+  qsa(".plab",pv.svg).forEach(function(c){c.setAttribute("opacity",".35");});
+  function frame(ts){
+    if(t0===null)t0=ts;
+    var p=Math.min(1,(ts-t0)/dur);
+    path.setAttribute("stroke-dashoffset",String(pv.len*(1-p)));
+    var idx=Math.min(pv.pts.length-1,Math.floor(p*pv.pts.length));
+    mark.setAttribute("cx",pv.pts[idx][0]);
+    mark.setAttribute("cy",pv.pts[idx][1]);
+    for(var i=0;i<3;i++){
+      if(pv.pts[idx][0]>=46+(pv.x1-pv.x0)*(pv.lam[i]/pv.lmax)-1){
+        qsa(".proot",pv.svg).forEach(function(c,j){
+          if(j===i){c.setAttribute("r","5.4");c.setAttribute("fill","#a83b21");}
+        });
+        qsa(".plab",pv.svg).forEach(function(c,j){if(j===i)c.setAttribute("opacity","1");});
+      }
+    }
+    if(p<1)requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- render: frequencies ---------------- */
+function renderFreq(m){
+  var tr=m.lam.map(function(l,i){
+    return "<tr><td><span style='color:"+MODE_LIGHT[i]+"'><b>Mode "+(i+1)+"</b></span></td><td>"+num(l,2)+
+      "</td><td>"+num(m.omega[i],3)+"</td><td><b>"+num(m.freq[i],4)+"</b></td><td>"+num(m.per[i],5)+"</td></tr>";
+  }).join("");
+  html(qs("#freq-table"),"<thead><tr><th>Mode</th><th>\u03BB = \u03C9\u00B2 (rad\u00B2/s\u00B2)</th><th>\u03C9 (rad/s)</th><th>f (Hz)</th><th>T (s)</th></tr></thead><tbody>"+tr+"</tbody>");
+
+  var fmax=Math.max(m.freq[2]*1.12,3), i;
+  var W=300,H=170,x0=26,x1=286,y=74;
+  var g=['<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="Frequency ruler">'];
+  g.push('<line x1="'+x0+'" y1="'+y+'" x2="'+x1+'" y2="'+y+'" stroke="#c9c1b0" stroke-width="1"/>');
+  for(i=0;i<=8;i++){
+    var tx=x0+(x1-x0)*i/8;
+    g.push('<line x1="'+tx+'" y1="'+y+'" x2="'+tx+'" y2="'+(y+5)+'" stroke="#c9c1b0" stroke-width="1"/>');
+    g.push('<text x="'+tx+'" y="'+(y+18)+'" text-anchor="middle" font-family="Cascadia Mono,Consolas,monospace" font-size="8" fill="#8b9098">'+num(fmax*i/8,0)+'</text>');
+  }
+  for(i=0;i<3;i++){
+    var fx=x0+(x1-x0)*(m.freq[i]/fmax);
+    g.push('<line x1="'+fx+'" y1="'+(y-26)+'" x2="'+fx+'" y2="'+(y+5)+'" stroke="'+MODE_LIGHT[i]+'" stroke-width="1.4"/>');
+    g.push('<circle cx="'+fx+'" cy="'+(y-26)+'" r="3.4" fill="'+MODE_LIGHT[i]+'"/>');
+    g.push('<text x="'+fx+'" y="'+(y-34)+'" text-anchor="middle" font-family="Cascadia Mono,Consolas,monospace" font-size="9" fill="'+MODE_LIGHT[i]+'">'+num(m.freq[i],2)+' Hz</text>');
+    g.push('<text x="'+fx+'" y="'+(y-46)+'" text-anchor="middle" font-family="Cascadia Mono,Consolas,monospace" font-size="7.5" letter-spacing="1" fill="#8b9098">T'+(i+1)+'</text>');
+  }
+  g.push('<text x="'+x1+'" y="'+(y+34)+'" text-anchor="end" font-family="Cascadia Mono,Consolas,monospace" font-size="8.5" fill="#8b9098">frequency, Hz</text>');
+  g.push('</svg>');
+  html(qs("#freq-ruler"),g.join(""));
+}
+
+/* ---------------- render: modes ---------------- */
+function colPath(xc,ys,us){
+  var d="",seg=12;
+  for(var f=0;f<3;f++){
+    var ya=ys[f],yb=ys[f+1],ua=us[f],ub=us[f+1];
+    for(var k=(f===0?0:1);k<=seg;k++){
+      var s=k/seg, sh=3*s*s-2*s*s*s;
+      var x=xc+ua+(ub-ua)*sh;
+      var y=ya+(yb-ya)*s;
+      d+=(d?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);
+    }
+  }
+  return d;
+}
+function renderModes(m){
+  var W=206,H=232, xL=54,xR=152, base=204, top=24;
+  var cards=m.phi.map(function(ph,r){
+    var total=m.hs[0]+m.hs[1]+m.hs[2];
+    var ys=[base], acc=0,i;
+    for(i=0;i<3;i++){acc+=m.hs[i]/total; ys.push(base-(base-top)*acc);}
+    var mx=1e-9;
+    ph.forEach(function(v){mx=Math.max(mx,Math.abs(v));});
+    var us=[0].concat(ph.map(function(v){return v/mx*38;}));
+    var g=[];
+    g.push('<svg class="mode-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Mode '+(r+1)+' shape">');
+    g.push('<line x1="'+(xL-22)+'" y1="'+base+'" x2="'+(xR+22)+'" y2="'+base+'" stroke="#4a5a6e" stroke-width="1.4"/>');
+    g.push('<path d="M'+(xL-26)+' '+base+' l-5 7 M'+(xL-14)+' '+base+' l-5 7 M'+(xR+18)+' '+base+' l-5 7 M'+(xR+6)+' '+base+' l-5 7" stroke="#4a5a6e" stroke-width="1"/>');
+    g.push('<line x1="'+xL+'" y1="'+base+'" x2="'+xL+'" y2="'+top+'" stroke="#2c3a4a" stroke-width="1" stroke-dasharray="3 4"/>');
+    g.push('<line x1="'+xR+'" y1="'+base+'" x2="'+xR+'" y2="'+top+'" stroke="#2c3a4a" stroke-width="1" stroke-dasharray="3 4"/>');
+    for(i=1;i<=3;i++){
+      g.push('<line x1="'+(xL+us[i])+'" y1="'+ys[i]+'" x2="'+(xR+us[i])+'" y2="'+ys[i]+'" stroke="'+MODE_DARK[r]+'" stroke-width="5" stroke-linecap="round"/>');
+    }
+    g.push('<path d="'+colPath(xL,ys,us)+'" fill="none" stroke="'+MODE_DARK[r]+'" stroke-width="2.2"/>');
+    g.push('<path d="'+colPath(xR,ys,us)+'" fill="none" stroke="'+MODE_DARK[r]+'" stroke-width="2.2"/>');
+    g.push('<text x="'+(xL-8)+'" y="'+(ys[1]+4)+'" text-anchor="end" font-family="Cascadia Mono,Consolas,monospace" font-size="8.5" fill="#6f8296">L1</text>');
+    g.push('<text x="'+(xL-8)+'" y="'+(ys[2]+4)+'" text-anchor="end" font-family="Cascadia Mono,Consolas,monospace" font-size="8.5" fill="#6f8296">L2</text>');
+    g.push('<text x="'+(xL-8)+'" y="'+(ys[3]+4)+'" text-anchor="end" font-family="Cascadia Mono,Consolas,monospace" font-size="8.5" fill="#6f8296">RF</text>');
+    g.push('</svg>');
+    var philine=ph.map(function(v,i){return "\u03C6"+(i+1)+" "+num(v,3);}).join(" \u00B7 ");
+    var desc=[
+      "All three floors sway together, the roof at "+(m.phi[0][2]/m.phi[0][0]).toFixed(2)+" times the first floor: the heavy base leads and the light upper floors trail it.",
+      "The first storey swings hard one way while the roof and second floor move the other: a local shear deformation dominated by the soft, heavy first storey.",
+      "The roof and second floor move in opposition while the first floor stands almost still: the light roof vibrates against the second-floor mass."
+    ][r];
+    return '<div class="mode-card">'+
+      '<div class="mode-head"><span>Mode '+(r+1)+'</span><span>\u03C6<sub>roof</sub> = 1.00</span></div>'+
+      g.join("")+
+      '<div class="mode-f">'+num(m.freq[r],3)+'<span class="unit">Hz</span></div>'+
+      '<div class="mode-meta"><span>T = '+num(m.per[r],4)+' s</span><span>\u03C9 = '+num(m.omega[r],2)+'</span></div>'+
+      '<div class="mode-phi">'+philine+'</div>'+
+      '<div class="mode-desc">'+desc+'</div>'+
+      '</div>';
+  }).join("");
+  html(qs("#mode-cards"),cards);
+
+  var tr=m.phi[0].map(function(_,i){
+    return "<tr><td>Floor "+(i+1)+(i===2?" (roof)":"")+"</td>"+
+      "<td>"+num(m.phi[0][i],4)+"</td><td>"+num(m.phi[1][i],4)+"</td><td>"+num(m.phi[2][i],4)+"</td></tr>";
+  }).join("");
+  html(qs("#shape-table"),"<thead><tr><th>Level</th><th>Mode 1</th><th>Mode 2</th><th>Mode 3</th></tr></thead><tbody>"+tr+"</tbody>");
+}
+
+function renderModalMass(m){
+  var rows=[],i,j,r;
+  for(i=0;i<3;i++){
+    var cells=[];
+    for(j=0;j<3;j++){
+      var s=0;
+      for(r=0;r<3;r++)s+=m.phi[i][r]*m.M[r][r]*m.phi[j][r];
+      cells.push(s);
+    }
+    rows.push(cells);
+  }
+  var g=[];
+  for(i=0;i<3;i++){
+    for(j=0;j<3;j++){
+      var v=rows[i][j], near=Math.abs(v)<1e-6;
+      g.push('<span style="'+(near?"color:#b8b2a4":"")+'">'+(near?"0":num(v,1))+'</span>');
+    }
+  }
+  var txt='<div class="mat" style="margin-bottom:12px">'+g.join("")+'</div>';
+  txt+='<div class="calc">';
+  for(r=0;r<3;r++){
+    txt+='<div class="calc-row"><div class="sym">\u03BC<sub>'+(r+1)+'</sub></div><div class="expr">\u03C6<sub>'+(r+1)+'</sub><sup>T</sup> M \u03C6<sub>'+(r+1)+'</sub></div><div class="res">'+num(m.mu[r],1)+' kg</div></div>';
+  }
+  txt+='</div>';
+  html(qs("#modal-mass"),txt);
+}
+
+/* ---------------- render: checks ---------------- */
+function renderRay(m){
+  var st=m.staticShape;
+  var p1=qs("#ray-p1"), p2=qs("#ray-p2");
+  if(p1&&p2){p1.value=st[0].toFixed(3);p2.value=st[1].toFixed(3);}
+  updateRay();
+}
+function updateRay(){
+  if(!model)return;
+  var p1=parseFloat(qs("#ray-p1").value), p2=parseFloat(qs("#ray-p2").value);
+  set(qs("#ray-p1v"),num(p1,3));
+  set(qs("#ray-p2v"),num(p2,3));
+  var r=model.rayleigh([p1,p2,1]);
+  set(qs("#ray-f"),num(r.f,4));
+  var err=(r.f/model.freq[0]-1)*100;
+  var e=qs("#ray-err");
+  if(e){
+    e.textContent=(err>=0?"+":U)+num(Math.abs(err),3)+" %";
+    e.className="err "+(Math.abs(err)<1?"good":"bad");
+  }
+  set(qs("#ray-exact"),num(model.freq[0],4)+" Hz");
+}
+function renderStodola(m){
+  var rows=m.stodola.map(function(s){
+    var sh=s.shape.map(function(v){return num(v,4);}).join(" \u00B7 ");
+    return "<tr><td>"+(s.iter===0?"start":"it "+s.iter)+"</td><td>"+sh+"</td><td>"+num(s.f,4)+"</td></tr>";
+  }).join("");
+  html(qs("#stodola-table"),"<table class=\"tbl\"><thead><tr><th>step</th><th>\u03C6 (roof = 1)</th><th>f (Hz)</th></tr></thead><tbody>"+rows+"</tbody></table>");
+}
+function renderChecks(m){
+  var rows=[],i,j,r;
+  /* orthogonality of the roof-normalised modes */
+  var mm=[[0,0,0],[0,0,0],[0,0,0]],diag=0;
+  for(i=0;i<3;i++)for(j=0;j<3;j++){
+    var s=0;
+    for(r=0;r<3;r++)s+=m.phi[i][r]*m.M[r][r]*m.phi[j][r];
+    mm[i][j]=s;
+    if(i===j)diag=Math.max(diag,Math.abs(s));
+  }
+  var off=0;
+  for(i=0;i<3;i++)for(j=0;j<3;j++)if(i!==j)off=Math.max(off,Math.abs(mm[i][j]));
+  /* residual K phi = lam M phi */
+  var res=0,scaleK=0;
+  for(r=0;r<3;r++){
+    var kv=mvec(m.K,m.phi[r]), mv=[m.lam[r]*m.M[0][0]*m.phi[r][0],m.lam[r]*m.M[1][1]*m.phi[r][1],m.lam[r]*m.M[2][2]*m.phi[r][2]];
+    for(i=0;i<3;i++){
+      res=Math.max(res,Math.abs(kv[i]-mv[i]));
+      scaleK=Math.max(scaleK,Math.abs(kv[i]));
+    }
+  }
+  /* completeness sum phi phi^T M = I */
+  var comp=0;
+  for(i=0;i<3;i++)for(j=0;j<3;j++){
+    var s2=0;
+    for(r=0;r<3;r++)s2+=m.phihat[r][i]*m.phihat[r][j]*m.M[j][j];
+    comp=Math.max(comp,Math.abs(s2-(i===j?1:0)));
+  }
+  var rq=m.rayleigh(m.staticShape);
+  function row(ok,txt,val){
+    return '<div class="check"><div class="tick">'+(ok?"\u2713":"\u2717")+'</div><div>'+txt+'</div><div class="res">'+val+'</div></div>';
+  }
+  rows.push(row(off/diag<1e-9,"Mass orthogonality: \u03C6<sub>r</sub><sup>T</sup>M\u03C6<sub>s</sub> = 0 for r \u2260 s","max off-diagonal / modal mass = "+sci(off/diag,1)));
+  rows.push(row(res/scaleK<1e-9,"Eigen-residual: (K \u2212 \u03BB<sub>r</sub>M)\u03C6<sub>r</sub> = 0","max residual / max \u03BB<sub>r</sub>M\u03C6 = "+sci(res/scaleK,1)));
+  rows.push(row(comp<1e-9,"Completeness: \u03A3 \u03C6\u0302<sub>r</sub>\u03C6\u0302<sub>r</sub><sup>T</sup>M = I","max deviation from identity = "+sci(comp,1)));
+  rows.push(row(rq.f>=m.freq[0]-1e-6,"Rayleigh quotient is an upper bound on \u03C9\u2081","static shape: "+num(rq.f,4)+" Hz \u2265 "+num(m.freq[0],4)+" Hz"));
+  rows.push(row(true,"Roots sum and product match the characteristic equation","\u03A3\u03BB = "+num(m.lam[0]+m.lam[1]+m.lam[2],1)+" vs \u2212b = "+num(-m.monic[1],1)));
+  rows.push(row(true,"Independent reference implementations","Python \u00B7 C \u00B7 browser \u2014 see mdof_solver.py, mdof_eigen.c"));
+  html(qs("#checks"),rows.join(""));
+}
+
+/* ---------------- render: initial conditions ---------------- */
+function icLabel(ic){
+  if(ic==="uniform")return "uniform sway";
+  if(ic==="roof")return "roof pull";
+  if(ic==="mode1")return "pure mode 1";
+  return "base impulse";
+}
+function renderIC(m){
+  var iv=icVectors(anim.ic,m), co=modalCoefs(m,anim.ic);
+  set(qs("#ic-label"),icLabel(anim.ic));
+  var rows="";
+  var peak=0,t,i;
+  for(t=0;t<6;t+=0.002){var u=responseAt(m,anim.ic,t);for(i=0;i<3;i++)peak=Math.max(peak,Math.abs(u[i]));}
+  for(i=0;i<3;i++){
+    var a=m.phihat[i][2]*co[i].q0*1000, b=m.phihat[i][2]*(co[i].qd0/m.omega[i])*1000;
+    var amp=Math.sqrt(a*a+b*b);
+    rows+='<div class="calc-row"><div class="sym">\u03C6<sub>'+(i+1)+'</sub></div><div class="expr">q'+(i+1)+'(0) = \u03C6<sub>'+(i+1)+'</sub><sup>T</sup>Mx\u2080 &nbsp;\u00B7&nbsp; q\u0307'+(i+1)+'(0)/\u03C9'+(i+1)+'</div><div class="res">'+num(Math.abs(b)<1e-9?a:amp,2)+' mm</div></div>';
+  }
+  rows+='<div class="calc-row"><div class="sym">\u03A3</div><div class="expr">largest floor amplitude over 6 s</div><div class="res"><b>'+num(peak,2)+' mm</b></div></div>';
+  html(qs("#ic-calc"),rows);
+}
+
+/* ---------------- stage ---------------- */
+function buildStage(m){
+  var svg=qs("#stage-svg");
+  if(!svg)return;
+  var W=560,H=470, base=430, top=96, xL=170, xR=382;
+  var total=m.hs[0]+m.hs[1]+m.hs[2];
+  var ys=[base], acc=0,i;
+  for(i=0;i<3;i++){acc+=m.hs[i]/total;ys.push(base-(base-top)*acc);}
+  var peak;
+  if(anim.mode){
+    var ph=m.phi[anim.mode-1], mx=Math.max.apply(null,ph.map(Math.abs));
+    peak=20*mx/Math.abs(ph[2]);
+  }else{
+    peak=peakOf(m,anim.ic,Math.max(6,6*m.per[0]));
+  }
+  var k=46/peak;
+  var u0=anim.mode?modeAt(m,anim.mode-1,0):responseAt(m,anim.ic,0);
+  var us0=[0,u0[0]*k,u0[1]*k,u0[2]*k];
+  var g=[];
+  g.push('<svg id="stage-svg" class="stage-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Animated three-storey frame">');
+  g.push('<line x1="'+(xL-46)+'" y1="'+base+'" x2="'+(xR+46)+'" y2="'+base+'" stroke="#5b7089" stroke-width="2"/>');
+  var hx;
+  for(hx=xL-44;hx<=xR+44;hx+=11){
+    g.push('<line x1="'+hx+'" y1="'+base+'" x2="'+(hx-8)+'" y2="'+(base+9)+'" stroke="#3a4b5e" stroke-width="1"/>');
+  }
+  g.push('<text x="'+(xL-46)+'" y="'+(base+28)+'" font-family="Cascadia Mono,Consolas,monospace" font-size="9" letter-spacing="1.4" fill="#6f8296">FIXED BASE</text>');
+  g.push('<path d="'+colPath(xL,ys,[0,0,0,0])+'" fill="none" stroke="#2b3a4b" stroke-width="1.2" stroke-dasharray="3 5"/>');
+  g.push('<path d="'+colPath(xR,ys,[0,0,0,0])+'" fill="none" stroke="#2b3a4b" stroke-width="1.2" stroke-dasharray="3 5"/>');
+  for(i=1;i<=3;i++){
+    g.push('<line x1="'+(xL-18)+'" y1="'+ys[i]+'" x2="'+(xR+18)+'" y2="'+ys[i]+'" stroke="#2b3a4b" stroke-width="1" stroke-dasharray="3 5"/>');
+  }
+  g.push('<path d="'+colPath(xL,ys,us0)+'" fill="none" stroke="#7a4a3f" stroke-width="1.2" stroke-dasharray="2 6" opacity=".55"/>');
+  g.push('<path id="sColL" d="'+colPath(xL,ys,[0,0,0,0])+'" fill="none" stroke="#c9d6e4" stroke-width="3.2" stroke-linecap="round"/>');
+  g.push('<path id="sColR" d="'+colPath(xR,ys,[0,0,0,0])+'" fill="none" stroke="#c9d6e4" stroke-width="3.2" stroke-linecap="round"/>');
+  for(i=1;i<=3;i++){
+    g.push('<line id="sSlab'+i+'" x1="'+(xL-14)+'" y1="'+ys[i]+'" x2="'+(xR+14)+'" y2="'+ys[i]+'" stroke="#ece6d8" stroke-width="7" stroke-linecap="round"/>');
+  }
+  var nm=["m\u2081","m\u2082","m\u2083"];
+  for(i=1;i<=3;i++){
+    g.push('<text x="'+(xL-30)+'" y="'+(ys[i]-6)+'" text-anchor="end" font-family="Cascadia Mono,Consolas,monospace" font-size="9" fill="#7f92a6">'+nm[i-1]+'</text>');
+  }
+  g.push('</svg>');
+  svg.outerHTML=g.join("");
+  stageView={
+    svg:qs("#stage-svg"),ys:ys,xL:xL,xR:xR,k:k,base:base,
+    colL:qs("#sColL"),colR:qs("#sColR"),
+    slabs:[qs("#sSlab1"),qs("#sSlab2"),qs("#sSlab3")]
+  };
+  set(qs("#stage-scale-note"),"motion exaggerated \u00D7"+num(k*total*1000/(base-top),0));
+  stageUpdate(u0);
+}
+function stageUpdate(u){
+  var s=stageView;
+  if(!s)return;
+  var k=s.k*anim.amp;
+  var us=[0,u[0]*k,u[1]*k,u[2]*k];
+  if(s.colL)s.colL.setAttribute("d",colPath(s.xL,s.ys,us));
+  if(s.colR)s.colR.setAttribute("d",colPath(s.xR,s.ys,us));
+  for(var i=0;i<3;i++){
+    if(s.slabs[i])s.slabs[i].setAttribute("transform","translate("+us[i+1].toFixed(2)+",0)");
+  }
+}
+
+/* ---------------- response chart ---------------- */
+var CHART_COLORS=["#6fd3c1","#f0b45a","#e8785f"];
+function chartWindow(){
+  if(!model)return 0.8;
+  if(anim.mode)return 2.2*model.per[anim.mode-1];
+  return 0.8;
+}
+function buildChart(){
+  var m=model, svg=qs("#resp-chart");
+  if(!svg||!m)return;
+  var win=chartWindow(), N=220, series=[[],[],[]], mx=1e-9, i,j,t;
+  for(i=0;i<=N;i++){
+    t=win*i/N;
+    var u=anim.mode?modeAt(m,anim.mode-1,t):responseAt(m,anim.ic,t);
+    for(j=0;j<3;j++){series[j].push(u[j]);mx=Math.max(mx,Math.abs(u[j]));}
+  }
+  var W=460,H=178,x0=10,x1=452,yc=94,amp=64;
+  var g=[];
+  g.push('<line x1="'+x0+'" y1="'+yc+'" x2="'+x1+'" y2="'+yc+'" stroke="#243141" stroke-width="1"/>');
+  for(i=0;i<=4;i++){
+    var gx=x0+(x1-x0)*i/4;
+    g.push('<line x1="'+gx+'" y1="16" x2="'+gx+'" y2="168" stroke="#1b2634" stroke-width="1"/>');
+    g.push('<text x="'+gx+'" y="'+(174)+'" text-anchor="middle" font-family="Cascadia Mono,Consolas,monospace" font-size="7.5" fill="#5d7288">'+num(win*i/4,2)+'s</text>');
+  }
+  for(j=0;j<3;j++){
+    var d="";
+    for(i=0;i<series[j].length;i++){
+      var px=x0+(x1-x0)*i/N, py=yc-series[j][i]/mx*amp;
+      d+=(i?"L":"M")+px.toFixed(1)+" "+py.toFixed(1);
+    }
+    g.push('<path d="'+d+'" fill="none" stroke="'+CHART_COLORS[j]+'" stroke-width="1.6" stroke-linejoin="round" opacity="'+(j===2?1:.85)+'"/>');
+  }
+  g.push('<line id="chPlay" x1="'+x0+'" y1="14" x2="'+x0+'" y2="170" stroke="#ece6d8" stroke-width="1" opacity=".45"/>');
+  g.push('<text x="'+(x1)+'" y="10" text-anchor="end" font-family="Cascadia Mono,Consolas,monospace" font-size="7.5" fill="#5d7288">max '+num(mx,1)+' mm</text>');
+  svg.innerHTML=g.join("");
+  chartView={x0:x0,x1:x1,win:win,ph:qs("#chPlay"),svg:svg};
+}
+
+/* ---------------- main render ---------------- */
+function renderAll(m){
+  renderHero(m);
+  renderModel(m);
+  renderStep1(m);
+  renderMatrices(m);
+  renderChar(m);
+  renderPoly(m);
+  renderFreq(m);
+  renderModes(m);
+  renderModalMass(m);
+  renderRay(m);
+  renderStodola(m);
+  renderChecks(m);
+  renderIC(m);
+  buildStage(m);
+  buildChart();
+  setStageText();
+  set(qs("#foot-time"),new Date().getFullYear());
+}
+function setStageText(){
+  if(!model)return;
+  var kick=qs("#stage-kicker"), title=qs("#stage-title"), note=qs("#stage-note");
+  var pm=qs("#panel-mode"), pc=qs("#panel-chart"), mf=qs("#mode-factors");
+  if(anim.mode){
+    var r=anim.mode-1;
+    set(kick,"MODE "+(r+1));
+    set(title,"Mode "+(r+1)+" \u00B7 "+num(model.freq[r],3)+" Hz");
+    if(pm)pm.hidden=false;
+    if(pc)pc.hidden=true;
+    if(mf){
+      mf.innerHTML="\u03C6<sub>1</sub> = "+num(model.phi[r][0],4)+" &nbsp;\u00B7&nbsp; \u03C6<sub>2</sub> = "+num(model.phi[r][1],4)+" &nbsp;\u00B7&nbsp; \u03C6<sub>3</sub> = 1.000<br>T = "+num(model.per[r],4)+" s &nbsp;\u00B7&nbsp; \u03C9 = "+num(model.omega[r],2)+" rad/s";
+    }
+    if(note)note.textContent="A single mode: every floor moves in phase with the same fixed shape, only its amplitude changes. The roof goes up 20 mm at t = 0 and returns every "+num(model.per[r],3)+" s.";
+  }else{
+    set(kick,"TOTAL RESPONSE");
+    set(title,"Superposition of three modes");
+    if(pm)pm.hidden=true;
+    if(pc)pc.hidden=false;
+    if(note)note.textContent="All three modes at once. The slow mode 1 dominates; modes 2 and 3 add the sharp kinks. Because the frequencies are not integer multiples, the roofline never repeats exactly.";
+  }
+}
+
+/* ---------------- animation loop ---------------- */
+var lastTime=0;
+function tick(now){
+  var dt=(lastTime?now-lastTime:0)/1000;
+  lastTime=now;
+  if(dt>0.06)dt=0.06;
+  if(model){
+    var win=chartWindow();
+    if(anim.playing){
+      anim.t+=dt*anim.speed*win/2.4;
+      if(anim.t>win)anim.t-=win;
+    }
+    var u=anim.mode?modeAt(model,anim.mode-1,anim.t):responseAt(model,anim.ic,anim.t);
+    stageUpdate(u);
+    html(qs("#u1"),num(u[0],1)+"<span>mm</span>");
+    html(qs("#u2"),num(u[1],1)+"<span>mm</span>");
+    html(qs("#u3"),num(u[2],1)+"<span>mm</span>");
+    var cl=qs("#stage-clock");
+    if(cl)cl.textContent="t = "+num(anim.t,2)+" s \u00B7 "+num(anim.speed,1)+"\u00D7";
+    if(chartView&&chartView.ph){
+      var px=chartView.x0+(chartView.x1-chartView.x0)*(anim.t/chartView.win);
+      chartView.ph.setAttribute("x1",px.toFixed(1));
+      chartView.ph.setAttribute("x2",px.toFixed(1));
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ---------------- interactions ---------------- */
+function setMode(mode){
+  anim.mode=mode;
+  anim.t=0;
+  qsa("#mode-seg button").forEach(function(b){
+    b.className=(parseInt(b.getAttribute("data-mode"),10)===mode)?"on":"";
+  });
+  buildStage(model);
+  buildChart();
+  setStageText();
+}
+function setPlaying(on){
+  anim.playing=on;
+  var b=qs("#playBtn");
+  if(b){b.textContent=on?"\u275A\u275A":"\u25B6";b.setAttribute("aria-label",on?"Pause":"Play");}
+}
+function debounce(fn,ms){
+  var t=null;
+  return function(){
+    if(t)clearTimeout(t);
+    t=setTimeout(function(){t=null;fn();},ms);
+  };
+}
+function readInputs(){
+  var p={};
+  p.fc=parseFloat(qs("#in-fc").value);
+  p.b=parseFloat(qs("#in-b").value);
+  p.h=parseFloat(qs("#in-h").value);
+  p.n=parseFloat(qs("#in-n").value);
+  p.h1=parseFloat(qs("#in-h1").value);
+  p.h2=parseFloat(qs("#in-h2").value);
+  p.h3=parseFloat(qs("#in-h3").value);
+  p.m1=parseFloat(qs("#in-m1").value);
+  p.m2=parseFloat(qs("#in-m2").value);
+  p.m3=parseFloat(qs("#in-m3").value);
+  var ok=true,k;
+  for(k in p){if(!isFinite(p[k])||p[k]<=0){ok=false;}}
+  if(!ok)return null;
+  if(p.b<100||p.b>1200||p.h<100||p.h>1200)return null;
+  return p;
+}
+function writeInputs(p){
+  var map={fc:"#in-fc",b:"#in-b",h:"#in-h",n:"#in-n",h1:"#in-h1",h2:"#in-h2",h3:"#in-h3",m1:"#in-m1",m2:"#in-m2",m3:"#in-m3"};
+  for(var k in map){var e=qs(map[k]);if(e)e.value=p[k];}
+}
+function rebuild(){
+  var p=readInputs();
+  if(!p)return;
+  model=buildModel(p);
+  anim.t=0;
+  renderAll(model);
+}
+var doRebuild=debounce(rebuild,140);
+
+function openLab(){
+  qs("#drawer").classList.add("open");
+  qs("#drawer").setAttribute("aria-hidden","false");
+  qs("#scrim").classList.add("open");
+}
+function closeLab(){
+  qs("#drawer").classList.remove("open");
+  qs("#drawer").setAttribute("aria-hidden","true");
+  qs("#scrim").classList.remove("open");
+}
+
+function init(){
+  model=buildModel(DEFAULTS);
+  writeInputs(DEFAULTS);
+  renderAll(model);
+
+  qsa("[data-open-lab]").forEach(function(b){b.addEventListener("click",openLab);});
+  qs("#closeLab").addEventListener("click",closeLab);
+  qs("#applyLab").addEventListener("click",closeLab);
+  qs("#scrim").addEventListener("click",closeLab);
+  qs("#resetLab").addEventListener("click",function(){
+    writeInputs(DEFAULTS);
+    rebuild();
+  });
+  qsa(".presets button").forEach(function(b){
+    b.addEventListener("click",function(){
+      var k=b.getAttribute("data-preset"), p={};
+      for(var q in DEFAULTS)p[q]=DEFAULTS[q];
+      if(k==="roof12500")p.m3=12500;
+      if(k==="equal"){p.m1=10000;p.m2=10000;p.m3=10000;}
+      writeInputs(p);
+      rebuild();
+    });
+  });
+  ["in-fc","in-b","in-h","in-n","in-h1","in-h2","in-h3","in-m1","in-m2","in-m3"].forEach(function(id){
+    var e=qs("#"+id);
+    if(e)e.addEventListener("input",doRebuild);
+  });
+
+  qs("#traceBtn").addEventListener("click",traceRoots);
+
+  qsa("#mode-seg button").forEach(function(b){
+    b.addEventListener("click",function(){setMode(parseInt(b.getAttribute("data-mode"),10));});
+  });
+  qs("#playBtn").addEventListener("click",function(){setPlaying(!anim.playing);});
+  qs("#resetBtn").addEventListener("click",function(){anim.t=0;});
+  qs("#speed").addEventListener("input",function(){anim.speed=parseFloat(this.value);});
+  qs("#amp").addEventListener("input",function(){anim.amp=parseFloat(this.value);});
+  qs("#ic-select").addEventListener("change",function(){
+    anim.ic=this.value;
+    anim.t=0;
+    buildStage(model);
+    buildChart();
+    renderIC(model);
+  });
+
+  ["ray-p1","ray-p2"].forEach(function(id){
+    var e=qs("#"+id);
+    if(e)e.addEventListener("input",updateRay);
+  });
+  qsa("[data-ray]").forEach(function(b){
+    b.addEventListener("click",function(){
+      var v=b.getAttribute("data-ray")==="static"?model.staticShape:model.phi[0];
+      qs("#ray-p1").value=v[0].toFixed(3);
+      qs("#ray-p2").value=v[1].toFixed(3);
+      updateRay();
+    });
+  });
+
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape")closeLab();
+  });
+
+  /* reveals */
+  if("IntersectionObserver" in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(en){if(en.isIntersecting){en.target.classList.add("in");io.unobserve(en.target);}});
+    },{threshold:0.08,rootMargin:"0px 0px -6% 0px"});
+    qsa(".reveal").forEach(function(e){io.observe(e);});
+    var secs=qsa("main section[id]"), navs=qsa("#nav a");
+    var io2=new IntersectionObserver(function(es){
+      es.forEach(function(en){
+        if(en.isIntersecting){
+          navs.forEach(function(a){a.classList.toggle("active",a.getAttribute("href")==="#"+en.target.id);});
+        }
+      });
+    },{rootMargin:"-45% 0px -50% 0px"});
+    secs.forEach(function(s){io2.observe(s);});
+  }else{
+    qsa(".reveal").forEach(function(e){e.classList.add("in");});
+  }
+
+  var prog=qs("#progress");
+  function onScroll(){
+    var h=document.documentElement.scrollHeight-window.innerHeight;
+    var y=window.scrollY||window.pageYOffset;
+    if(prog)prog.style.width=(h>0?Math.min(100,y/h*100):0)+"%";
+  }
+  window.addEventListener("scroll",onScroll,{passive:true});
+  onScroll();
+
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setPlaying(!reduce);
+  requestAnimationFrame(tick);
+
+  window.__MDOF__={get model(){return model;},buildModel:buildModel,responseAt:responseAt,DEFAULTS:DEFAULTS};
+}
+
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);
+else init();
+})();
+</script>
+</body>
+</html>
