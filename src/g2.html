@@ -55,6 +55,7 @@
       <div class="tour-top">
         <div class="chapters" id="chapters" role="tablist" aria-label="Chapters"></div>
         <div class="tour-prog" aria-hidden="true"><i id="prog"></i></div>
+        <div class="seg" id="size-seg" role="group" aria-label="Figure size"><button data-z="s" aria-label="Small figure">S</button><button data-z="m" aria-label="Medium figure">M</button><button data-z="l" aria-label="Large figure">L</button></div>
         <div class="seg" id="view-seg" role="group" aria-label="Figure view"><button data-v="2d">2D</button><button data-v="3d">3D</button><button data-v="both">Both</button></div>
       </div>
       <div class="tour-body">
@@ -62,6 +63,7 @@
           <div class="stage-views" id="stage-views"><div id="stage-svg"></div><div id="stage-3d" hidden><span class="v3-hint">drag to orbit · sway exaggerated</span></div></div>
           <div class="stage-cap"><span id="stage-k">Figure</span><span class="v3n" id="v3-note" hidden>flat figure · 3D shows on the frame, modes &amp; motion</span><span class="live" id="stage-live" hidden><i></i>live animation</span></div>
         </div>
+        <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Drag to resize the figure" aria-valuemin="30" aria-valuemax="68" aria-valuenow="50" tabindex="0" title="Drag to resize · double-click to reset"><span></span></div>
         <div class="narr" aria-live="polite">
           <div class="kicker"><span class="stepchip" id="n-step">Step</span><span id="n-kicker">Chapter</span></div>
           <h3 id="n-title"></h3>
