@@ -1649,10 +1649,17 @@ function buildTour(){
      b:"Twelve times EI, divided by the cube of the height. Then "+(NW[m.cols]||m.cols)+" identical column"+(m.cols>1?"s":"")+" add up"+(sameH?" \u2014 and every storey is the same height, so every storey gets the same k.":", and each storey gets its own value because the heights differ."),
      fx:EQ((function(){
        var rows=[];
-       rows.push(function(){var b=0;return GL('k'+SUB('col'),b)+OP('=')+F(GL('12',b+0.14)+OP('\u00B7')+GL(fmt(m.EI,1),b+0.32),GL(gnum(m.hs[0]),b+0.54)+SUP('3'),{lg:1})+OP('=')+GL(fmt(Math.pow(m.hs[0],3),2),b+0.76)+OP('=')+PI(fmt(m.kc[0],1)+' kN/m',b+0.98,'res');});
+       /* one column: 12EI on top, h^3 worked out underneath, so no bare "64" floats in the row */
+       var colRows=sameH?[0]:m.hs.map(function(_,ix){return ix;});
+       colRows.forEach(function(ix,q){
+         rows.push(function(){var b=q*0.7,h=m.hs[ix];
+           return GL('k'+SUB('col'+(sameH?'':','+(ix+1))),b)+OP('=')+F(GL('12',b+0.14)+OP('\u00B7')+GL(fmt(m.EI,4),b+0.28),GL(gnum(h),b+0.44)+SUP('3'),{lg:1})+
+             OP('=')+F(GL(fmt(12*m.EI,4),b+0.58),GL(fmt(Math.pow(h,3),4),b+0.70),{lg:1})+OP('=')+PI(fmt(m.kc[ix],4)+' kN/m',b+0.86,'res')+
+             '<span class="hint-inline">one column, h'+SUB(ix+1)+' = '+gnum(h)+' m'+(sameH?' (all storeys)':'')+'</span>';});
+       });
        m.kf.forEach(function(v,ix){
-         rows.push(function(){var b=0.75+ix*0.6;
-           return GL('k'+SUB(ix+1),b)+OP('=')+GL(fmt(m.cols,0),b+0.12)+OP('\u00D7')+GL(fmt(m.kc[ix],1),b+0.26)+OP('=')+PI(fmt(v,1)+' kN/m',b+0.46,'res')+'<span class="hint-inline">h'+SUB(ix+1)+' = '+gnum(m.hs[ix])+' m</span>';
+         rows.push(function(){var b=(sameH?0.75:2.1)+ix*0.6;
+           return GL('k'+SUB(ix+1),b)+OP('=')+GL(fmt(m.cols,0)+' columns',b+0.12)+OP('\u00D7')+GL(fmt(m.kc[ix],4),b+0.26)+OP('=')+PI(fmt(v,4)+' kN/m',b+0.46,'res')+'<span class="hint-inline">storey '+(ix+1)+'</span>';
          });
        });
        return rows;
