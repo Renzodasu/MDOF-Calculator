@@ -202,7 +202,7 @@ function buildTour(){
   var hsTxt=m.hs.map(function(h,ix){return 'h'+sub(ix)+' = '+fmt(h,h%1?2:0)+' m';}).join(', ');
   var sameH=m.hs.every(function(h){return h===m.hs[0];});
   var sirH=n===3&&m.hs[0]===4&&m.hs[1]===3.2&&m.hs[2]===3;
-  var frameNote=sirH?"The sheet fixes the heights twice over: h\u2081 = 1.25h\u2082 = 1.3333h\u2083 = 4 m, which gives "+hsTxt+"."
+  var frameNote=sirH?"Sample Problem 1 fixes the heights twice over: h\u2081 = 1.25h\u2082 = 1.3333h\u2083 = 4 m, which gives "+hsTxt+"."
     :sameH?"Every storey has the same height, h = "+fmt(m.hs[0],2)+" m, so every storey will get the same stiffness."
     :"Storey heights from the sketch: "+hsTxt+".";
 

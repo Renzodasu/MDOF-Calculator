@@ -32,20 +32,21 @@ var MC=["#4f46e5","#0d9488","#d97706","#7c3aed"];
 var MCT=["#4338ca","#0f766e","#b45309","#6d28d9"];
 
 /* ================= state ================= */
-/* Two worked problems ship with the page. "sir" is the class example the tour
-   was written around; "quiz1" is CE425 Quiz 1 (A36 steel tubes). */
+/* Two worked problems ship with the page. "quiz1" (CE425 Quiz 1, A36 steel tubes)
+   is what the page opens on; "sir" is Sample Problem 1 from the class notes. */
 var PRESETS={
-  sir:{label:"Class example",sub:"Concrete 300×300 · f′c 21 MPa",
-    s:{n:3,geom:true,mat:"conc",fc:21,Es:200,Ex:25,sec:"solid",b:300,h:300,B:350,t:12,Ix:675,cols:4,
-       hs:[4,3.2,3],ms:[5000,2500,1250],ks:[10903.7,21296.2,25845.7]}},
   quiz1:{label:"Quiz 1",sub:"A36 steel tube 350×350×12",
     s:{n:3,geom:true,mat:"steel",fc:21,Es:200,Ex:25,sec:"hss",b:300,h:300,B:350,t:12,Ix:309.3,cols:4,
-       hs:[4,4,4],ms:[5000,5500,5000],ks:[46395.8,46395.8,46395.8]}}
+       hs:[4,4,4],ms:[5000,5500,5000],ks:[46395.8,46395.8,46395.8]}},
+  sir:{label:"Sample Problem 1",sub:"Concrete 300×300 · f′c 21 MPa",
+    s:{n:3,geom:true,mat:"conc",fc:21,Es:200,Ex:25,sec:"solid",b:300,h:300,B:350,t:12,Ix:675,cols:4,
+       hs:[4,3.2,3],ms:[5000,2500,1250],ks:[10903.7,21296.2,25845.7]}}
 };
+var DEFAULT_PRESET="quiz1";
 var S=null, model=null, live=null;
 
 function freshState(key){
-  var p=PRESETS[key||"sir"].s,o={},k;
+  var p=PRESETS[key||DEFAULT_PRESET].s,o={},k;
   for(k in p)o[k]=Array.isArray(p[k])?p[k].slice():p[k];
   o.zeta=0;o.amp=50;o.ic="roof";
   return o;
@@ -173,8 +174,8 @@ function buildingSVG(m,o){
     var mid=(b1+b2)/2;
     var col=o.highlight===i?'#c7c2ff':(o.structColor||'#c9c9d6');
     var wdt=o.highlight===i?5.5:4.4;
-    s+=line(cx1,y1,cx2,y2,{w:wdt,stroke:col,cap:1});
-    s+=line(cx3,y1,cx4,y2,{w:wdt,stroke:col,cap:1});
+    s+=colPath(cx1,y1,cx2,y2,{w:wdt,stroke:col});
+    s+=colPath(cx3,y1,cx4,y2,{w:wdt,stroke:col});
   }
   /* slabs */
   for(i=0;i<=n;i++){
@@ -243,6 +244,13 @@ function buildingSVG(m,o){
   }
   s+='</svg>';
   return s;
+}
+/* a fixed-fixed column between two floors: an S-curve that leaves and meets each
+   floor square, the deflected shape k = 12EI/h^3 assumes */
+function colPath(x1,y1,x2,y2,o){
+  if(Math.abs(x2-x1)<0.05)return line(x1,y1,x2,y2,{w:o.w,stroke:o.stroke,cap:1,op:o.op});
+  var ym=((y1+y2)/2).toFixed(1);
+  return path('M'+x1.toFixed(1)+' '+y1.toFixed(1)+' C'+x1.toFixed(1)+' '+ym+' '+x2.toFixed(1)+' '+ym+' '+x2.toFixed(1)+' '+y2.toFixed(1),{stroke:o.stroke,w:o.w,cap:1,op:o.op});
 }
 function springPath(x,y1,y2,col){
   var h=y2-y1, segs=6, amp=9, d='M'+x+' '+y1, i;

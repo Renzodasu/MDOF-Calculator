@@ -206,8 +206,8 @@ function liveSVG(disp,o){
   for(i=0;i<n;i++){
     var y1=baseY-i*stepY,y2=baseY-(i+1)*stepY;
     var b1=(i===0?0:disp[i-1]),b2=disp[i];
-    s+=line(xl+b1,y1,xl+b2,y2,{w:5,stroke:'#c7c7d4',cap:1});
-    s+=line(xr+b1,y1,xr+b2,y2,{w:5,stroke:'#c7c7d4',cap:1});
+    s+=colPath(xl+b1,y1,xl+b2,y2,{w:5,stroke:'#c7c7d4'});
+    s+=colPath(xr+b1,y1,xr+b2,y2,{w:5,stroke:'#c7c7d4'});
   }
   for(i=0;i<=n;i++){
     var dy=baseY-i*stepY, dx=(i===0?0:disp[i-1]), roof=(i===n);
@@ -703,7 +703,7 @@ function syncURL(){
   if(VIEW!==VDEF)q+=(q?'&':'')+'v='+VIEW;
   try{history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}
 }
-/* untrusted input: every value range-checked, anything odd falls back to the class example */
+/* untrusted input: every value range-checked, anything odd falls back to Quiz 1 */
 function readURL(){
   var p=new URLSearchParams(location.search),v;
   function num(k,lo,hi){var x=parseFloat(p.get(k));return isFinite(x)&&x>=lo&&x<=hi?x:null;}
@@ -716,6 +716,8 @@ function readURL(){
     return a;
   }
   if(p.get('p')&&PRESETS[p.get('p')])S=freshState(p.get('p'));
+  /* links made before steel existed carry fc/b but no material: they were Sample Problem 1 */
+  else if((p.get('fc')||p.get('b'))&&!p.get('mt'))S=freshState('sir');
   if((v=num('n',2,3))!==null)S.n=Math.round(v);
   if(p.get('g')==='0')S.geom=false;
   v=p.get('mt');if(v==='conc'||v==='steel'||v==='custom')S.mat=v;
@@ -877,7 +879,7 @@ function boot(){
   $('#in-zeta').addEventListener('input',function(){var v=parseFloat(this.value);if(isFinite(v)){S.zeta=Math.max(0,Math.min(20,v));recompute();}});
   $('#in-ic').addEventListener('change',function(){S.ic=this.value;recompute();});
   $('#in-amp').addEventListener('input',function(){S.amp=+this.value;recompute();});
-  $('#reset').addEventListener('click',function(){S=freshState('sir');recompute();toast('Back to the class example');});
+  $('#reset').addEventListener('click',function(){S=freshState(DEFAULT_PRESET);recompute();toast('Back to '+PRESETS[DEFAULT_PRESET].label);});
   $('#rerun').addEventListener('click',function(){setPlay(false);show(0,0);$('#tour').scrollIntoView({behavior:'smooth',block:'start'});});
 
   /* reveal + nav */

@@ -805,7 +805,7 @@ details.fs-more[open] summary{margin-bottom:12px}
           </div>
         </details>
         <div class="pane-actions">
-          <button class="btn btn-sm" id="reset">Reset to the class example</button>
+          <button class="btn btn-sm" id="reset">Reset to Quiz 1</button>
           <button class="btn btn-sm btn-ghost" id="rerun">Restart the tour</button>
         </div>
       </div>
@@ -840,7 +840,7 @@ details.fs-more[open] summary{margin-bottom:12px}
       Single file, no dependencies: open it anywhere, even offline.
     </div>
     <div class="fr">
-      Class example in full precision: <a href="detailed.html">technical page</a> · <a href="mdof_solver.py">NumPy solver</a> · <a href="mdof_eigen.c">C reference</a>
+      Sample Problem 1 in full precision: <a href="detailed.html">technical page</a> · <a href="mdof_solver.py">NumPy solver</a> · <a href="mdof_eigen.c">C reference</a>
     </div>
     <div class="credit">
       <b>Created by Nezzar</b>
@@ -1056,20 +1056,21 @@ var MC=["#4f46e5","#0d9488","#d97706","#7c3aed"];
 var MCT=["#4338ca","#0f766e","#b45309","#6d28d9"];
 
 /* ================= state ================= */
-/* Two worked problems ship with the page. "sir" is the class example the tour
-   was written around; "quiz1" is CE425 Quiz 1 (A36 steel tubes). */
+/* Two worked problems ship with the page. "quiz1" (CE425 Quiz 1, A36 steel tubes)
+   is what the page opens on; "sir" is Sample Problem 1 from the class notes. */
 var PRESETS={
-  sir:{label:"Class example",sub:"Concrete 300×300 · f′c 21 MPa",
-    s:{n:3,geom:true,mat:"conc",fc:21,Es:200,Ex:25,sec:"solid",b:300,h:300,B:350,t:12,Ix:675,cols:4,
-       hs:[4,3.2,3],ms:[5000,2500,1250],ks:[10903.7,21296.2,25845.7]}},
   quiz1:{label:"Quiz 1",sub:"A36 steel tube 350×350×12",
     s:{n:3,geom:true,mat:"steel",fc:21,Es:200,Ex:25,sec:"hss",b:300,h:300,B:350,t:12,Ix:309.3,cols:4,
-       hs:[4,4,4],ms:[5000,5500,5000],ks:[46395.8,46395.8,46395.8]}}
+       hs:[4,4,4],ms:[5000,5500,5000],ks:[46395.8,46395.8,46395.8]}},
+  sir:{label:"Sample Problem 1",sub:"Concrete 300×300 · f′c 21 MPa",
+    s:{n:3,geom:true,mat:"conc",fc:21,Es:200,Ex:25,sec:"solid",b:300,h:300,B:350,t:12,Ix:675,cols:4,
+       hs:[4,3.2,3],ms:[5000,2500,1250],ks:[10903.7,21296.2,25845.7]}}
 };
+var DEFAULT_PRESET="quiz1";
 var S=null, model=null, live=null;
 
 function freshState(key){
-  var p=PRESETS[key||"sir"].s,o={},k;
+  var p=PRESETS[key||DEFAULT_PRESET].s,o={},k;
   for(k in p)o[k]=Array.isArray(p[k])?p[k].slice():p[k];
   o.zeta=0;o.amp=50;o.ic="roof";
   return o;
@@ -1197,8 +1198,8 @@ function buildingSVG(m,o){
     var mid=(b1+b2)/2;
     var col=o.highlight===i?'#c7c2ff':(o.structColor||'#c9c9d6');
     var wdt=o.highlight===i?5.5:4.4;
-    s+=line(cx1,y1,cx2,y2,{w:wdt,stroke:col,cap:1});
-    s+=line(cx3,y1,cx4,y2,{w:wdt,stroke:col,cap:1});
+    s+=colPath(cx1,y1,cx2,y2,{w:wdt,stroke:col});
+    s+=colPath(cx3,y1,cx4,y2,{w:wdt,stroke:col});
   }
   /* slabs */
   for(i=0;i<=n;i++){
@@ -1267,6 +1268,13 @@ function buildingSVG(m,o){
   }
   s+='</svg>';
   return s;
+}
+/* a fixed-fixed column between two floors: an S-curve that leaves and meets each
+   floor square, the deflected shape k = 12EI/h^3 assumes */
+function colPath(x1,y1,x2,y2,o){
+  if(Math.abs(x2-x1)<0.05)return line(x1,y1,x2,y2,{w:o.w,stroke:o.stroke,cap:1,op:o.op});
+  var ym=((y1+y2)/2).toFixed(1);
+  return path('M'+x1.toFixed(1)+' '+y1.toFixed(1)+' C'+x1.toFixed(1)+' '+ym+' '+x2.toFixed(1)+' '+ym+' '+x2.toFixed(1)+' '+y2.toFixed(1),{stroke:o.stroke,w:o.w,cap:1,op:o.op});
 }
 function springPath(x,y1,y2,col){
   var h=y2-y1, segs=6, amp=9, d='M'+x+' '+y1, i;
@@ -1585,7 +1593,7 @@ function buildTour(){
   var hsTxt=m.hs.map(function(h,ix){return 'h'+sub(ix)+' = '+fmt(h,h%1?2:0)+' m';}).join(', ');
   var sameH=m.hs.every(function(h){return h===m.hs[0];});
   var sirH=n===3&&m.hs[0]===4&&m.hs[1]===3.2&&m.hs[2]===3;
-  var frameNote=sirH?"The sheet fixes the heights twice over: h\u2081 = 1.25h\u2082 = 1.3333h\u2083 = 4 m, which gives "+hsTxt+"."
+  var frameNote=sirH?"Sample Problem 1 fixes the heights twice over: h\u2081 = 1.25h\u2082 = 1.3333h\u2083 = 4 m, which gives "+hsTxt+"."
     :sameH?"Every storey has the same height, h = "+fmt(m.hs[0],2)+" m, so every storey will get the same stiffness."
     :"Storey heights from the sketch: "+hsTxt+".";
 
@@ -2689,8 +2697,8 @@ function liveSVG(disp,o){
   for(i=0;i<n;i++){
     var y1=baseY-i*stepY,y2=baseY-(i+1)*stepY;
     var b1=(i===0?0:disp[i-1]),b2=disp[i];
-    s+=line(xl+b1,y1,xl+b2,y2,{w:5,stroke:'#c7c7d4',cap:1});
-    s+=line(xr+b1,y1,xr+b2,y2,{w:5,stroke:'#c7c7d4',cap:1});
+    s+=colPath(xl+b1,y1,xl+b2,y2,{w:5,stroke:'#c7c7d4'});
+    s+=colPath(xr+b1,y1,xr+b2,y2,{w:5,stroke:'#c7c7d4'});
   }
   for(i=0;i<=n;i++){
     var dy=baseY-i*stepY, dx=(i===0?0:disp[i-1]), roof=(i===n);
@@ -3186,7 +3194,7 @@ function syncURL(){
   if(VIEW!==VDEF)q+=(q?'&':'')+'v='+VIEW;
   try{history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}
 }
-/* untrusted input: every value range-checked, anything odd falls back to the class example */
+/* untrusted input: every value range-checked, anything odd falls back to Quiz 1 */
 function readURL(){
   var p=new URLSearchParams(location.search),v;
   function num(k,lo,hi){var x=parseFloat(p.get(k));return isFinite(x)&&x>=lo&&x<=hi?x:null;}
@@ -3199,6 +3207,8 @@ function readURL(){
     return a;
   }
   if(p.get('p')&&PRESETS[p.get('p')])S=freshState(p.get('p'));
+  /* links made before steel existed carry fc/b but no material: they were Sample Problem 1 */
+  else if((p.get('fc')||p.get('b'))&&!p.get('mt'))S=freshState('sir');
   if((v=num('n',2,3))!==null)S.n=Math.round(v);
   if(p.get('g')==='0')S.geom=false;
   v=p.get('mt');if(v==='conc'||v==='steel'||v==='custom')S.mat=v;
@@ -3360,7 +3370,7 @@ function boot(){
   $('#in-zeta').addEventListener('input',function(){var v=parseFloat(this.value);if(isFinite(v)){S.zeta=Math.max(0,Math.min(20,v));recompute();}});
   $('#in-ic').addEventListener('change',function(){S.ic=this.value;recompute();});
   $('#in-amp').addEventListener('input',function(){S.amp=+this.value;recompute();});
-  $('#reset').addEventListener('click',function(){S=freshState('sir');recompute();toast('Back to the class example');});
+  $('#reset').addEventListener('click',function(){S=freshState(DEFAULT_PRESET);recompute();toast('Back to '+PRESETS[DEFAULT_PRESET].label);});
   $('#rerun').addEventListener('click',function(){setPlay(false);show(0,0);$('#tour').scrollIntoView({behavior:'smooth',block:'start'});});
 
   /* reveal + nav */
