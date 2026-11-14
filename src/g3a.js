@@ -26,20 +26,81 @@ function sub(i){return "\u2081\u2082\u2083\u2084\u2085".charAt(i)||("_"+i);}
 function escapeHTML(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
 /* ================= palette ================= */
-var INK="#0d0f14", MUTED="#6b7280", FAINT="#9aa1ab", LINE="#e6e6ec", ACCENT="#4f46e5", MINT="#0d9488", AMBER="#d97706";
+/* text tones are AA (>= 4.5:1) on white; MC are line/fill colours, MCT their text-safe twins */
+var INK="#0d0f14", MUTED="#545b68", FAINT="#6b7280", LINE="#e6e6ec", ACCENT="#4f46e5", MINT="#0d9488", AMBER="#d97706";
 var MC=["#4f46e5","#0d9488","#d97706","#7c3aed"];
+var MCT=["#4338ca","#0f766e","#b45309","#6d28d9"];
 
 /* ================= state ================= */
-var DEFAULTS={n:3,geom:true,fc:21,b:300,cols:4,hs:[4,3.2,3],ms:[5000,2500,1250],ks:[10903.7,21296.2,25845.7],zeta:0,amp:50,ic:"roof"};
+/* Two worked problems ship with the page. "sir" is the class example the tour
+   was written around; "quiz1" is CE425 Quiz 1 (A36 steel tubes). */
+var PRESETS={
+  sir:{label:"Class example",sub:"Concrete 300×300 · f′c 21 MPa",
+    s:{n:3,geom:true,mat:"conc",fc:21,Es:200,Ex:25,sec:"solid",b:300,h:300,B:350,t:12,Ix:675,cols:4,
+       hs:[4,3.2,3],ms:[5000,2500,1250],ks:[10903.7,21296.2,25845.7]}},
+  quiz1:{label:"Quiz 1",sub:"A36 steel tube 350×350×12",
+    s:{n:3,geom:true,mat:"steel",fc:21,Es:200,Ex:25,sec:"hss",b:300,h:300,B:350,t:12,Ix:309.3,cols:4,
+       hs:[4,4,4],ms:[5000,5500,5000],ks:[46395.8,46395.8,46395.8]}}
+};
 var S=null, model=null, live=null;
 
-function freshState(){
-  return {n:3,geom:true,fc:21,b:300,cols:4,hs:[4,3.2,3],ms:[5000,2500,1250],
-          ks:[10903.7,21296.2,25845.7],zeta:0,amp:50,ic:"roof"};
+function freshState(key){
+  var p=PRESETS[key||"sir"].s,o={},k;
+  for(k in p)o[k]=Array.isArray(p[k])?p[k].slice():p[k];
+  o.zeta=0;o.amp=50;o.ic="roof";
+  return o;
+}
+/* which preset (if any) the current inputs still match */
+function presetOf(st){
+  var k,j,p,same;
+  for(k in PRESETS){
+    p=PRESETS[k].s;same=st.n===p.n&&st.geom===p.geom;
+    if(same&&st.geom){
+      same=st.mat===p.mat&&st.sec===p.sec&&st.cols===p.cols&&
+        (p.mat!=="conc"||st.fc===p.fc)&&(p.mat!=="steel"||st.Es===p.Es)&&
+        (p.sec!=="solid"||(st.b===p.b&&st.h===p.h))&&(p.sec!=="hss"||(st.B===p.B&&st.t===p.t));
+      for(j=0;j<st.n&&same;j++)same=st.hs[j]===p.hs[j];
+    }
+    for(j=0;j<st.n&&same;j++)same=st.ms[j]===p.ms[j]&&(st.geom||st.ks[j]===p.ks[j]);
+    if(same)return k;
+  }
+  return null;
 }
 function compute(){
-  model=buildModel({n:S.n,geom:S.geom,fc:S.fc,b:S.b,h:S.b,cols:S.cols,hs:S.hs.slice(0,S.n),ms:S.ms.slice(0,S.n),ks:S.ks.slice(0,S.n)});
+  if(S.sec==='hss'&&!(S.t>0&&2*S.t<S.B)&&model)return model;   /* keep the last valid answer while t is impossible */
+  model=buildModel({n:S.n,geom:S.geom,mat:S.mat,fc:S.fc,Es:S.Es,Ex:S.Ex,sec:S.sec,b:S.b,h:S.h,B:S.B,t:S.t,Ix:S.Ix,
+    cols:S.cols,hs:S.hs.slice(0,S.n),ms:S.ms.slice(0,S.n),ks:S.ks.slice(0,S.n)});
   return model;
+}
+/* plain-language names for what the stiffness was built from */
+function matName(m){return m.mat==='steel'?'steel':m.mat==='custom'?'given E':'concrete';}
+function secName(m,short){
+  var p=m.p;
+  if(m.sec==='hss')return fmt(p.B,0)+'×'+fmt(p.B,0)+'×'+fmt(p.t,0)+' mm'+(short?' tube':' hollow tube');
+  if(m.sec==='custom')return 'I = '+fmt(p.Ix,1)+'×10⁶ mm⁴';
+  return fmt(p.b,0)+'×'+fmt(p.h,0)+' mm'+(short?'':' solid');
+}
+function modelTag(m){
+  if(!m.p.geom)return 'k typed directly';
+  return (m.mat==='steel'?'Steel':m.mat==='custom'?'Given E':'Concrete')+' · '+secName(m,true);
+}
+/* one stroke-icon set (Lucide geometry, 24 grid, 2px stroke) instead of text glyphs */
+var ICONS={
+  play:'<path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="none"/>',
+  pause:'<rect x="6.5" y="5" width="3.6" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="13.9" y="5" width="3.6" height="14" rx="1" fill="currentColor" stroke="none"/>',
+  left:'<path d="M19 12H5M11 18l-6-6 6-6"/>',
+  right:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  replay:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  share:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+  copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
+  note:'<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  alert:'<path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9.5"/>',
+  print:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/>'
+};
+function icon(name,size){
+  var z=size||16;
+  return '<svg class="ico" width="'+z+'" height="'+z+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+ICONS[name]+'</svg>';
 }
 function initials(){
   var n=model.N,i,x0=[],v0=[];
@@ -135,13 +196,13 @@ function buildingSVG(m,o){
     for(i=0;i<n;i++){
       var mx=xl+(xr-xl)/2+(i===0?0:d[i-1]);
       var my=(ys[i]+ys[i+1])/2;
-      s+=t(xl-18,my+2,'m'+sub(i),{fs:11,fill:MC[i%MC.length],anchor:'end',weight:700});
+      s+=t(xl-18,my+2,'m'+sub(i),{fs:11,fill:MCT[i%MCT.length],anchor:'end',weight:700});
       s+=t(xl-18,my+15,fmt(m.ms[i],0)+' kg',{fs:9.5,fill:FAINT,anchor:'end'});
     }
   }
   if(o.columns){
-    s+=t(xr+26,ys[n]+22,'4 columns / floor',{fs:10,fill:FAINT});
-    s+=t(xr+26,ys[n]+36,'300 mm square',{fs:10,fill:FAINT});
+    s+=t(xr+26,ys[n]+22,m.cols+' column'+(m.cols>1?'s':'')+' / floor',{fs:10,fill:FAINT});
+    s+=t(xr+26,ys[n]+36,m.p.geom?(matName(m)+', '+secName(m,true)):'k given per storey',{fs:10,fill:FAINT});
   }
   if(o.modeShape){
     var sc=o.modeScale||58;
@@ -267,7 +328,7 @@ function curveSVG(m,o){
     for(i=0;i<m.N;i++){
       var rx=X(m.lam[i]);
       s+=line(rx,yt+10,rx,yb,{stroke:MC[i%3],w:1,dash:'3 4',op:.32});
-      s+=t(rx,yt+2,'\u03BB'+sub(i),{fs:9.5,fill:MC[i%3],anchor:'middle',weight:700});
+      s+=t(rx,yt+2,'\u03BB'+sub(i),{fs:9.5,fill:MCT[i%3],anchor:'middle',weight:700});
     }
   }
   s+=path(d,{stroke:ACCENT,w:2.6,draw:true,delay:.1});
@@ -277,11 +338,11 @@ function curveSVG(m,o){
       s+=dot(X(m.lam[i]),yM,5.5,MC[i%3]);
       var txt='B'+sub(i)+' = '+fmt(m.lam[i],1), wid=txt.length*6.5+16;
       s+=rect(lx,ly-12,wid,20,10,{fill:MC[i%3],op:.1});
-      s+=t(lx+8,ly+2,txt,{fs:10.5,fill:MC[i%3],weight:600,mono:1});
+      s+=t(lx+8,ly+2,txt,{fs:10.5,fill:MCT[i%3],weight:600,mono:1});
       lx+=wid+8;
     }
   } else {
-    s+=t(x0,yb+26,'det(K \u2212 B M) is a cubic in B \u2014 the roots are the three mode frequencies squared',{fs:10,fill:FAINT});
+    s+=t(x0,yb+26,'det(K \u2212 B M) is a '+(m.N===3?'cubic':'quadratic')+' in B \u2014 its roots are the '+(m.N===3?'three':'two')+' frequencies squared',{fs:10,fill:FAINT});
   }
   s+='</svg>';
   return s;

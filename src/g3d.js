@@ -65,20 +65,20 @@ function v3Init(){
   }catch(e){return false;}
 }
 function v3Build(){
-  var m=model,n=m.N,key=JSON.stringify([m.hs,m.cols,S.b,S.geom,n]);
+  var m=model,n=m.N,key=JSON.stringify([m.hs,m.cols,S.b,S.h,S.B,S.sec,S.mat,S.geom,n]);
   if(V3.key===key)return;
   V3.key=key;
   var T=THREE,i,j;
   if(V3.p){V3.sc.remove(V3.p.root);V3.p.root.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});}
   var root=new T.Group(),cols=m.cols||4,gx=Math.ceil(Math.sqrt(cols)),gz=Math.ceil(cols/gx);
-  var L=6,W=gz>1?5:0,cw=(S.geom?Math.max(0.2,S.b/1000):0.3)*1.3;   /* columns drawn 30% fat so they read */
+  var L=6,W=gz>1?5:0,cw=(S.geom?Math.max(0.2,(S.sec==='hss'?S.B:S.sec==='solid'?Math.max(S.b,S.h):300)/1000):0.3)*1.3;   /* columns drawn 30% fat so they read */
   var xs=[];
   for(i=0;i<cols;i++){var a=i%gx,c=Math.floor(i/gx);xs.push([gx>1?-L/2+L*a/(gx-1):0,gz>1?-W/2+W*c/(gz-1):0]);}
   var ys=[0];for(i=0;i<n;i++)ys.push(ys[i]+m.hs[i]);
   var H=ys[n];
   var ground=new T.Mesh(new T.BoxGeometry(L+5,0.3,W+5),new T.MeshStandardMaterial({color:0xececf2,roughness:1}));
   ground.position.y=-0.15;root.add(ground);
-  var colMat=new T.MeshStandardMaterial({color:0x8b90a0,roughness:.7});
+  var colMat=new T.MeshStandardMaterial({color:(S.geom&&S.mat==='steel')?0x5b6476:0x8b90a0,roughness:(S.geom&&S.mat==='steel')?.45:.7,metalness:(S.geom&&S.mat==='steel')?.35:0});
   var ghost=new T.LineBasicMaterial({color:0x9aa1ab,transparent:true,opacity:.55});
   var columns=[],slabs=[];
   for(i=0;i<n;i++){

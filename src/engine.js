@@ -36,10 +36,28 @@ function eigSym(K,M){
   return {vals:vals,vecs:vecs};
 }
 
+/* E of the column material, MPa.
+     conc  : ACI 318, E = 4700 sqrt(f'c)
+     steel : given modulus (structural steel, A36 included: 200 GPa)
+     custom: any E the problem states                                  */
+function matE(P){
+  if(P.mat==='steel')return (P.Es||200)*1000;
+  if(P.mat==='custom')return (P.Ex||25)*1000;
+  return 4700*Math.sqrt(P.fc);
+}
+/* I of one column about the bending axis, m^4 (dimensions in mm).
+     solid : rectangle b x h, I = b h^3 / 12
+     hss   : square hollow tube B x B x t, I = [B^4 - (B-2t)^4] / 12
+     custom: I given directly, in 10^6 mm^4                             */
+function secI(P){
+  if(P.sec==='hss'){var B=P.B/1000,bi=Math.max(0,(P.B-2*P.t))/1000;return (Math.pow(B,4)-Math.pow(bi,4))/12;}
+  if(P.sec==='custom')return (P.Ix||0)*1e-6;
+  var b=P.b/1000,h=P.h/1000;return b*h*h*h/12;
+}
 function buildModel(P){
   var n=P.n, i, hs=P.hs.slice(0,n), ms=P.ms.slice(0,n), cols=P.cols||4;
-  var Ec=4700*Math.sqrt(P.fc);
-  var b=P.b/1000, hc=P.h/1000, I=b*hc*hc*hc/12, EI=Ec*1000*I;
+  var Ec=matE(P);
+  var I=secI(P), EI=Ec*1000*I;
   var kc=[],kf=[];
   for(i=0;i<n;i++){kc[i]=12*EI/(hs[i]*hs[i]*hs[i]);kf[i]=kc[i]*cols;}
   var k = P.geom ? kf.slice() : P.ks.slice(0,n).map(function(x){return x;});
@@ -64,7 +82,7 @@ function buildModel(P){
   var omega=lam.map(function(L){return Math.sqrt(Math.max(L,0));});
   var freq=omega.map(function(w){return w/(2*Math.PI);});
   var per=freq.map(function(f){return f>0?1/f:Infinity;});
-  return {N:n,p:P,Ec:Ec,I:I,EI:EI,hs:hs,ms:ms,cols:cols,kc:kc,kf:kf,k:k,K:K,M:M,
+  return {N:n,p:P,mat:P.mat||'conc',sec:P.sec||'solid',Ec:Ec,I:I,EI:EI,hs:hs,ms:ms,cols:cols,kc:kc,kf:kf,k:k,K:K,M:M,
           lam:lam,omega:omega,freq:freq,per:per,phi:phi,mu:mu,phihat:phihat};
 }
 

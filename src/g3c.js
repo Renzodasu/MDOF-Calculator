@@ -7,19 +7,43 @@ function gtotal(){var t=0,i;for(i=0;i<CHAPTERS.length;i++)t+=CHAPTERS[i].frames.
 function renderChapters(){
   var h='',i;
   for(i=0;i<CHAPTERS.length;i++){
-    h+='<button data-ch="'+i+'" class="'+(i===FI.ch?'on':'')+'"><b>'+('0'+(i+1)).slice(-2)+'</b><span>'+escapeHTML(CHAPTERS[i].name)+'</span></button>';
+    h+='<button role="tab" data-ch="'+i+'" aria-selected="'+(i===FI.ch)+'" class="'+(i===FI.ch?'on':'')+'"><b>'+('0'+(i+1)).slice(-2)+'</b><span>'+escapeHTML(CHAPTERS[i].name)+'</span></button>';
   }
   $('#chapters').innerHTML=h;
   $$('#chapters button').forEach(function(b){
     b.addEventListener('click',function(){setPlay(false);show(+b.getAttribute('data-ch'),0);});
   });
+  /* the five steps of the notes: each jumps to the first chapter it covers */
+  var sh='';
+  STEPS.forEach(function(st,ix){
+    var first=-1;for(i=0;i<CHAPTERS.length;i++)if(CHAPTERS[i].step===ix){first=i;break;}
+    if(first<0)return;
+    sh+='<li data-step="'+ix+'"><button data-ch="'+first+'" aria-label="'+escapeHTML(st.n+': '+st.t)+'"><span class="sn">'+(ix===0?'k':ix)+'</span><span class="st"><b>'+escapeHTML(st.n)+'</b><span>'+escapeHTML(st.t)+'</span></span></button></li>';
+  });
+  $('#steps').innerHTML=sh;
+  $$('#steps button').forEach(function(b){
+    b.addEventListener('click',function(){setPlay(false);show(+b.getAttribute('data-ch'),0);});
+  });
   var tot=gtotal();
   $('#frame-count').textContent='frame '+((gindex(FI.ch,FI.fr))+1)+' / '+tot;
   $('#prog').style.width=(((gindex(FI.ch,FI.fr))+1)/tot*100).toFixed(2)+'%';
-  var W=['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve'];
+  var W=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen'];
   var cc=$('#chap-count'); if(cc)cc.textContent=W[CHAPTERS.length]||CHAPTERS.length;
   requestAnimationFrame(movePill);
   requestAnimationFrame(syncSegs);
+}
+function syncSteps(ch){
+  var cur=CHAPTERS[ch].step;
+  $$('#steps li').forEach(function(li){
+    var k=+li.getAttribute('data-step');
+    li.classList.toggle('on',k===cur);li.classList.toggle('done',k<cur);
+    var b=li.querySelector('button');if(b){if(k===cur)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');}
+  });
+  /* on a phone the strip scrolls: keep the current step in view */
+  var ol=$('#steps'),on=ol&&ol.querySelector('li.on');
+  if(on&&ol.scrollWidth>ol.clientWidth){
+    if(on.offsetLeft<ol.scrollLeft+8||on.offsetLeft+on.offsetWidth>ol.scrollLeft+ol.clientWidth-8)ol.scrollLeft=on.offsetLeft-14;
+  }
 }
 
 /* sliding indicator behind the active tab — measured, not hard-coded */
@@ -85,15 +109,19 @@ function countTo(el,txt){
   })(t0);
 }
 
-/* plain-text copy of the solved model */
+/* plain-text copy of the solved model, laid out like the answer sheet */
 function reportText(){
   var m=model,n=m.N,i,L=[];
-  L.push('MDOF Calculator \u2014 free vibration of a '+n+'-storey frame');
-  L.push('E = '+fmt(m.Ec,0)+' MPa \u00B7 EI = '+fmt(m.EI,0)+' kN.m2 per column');
-  L.push('Storey stiffness (kN/m): '+m.kf.slice(0,n).map(function(v){return fmt(v,1);}).join(' \u00B7 '));
-  L.push('Frequencies: '+m.freq.slice(0,n).map(function(v,j){return 'f'+(j+1)+' = '+fmt(v,3)+' Hz';}).join(' \u00B7 '));
-  L.push('Periods: '+m.per.slice(0,n).map(function(v,j){return 'T'+(j+1)+' = '+fmt(v,4)+' s';}).join(' \u00B7 '));
-  L.push('Mode shapes (roof = 1.0000, floor 1 first):');
+  L.push('MDOF Calculator \u2014 free vibration of a '+n+'-storey frame ('+modelTag(m)+')');
+  L.push('');
+  L.push('(1) Stiffness');
+  if(m.p.geom){
+    L.push('  E = '+fmt(m.Ec,1)+' MPa, I = '+sci(m.I,4)+' m4, EI = '+fmt(m.EI,1)+' kN.m2 per column');
+    for(i=0;i<n;i++)L.push('  storey '+(i+1)+' (h = '+fmt(m.hs[i],2)+' m): k column = 12EI/h3 = '+fmt(m.kc[i],1)+' kN/m, k storey = '+m.cols+' x '+fmt(m.kc[i],1)+' = '+fmt(m.kf[i],1)+' kN/m');
+  } else for(i=0;i<n;i++)L.push('  storey '+(i+1)+': k = '+fmt(m.k[i],1)+' kN/m (given)');
+  L.push('(2) Natural frequencies and periods');
+  for(i=0;i<n;i++)L.push('  mode '+(i+1)+': w = '+fmt(m.omega[i],4)+' rad/s, f = '+fmt(m.freq[i],4)+' Hz, T = '+fmt(m.per[i],5)+' s');
+  L.push('(3) Mode-shape factors (floor 1, floor 2, ..., roof = 1.0000)');
   for(i=0;i<n;i++)L.push('  mode '+(i+1)+': '+m.phi[i].map(function(v){return fmt(v,4);}).join(', '));
   return L.join('\n');
 }
@@ -105,7 +133,9 @@ function show(ch,fr){
   FI.ch=ch;FI.fr=fr;
   var f=CHAPTERS[ch].frames[fr];
   $('#stage-k').textContent=f.k;
-  $('#n-kicker').textContent='Chapter '+('0'+(ch+1)).slice(-2)+' \u00B7 step '+(fr+1)+' of '+CHAPTERS[ch].frames.length;
+  var st=STEPS[CHAPTERS[ch].step||0];
+  $('#n-step').textContent=st.n;
+  $('#n-kicker').textContent=CHAPTERS[ch].name+' \u00B7 frame '+(fr+1)+' of '+CHAPTERS[ch].frames.length;
   $('#n-title').textContent=f.t;
   var body=$('#n-body');
   body.innerHTML=f.b;
@@ -127,7 +157,8 @@ function show(ch,fr){
     ts.classList.toggle('on',STrue);
   }
   document.body.classList.toggle('truespeed',STrue);
-  $$('#chapters button').forEach(function(b,ix){b.classList.toggle('on',ix===ch);});
+  $$('#chapters button').forEach(function(b,ix){b.classList.toggle('on',ix===ch);b.setAttribute('aria-selected',ix===ch?'true':'false');});
+  syncSteps(ch);
   movePill();
   var tot=gtotal();
   $('#frame-count').textContent='frame '+(gindex(ch,fr)+1)+' / '+tot;
@@ -139,8 +170,9 @@ function holdMs(){var f=CHAPTERS[FI.ch].frames[FI.fr];return (f.hold||5200)/FI.s
 function setPlay(on){
   FI.playing=on;
   if(FI.timer){clearTimeout(FI.timer);FI.timer=null;}
-  $('#play-ic').textContent=on?'\u275A\u275A':'\u25B6';
+  $('#play-ic').innerHTML=icon(on?'pause':'play');
   $('#play-tx').textContent=on?'Pause':'Play';
+  $('#play').setAttribute('aria-label',on?'Pause':'Play');
   if(on)FI.timer=setTimeout(step,holdMs());
 }
 function step(){
@@ -282,48 +314,83 @@ function drawLive(el){
 }
 
 /* ================= 3. hero ================= */
+function renderPresets(sel){
+  var cur=presetOf(S), h='', k;
+  for(k in PRESETS)h+='<button type="button" class="pchip" data-preset="'+k+'" aria-pressed="'+(cur===k)+'"><span class="pl"><i class="pd"></i>'+escapeHTML(PRESETS[k].label)+'</span><span class="ps">'+escapeHTML(PRESETS[k].sub)+'</span></button>';
+  h+='<a class="pchip custom" href="#build" aria-pressed="'+(cur===null)+'"><span class="pl"><i class="pd"></i>'+(cur===null?'Your own problem':'Your own')+'</span><span class="ps">'+(cur===null?escapeHTML(modelTag(model)):'edit any number')+'</span></a>';
+  $$(sel).forEach(function(el){
+    el.innerHTML=h;
+    $$('button[data-preset]',el).forEach(function(b){
+      b.addEventListener('click',function(){
+        var k2=b.getAttribute('data-preset');
+        S=freshState(k2);recompute();
+        toast('Loaded '+PRESETS[k2].label+' \u2014 '+PRESETS[k2].sub);
+      });
+    });
+  });
+}
 function renderHero(){
   var m=model,n=m.N;
-  $('#top-chip').innerHTML='<i></i><span>'+n+' storeys \u00B7 '+m.cols+' columns</span>';
+  var W=['zero','one','two','three'];
+  $('#hero-n').textContent=W[n]||n;
+  $('#top-chip').innerHTML='<i></i><span>'+escapeHTML(modelTag(m))+'</span>';
   countTo($('#h-f1'),fmt(m.freq[0],3));
   countTo($('#h-t1'),fmt(m.per[0],4));
-  countTo($('#h-k1'),fmt(m.kf[0],0));
+  countTo($('#h-k1'),fmt(m.k[0],0));
+  $('#h-k1u').textContent=m.p.geom?'kN/m \u00B7 '+m.cols+' \u00D7 12EI/h\u2081\u00B3':'kN/m \u00B7 given';
   $('#h-w1').textContent=fmt(m.omega[0],2);
   $('#h-roof').textContent=fmt(m.phi[0][n-1]/m.phi[0][0],2);
   $('#hero-svg').innerHTML=buildingSVG(m,{modeShape:m.phi[0],modeScale:56,modeColor:MC[0],masses:true,topY:70});
-  $('#tour-live-chip').textContent=n+' storeys \u00B7 '+fmt(m.fc?m.p.fc:m.p.fc,0)+' MPa';
+  $('#tour-live-chip').textContent=n+' storeys \u00B7 '+modelTag(m);
+  renderPresets('#hero-presets,#build-presets');
 }
 
 /* ================= 4. answers ================= */
 function renderAnswers(){
   var m=model,n=m.N,i,r;
-  var tag=$('#ans-tag');if(tag)tag.textContent=n+' storeys \u00B7 '+m.freq.length+' modes';
-  var kh='<div class="ans-big"><span class="v">'+fmt(m.kc[0],0)+'</span><span class="u">kN/m \u00B7 one column, storey 1</span></div>';
-  kh+='<div class="hint" style="margin:6px 0 10px">Each column is fixed at both ends: k = 12EI/h\u00B3. Storey stiffness multiplies by the number of columns.</div>';
-  for(i=0;i<n;i++){
-    kh+='<div class="kv"><span class="k">Storey '+(i+1)+' \u00B7 h = '+fmt(m.hs[i],2)+' m</span><span class="v">'+fmt(m.kc[i],1)+' \u2192 '+fmt(m.kf[i],0)+'</span></div>';
+  var tag=$('#ans-tag');if(tag)tag.textContent=n+' storeys \u00B7 '+n+' modes \u00B7 '+modelTag(m);
+  /* (1) stiffness */
+  var kh='';
+  if(m.p.geom){
+    $('#ans-k-hint').textContent='Each column is fixed at both ends: k = 12EI/h\u00B3; a storey is '+m.cols+' columns side by side.';
+    kh+='<div class="res-big"><div><div class="k">One column, storey 1</div><div class="v">'+fmt(m.kc[0],1)+'</div><div class="u">kN/m \u00B7 12EI/h\u2081\u00B3</div></div>'+
+        '<div><div class="k">Storey 1 ('+m.cols+' cols)</div><div class="v">'+fmt(m.kf[0],1)+'</div><div class="u">kN/m \u00B7 equivalent stiffness</div></div></div>';
+    kh+='<table class="t"><thead><tr><th>Storey</th><th>h (m)</th><th>k column</th><th>k storey</th></tr></thead><tbody>';
+    for(i=0;i<n;i++)kh+='<tr><td>'+(i+1)+'</td><td>'+fmt(m.hs[i],2)+'</td><td>'+fmt(m.kc[i],1)+'</td><td><b>'+fmt(m.kf[i],1)+'</b></td></tr>';
+    kh+='</tbody></table><div class="kv" style="margin-top:6px"><span class="k">E \u00B7 I \u00B7 EI</span><span class="v">'+fmt(m.Ec,0)+' MPa \u00B7 '+sci(m.I,4)+' m\u2074 \u00B7 '+fmt(m.EI,0)+' kN\u00B7m\u00B2</span></div>';
+    kh+='<div class="kv"><span class="k">Units</span><span class="v">kN/m</span></div>';
+  } else {
+    $('#ans-k-hint').textContent='Storey stiffness typed directly in the builder.';
+    kh+='<table class="t"><thead><tr><th>Storey</th><th>k storey (kN/m)</th></tr></thead><tbody>';
+    for(i=0;i<n;i++)kh+='<tr><td>'+(i+1)+'</td><td><b>'+fmt(m.k[i],1)+'</b></td></tr>';
+    kh+='</tbody></table>';
   }
-  kh+='<div class="kv"><span class="k">EI of one column</span><span class="v">'+fmt(m.EI,0)+' kN\u00B7m\u00B2</span></div>';
   $('#ans-k').innerHTML=kh;
 
-  var fh='<table class="t"><thead><tr><th>Mode</th><th>\u03C9 (rad/s)</th><th>f (Hz)</th><th>T (s)</th></tr></thead><tbody>';
+  /* (2) frequencies */
+  var fh='<div class="tbl-wrap"><table class="t"><thead><tr><th>Mode</th><th>B = \u03C9\u00B2</th><th>\u03C9 (rad/s)</th><th>f (Hz)</th><th>T (s)</th></tr></thead><tbody>';
   for(i=0;i<n;i++){
-    fh+='<tr><td><span class="dot" style="background:'+MC[i%MC.length]+'"></span> '+(i+1)+'</td><td>'+fmt(m.omega[i],3)+'</td><td><b>'+fmt(m.freq[i],3)+'</b></td><td>'+fmt(m.per[i],4)+'</td></tr>';
+    fh+='<tr><td><span class="dot" style="background:'+MC[i%MC.length]+'"></span>'+(i+1)+'</td><td>'+fmt(m.lam[i],2)+'</td><td>'+fmt(m.omega[i],3)+'</td><td><b>'+fmt(m.freq[i],3)+'</b></td><td><b>'+fmt(m.per[i],4)+'</b></td></tr>';
   }
-  fh+='</tbody></table>';
+  fh+='</tbody></table></div>';
+  fh+='<div class="kv" style="margin-top:6px"><span class="k">Fundamental period T\u2081</span><span class="v">'+fmt(m.per[0],4)+' s</span></div>';
   fh+='<div class="kv"><span class="k">Frequency ratio f\u2082/f\u2081</span><span class="v">'+(n>1?fmt(m.freq[1]/m.freq[0],2):'\u2014')+'</span></div>';
   $('#ans-f').innerHTML=fh;
 
-  var mh='';
-  for(r=0;r<n;r++){
-    mh+='<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px">';
-    mh+='<div style="flex:0 0 54px">'+shapeSVG(m,r)+'</div>';
-    mh+='<div style="flex:1">';
-    mh+='<div style="font-size:12px;font-weight:700;color:'+MC[r%MC.length]+'">mode '+(r+1)+'</div>';
-    for(i=n-1;i>=0;i--){mh+='<div class="kv" style="padding:4px 0"><span class="k">'+(i===n-1?'roof':'floor '+(i+1))+'</span><span class="v">'+fmt(m.phi[r][i],4)+'</span></div>';}
-    mh+='</div></div>';
+  /* (3) mode-shape factors: one column per mode, roof on top as on the sketch */
+  var mh='<div class="tbl-wrap"><table class="t modes"><thead><tr><th>Floor</th>';
+  for(r=0;r<n;r++)mh+='<th class="mh"><span class="dot" style="background:'+MC[r%MC.length]+'"></span>Mode '+(r+1)+'</th>';
+  mh+='</tr></thead><tbody>';
+  for(i=n-1;i>=0;i--){
+    mh+='<tr'+(i===n-1?' class="roof"':'')+'><td>'+(i===n-1?'Roof (floor '+n+')':'Floor '+(i+1))+'</td>';
+    for(r=0;r<n;r++)mh+='<td>'+fmt(m.phi[r][i],4)+'</td>';
+    mh+='</tr>';
   }
+  mh+='</tbody></table></div><div class="kv" style="margin-top:6px"><span class="k">Nodes (sign changes)</span><span class="v">'+m.phi.map(function(v,r2){return 'mode '+(r2+1)+': '+r2;}).join(' \u00B7 ')+'</span></div>';
   $('#ans-modes').innerHTML=mh;
+
+  /* (4) sketch */
+  $('#ans-sketch').innerHTML=sketchSVG(m,{h:340,still:true});
 
   var KA=[],MA=[],j;
   for(i=0;i<n;i++){
@@ -450,7 +517,7 @@ function solveLin(A0,b){
   return x;
 }
 function checkRow(label,val,ok){
-  return '<div class="kv"><span class="k">'+label+'</span><span class="v" style="font-size:12px">'+val+' <span class="pill-ok" style="border:0;background:'+(ok?'#e7f7f0':'#fdf3e3')+';color:'+(ok?'#047857':'#b45309')+'">'+(ok?'pass':'check')+'</span></span></div>';
+  return '<div class="kv"><span class="k">'+label+'</span><span class="v" style="font-size:12px">'+val+'<span class="pass '+(ok?'ok':'no')+'">'+icon(ok?'check':'alert',12)+(ok?'pass':'check')+'</span></span></div>';
 }
 function shapeSVG(m,r){
   var n=m.N,i,ph=m.phi[r],mx=maxAbs(ph);
@@ -468,47 +535,71 @@ function shapeSVG(m,r){
 /* ================= 5. builder ================= */
 function renderStoreys(){
   var n=S.n,i,h='';
-  h+='<div class="hd"><span>Floor</span><span>'+(S.geom?'Height h (m)':'Stiffness k (kN/m)')+'</span><span>Mass (kg)</span><span>stiffness</span></div>';
+  h+='<div class="hd"><span>Floor</span><span>'+(S.geom?'Height h (m)':'k storey (kN/m)')+'</span><span>Mass (kg)</span><span>k storey</span></div>';
   for(i=0;i<n;i++){
-    h+='<div class="sr"><span class="fl">'+(i+1)+'</span>';
-    if(S.geom)h+='<input class="inp" data-h="'+i+'" type="number" step="0.1" min="0.5" max="9" value="'+S.hs[i]+'">';
-    else h+='<input class="inp" data-k="'+i+'" type="number" step="100" min="100" value="'+Math.round(S.ks[i])+'">';
-    h+='<input class="inp" data-m="'+i+'" type="number" step="100" min="1" value="'+S.ms[i]+'">';
-    h+='<span class="sk">'+fmt(model.kf[i],0)+'</span></div>';
+    h+='<div class="sr"><span class="fl">'+(i+1)+(i===n-1?' <span class="muted" style="font-weight:500;font-size:11px">roof</span>':'')+'</span>';
+    if(S.geom)h+='<input class="inp" data-h="'+i+'" type="number" inputmode="decimal" step="0.1" min="0.5" max="30" value="'+S.hs[i]+'" aria-label="Storey '+(i+1)+' height in metres">';
+    else h+='<input class="inp" data-k="'+i+'" type="number" inputmode="decimal" step="100" min="1" value="'+S.ks[i]+'" aria-label="Storey '+(i+1)+' stiffness in kN per metre">';
+    h+='<input class="inp" data-m="'+i+'" type="number" inputmode="decimal" step="100" min="1" value="'+S.ms[i]+'" aria-label="Floor '+(i+1)+' mass in kilograms">';
+    h+='<span class="sk">'+fmt(model.k[i],0)+'</span></div>';
   }
   $('#storey-tbl').innerHTML=h;
   $$('#storey-tbl input').forEach(function(el){
     el.addEventListener('input',function(){
       var v=parseFloat(el.value);
-      if(!isFinite(v))return;
+      if(!isFinite(v)||v<=0){el.setAttribute('aria-invalid','true');return;}
+      el.removeAttribute('aria-invalid');
       if(el.hasAttribute('data-h'))S.hs[+el.getAttribute('data-h')]=Math.max(0.3,v);
       else if(el.hasAttribute('data-k'))S.ks[+el.getAttribute('data-k')]=Math.max(1,v);
       else S.ms[+el.getAttribute('data-m')]=Math.max(1,v);
-      recompute();
+      recomputeKeepFocus(el);
     });
   });
-  $('#in-e').value=isFinite(model.Ec)?fmt(model.Ec,1)+' MPa':'—';
-  $('#geom-block').style.display=S.geom?'':'none';
+  /* show only the inputs the chosen material and section need */
+  $('#geom-block').hidden=!S.geom;
+  $$('#geom-block [data-for]').forEach(function(el){
+    var f=el.getAttribute('data-for');
+    el.hidden=!(f===S.mat||(f==='solid'&&S.sec==='solid')||(f==='hss'&&S.sec==='hss')||(f==='custom-sec'&&S.sec==='custom'));
+  });
+  var m=model, d='';
+  if(S.geom){
+    d+='<div><div class="k">E</div><div class="v">'+fmt(m.Ec,0)+' MPa</div></div>';
+    d+='<div><div class="k">I</div><div class="v">'+sci(m.I,4)+' m\u2074</div></div>';
+    d+='<div><div class="k">EI</div><div class="v">'+fmt(m.EI,0)+' kN\u00B7m\u00B2</div></div>';
+    d+='<div><div class="k">k column, storey 1</div><div class="v">'+fmt(m.kc[0],1)+' kN/m</div></div>';
+  }
+  $('#derived').innerHTML=d;
+}
+/* a typed value re-renders the table; keep the caret where the user is typing */
+function recomputeKeepFocus(el){
+  var sel=el.id?'#'+el.id:(el.hasAttribute('data-h')?'[data-h="'+el.getAttribute('data-h')+'"]':el.hasAttribute('data-k')?'[data-k="'+el.getAttribute('data-k')+'"]':'[data-m="'+el.getAttribute('data-m')+'"]');
+  recompute();
+  var again=$(sel);
+  if(again&&again!==document.activeElement){again.focus();try{var L=again.value.length;again.setSelectionRange(L,L);}catch(e){}}
 }
 function syncInputs(){
-  $('#in-fc').value=S.fc;
-  $('#in-cols').value=S.cols;
-  $('#in-b').value=S.b;
-  $('#in-zeta').value=S.zeta;
+  var map={'in-fc':'fc','in-es':'Es','in-ex':'Ex','in-cols':'cols','in-b':'b','in-h':'h','in-B':'B','in-t':'t','in-ix':'Ix','in-zeta':'zeta'};
+  Object.keys(map).forEach(function(id){var el=$('#'+id);if(el&&document.activeElement!==el)el.value=S[map[id]];});
   $('#in-ic').value=S.ic;
   $('#in-amp').value=S.amp;
   $('#amp-val').textContent=S.amp+' mm';
   $('#amp-lab').textContent=S.amp+' mm';
-  $$('#floors-seg button').forEach(function(b){b.classList.toggle('on',+b.getAttribute('data-n')===S.n);});
-  $$('#geom-seg button').forEach(function(b){b.classList.toggle('on',(+b.getAttribute('data-g')===1)===S.geom);});
+  $$('#floors-seg button').forEach(function(b){b.classList.toggle('on',+b.getAttribute('data-n')===S.n);b.setAttribute('aria-pressed',+b.getAttribute('data-n')===S.n);});
+  $$('#geom-seg button').forEach(function(b){var on=(+b.getAttribute('data-g')===1)===S.geom;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
+  $$('#mat-seg button').forEach(function(b){var on=b.getAttribute('data-m')===S.mat;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
+  $$('#sec-seg button').forEach(function(b){var on=b.getAttribute('data-s')===S.sec;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
+  var bad=S.sec==='hss'&&!(S.t>0&&2*S.t<S.B), et=$('#err-t');
+  et.hidden=!bad;et.textContent=bad?'The wall must be thinner than half of B ('+fmt(S.B/2,1)+' mm).':'';
+  if(bad)$('#in-t').setAttribute('aria-invalid','true');else $('#in-t').removeAttribute('aria-invalid');
 }
 function renderPreview(){
   var m=model,n=m.N,i,h='';
+  $('#build-tag').textContent=modelTag(m);
   $('#build-svg').innerHTML=buildingSVG(m,{modeShape:m.phi[0],modeScale:44,modeColor:MC[0],masses:true,topY:52});
   for(i=0;i<n;i++){
-    h+='<div class="r"><span>mode '+(i+1)+'</span><b>'+fmt(m.freq[i],3)+' Hz \u00B7 T '+fmt(m.per[i],3)+' s</b></div>';
+    h+='<div class="r"><span>mode '+(i+1)+'</span><b>'+fmt(m.freq[i],3)+' Hz \u00B7 T '+fmt(m.per[i],4)+' s</b></div>';
   }
-  h+='<div class="r"><span>k\u2081 \u00B7 k\u2099</span><b>'+fmt(m.kf[0],0)+' \u00B7 '+fmt(m.kf[n-1],0)+' kN/m</b></div>';
+  h+='<div class="r"><span>k storey 1 \u2026 '+n+'</span><b>'+m.k.map(function(v){return fmt(v,0);}).join(' \u00B7 ')+' kN/m</b></div>';
   $('#build-tbl').innerHTML=h;
 }
 
@@ -527,10 +618,14 @@ function renderMethod(){
   var Krows=[],Mrows=[],Kp=[];
   for(i=0;i<n;i++){Krows.push([]);Mrows.push([]);Kp.push([]);for(j=0;j<n;j++){Krows[i].push(fmt(m.K[i][j]/1000,1));Mrows[i].push(i===j?fmt(m.M[i][i],0):'0');Kp[i].push(fmt(m.K[i][j]/m.ms[0],1));}}
   var blocks=[];
+  var eL=m.mat==='conc'?'E  = 4700\u221Af\u2032c = 4700\u221A'+fmt(m.p.fc,0)+' = '+fmt(m.Ec,1)+' MPa':'E  = '+fmt(m.Ec,0)+' MPa ('+(m.mat==='steel'?'steel, given':'given')+')';
+  var iL=m.sec==='hss'?'I  = [B\u2074 \u2212 (B\u22122t)\u2074]/12 = ['+fmt(m.p.B/1000,3)+'\u2074 \u2212 '+fmt((m.p.B-2*m.p.t)/1000,3)+'\u2074]/12 = '+sci(m.I,4)+' m\u2074'
+    :m.sec==='custom'?'I  = '+fmt(m.p.Ix,2)+'\u00D710\u2076 mm\u2074 = '+sci(m.I,4)+' m\u2074 (given)':'I  = bh\u00B3/12 = '+fmt(m.p.b/1000,3)+'\u00D7'+fmt(m.p.h/1000,3)+'\u00B3/12 = '+sci(m.I,4)+' m\u2074';
   blocks.push({t:'Model and assumptions',b:
     '<p>A '+n+'-storey shear frame: rigid floor slabs, axially rigid columns, all mass lumped at the floors. Each storey deforms only by shearing its columns, so one sideways displacement per floor \u2014 '+n+' degrees of freedom.</p>'+
-    '<p>Columns are fixed against rotation at both ends (stiff beams), hence k = 12EI/h\u00B3 per column, and '+m.cols+' columns act in parallel.</p>'+
-    '<pre class="mat">Ec = 4700\u221Af\u2032c = '+fmt(m.Ec,1)+' MPa\nI  = bh\u00B3/12 = '+sci(m.I,4)+' m\u2074\nEI = '+fmt(m.EI,1)+' kN\u00B7m\u00B2\n'+m.hs.map(function(hh,ix){return 'k'+(ix+1)+' = '+m.cols+'\u00B712EI/'+fmt(hh,3)+'\u00B3 = '+fmt(m.kf[ix],1)+' kN/m';}).join('\n')+'</pre>'});
+    (m.p.geom?'<p>Columns are fixed against rotation at both ends (stiff beams), hence k = 12EI/h\u00B3 per column, and '+m.cols+' columns act in parallel.</p>'+
+    '<pre class="mat">'+eL+'\n'+iL+'\nEI = '+fmt(m.EI,1)+' kN\u00B7m\u00B2\n'+m.hs.map(function(hh,ix){return 'k'+(ix+1)+' = '+m.cols+'\u00B712EI/'+fmt(hh,3)+'\u00B3 = '+m.cols+' \u00D7 '+fmt(m.kc[ix],1)+' = '+fmt(m.kf[ix],1)+' kN/m';}).join('\n')+'</pre>'
+    :'<p>The storey stiffnesses are given directly:</p><pre class="mat">'+m.k.map(function(v,ix){return 'k'+(ix+1)+' = '+fmt(v,1)+' kN/m';}).join('\n')+'</pre>')});
   blocks.push({t:'Mass and stiffness matrices',b:
     '<p>Assembling each spring twice with opposite signs gives the tri-diagonal stiffness matrix; the masses sit only on the diagonal.</p>'+
     '<pre class="mat">K = '+mtx(Krows)+'   kN/m\n\nM = '+mtx(Mrows)+'   kg</pre>'+
@@ -592,8 +687,14 @@ function renderCalc(){
 /* ================= 6c. shareable links ================= */
 function stateQuery(){
   var q=['n='+S.n,'g='+(S.geom?1:0)];
-  if(S.geom)q.push('fc='+S.fc,'b='+S.b,'c='+S.cols);else q.push('k='+S.ks.join(','));
-  q.push('h='+S.hs.join(','),'m='+S.ms.join(','),'z='+S.zeta,'a='+S.amp,'ic='+S.ic);
+  if(S.geom){
+    q.push('mt='+S.mat);
+    if(S.mat==='conc')q.push('fc='+S.fc);else if(S.mat==='steel')q.push('es='+S.Es);else q.push('ex='+S.Ex);
+    q.push('sc='+S.sec);
+    if(S.sec==='solid')q.push('b='+S.b,'d='+S.h);else if(S.sec==='hss')q.push('ob='+S.B,'t='+S.t);else q.push('ix='+S.Ix);
+    q.push('c='+S.cols,'h='+S.hs.join(','));
+  } else q.push('k='+S.ks.join(','));
+  q.push('m='+S.ms.join(','),'z='+S.zeta,'a='+S.amp,'ic='+S.ic);
   return q.join('&');
 }
 function syncURL(){
@@ -602,7 +703,7 @@ function syncURL(){
   if(VIEW!==VDEF)q+=(q?'&':'')+'v='+VIEW;
   try{history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}
 }
-/* untrusted input: every value range-checked, anything odd falls back to the exam numbers */
+/* untrusted input: every value range-checked, anything odd falls back to the class example */
 function readURL(){
   var p=new URLSearchParams(location.search),v;
   function num(k,lo,hi){var x=parseFloat(p.get(k));return isFinite(x)&&x>=lo&&x<=hi?x:null;}
@@ -614,10 +715,19 @@ function readURL(){
     while(a.length<3)a.push(a[a.length-1]);
     return a;
   }
+  if(p.get('p')&&PRESETS[p.get('p')])S=freshState(p.get('p'));
   if((v=num('n',2,3))!==null)S.n=Math.round(v);
   if(p.get('g')==='0')S.geom=false;
+  v=p.get('mt');if(v==='conc'||v==='steel'||v==='custom')S.mat=v;
+  v=p.get('sc');if(v==='solid'||v==='hss'||v==='custom')S.sec=v;
   if((v=num('fc',10,120))!==null)S.fc=v;
-  if((v=num('b',100,2000))!==null)S.b=v;
+  if((v=num('es',50,300))!==null)S.Es=v;
+  if((v=num('ex',0.1,1000))!==null)S.Ex=v;
+  if((v=num('b',50,3000))!==null){S.b=v;if(!p.get('d'))S.h=v;}   /* old links: square b = h */
+  if((v=num('d',50,3000))!==null)S.h=v;
+  if((v=num('ob',20,3000))!==null)S.B=v;
+  if((v=num('t',1,500))!==null)S.t=v;
+  if((v=num('ix',0.001,1e9))!==null)S.Ix=v;
   if((v=num('c',1,12))!==null)S.cols=Math.round(v);
   if((v=arr('k',1,1e7)))S.ks=v;
   if((v=arr('h',0.5,30)))S.hs=v;
@@ -675,6 +785,7 @@ function boot(){
   +'@media (max-width:980px){.tour-body,.tour-body.wide{height:auto;grid-template-columns:1fr}.stage{height:380px}.narr{overflow:visible}.stage-views.both{gap:8px}}@media (max-width:560px){.stage{height:350px}}'
   +'@media (max-width:560px){.calc-grid{grid-template-columns:1fr}}'
   +'</style>');
+  $$('.ico-slot[data-ic]').forEach(function(el){el.innerHTML=icon(el.getAttribute('data-ic'));});
   S=freshState();
   var qv=readURL();
   VDEF=(window.matchMedia&&window.matchMedia('(max-width:980px)').matches)?'3d':'both';
@@ -743,18 +854,30 @@ function boot(){
   $$('#geom-seg button').forEach(function(b){
     b.addEventListener('click',function(){S.geom=(+b.getAttribute('data-g')===1);recompute();toast(S.geom?'Stiffness rebuilt from geometry':'Stiffness now typed directly');});
   });
-  [['in-fc','fc',1],['in-cols','cols',1],['in-b','b',10]].forEach(function(p){
-    $('#'+p[0]).addEventListener('input',function(){
+  /* number fields: ignore half-typed values, flag impossible ones beside the field */
+  [['in-fc','fc',10,120],['in-es','Es',1,1000],['in-ex','Ex',0.01,5000],['in-cols','cols',1,12],
+   ['in-b','b',10,5000],['in-h','h',10,5000],['in-B','B',10,5000],['in-t','t',0.5,1000],['in-ix','Ix',1e-6,1e9]].forEach(function(p){
+    var el=$('#'+p[0]);
+    el.addEventListener('input',function(){
       var v=parseFloat(this.value);
-      if(!isFinite(v))return;
-      S[p[1]]=v;
-      recompute();
+      if(!isFinite(v)||v<p[2]||v>p[3]){if(this.value!=='')el.setAttribute('aria-invalid','true');return;}
+      el.removeAttribute('aria-invalid');
+      S[p[1]]=(p[1]==='cols')?Math.round(v):v;
+      recomputeKeepFocus(el);
     });
   });
+  $$('#mat-seg button').forEach(function(b){
+    b.addEventListener('click',function(){S.mat=b.getAttribute('data-m');recompute();});
+  });
+  $$('#sec-seg button').forEach(function(b){
+    b.addEventListener('click',function(){S.sec=b.getAttribute('data-s');recompute();});
+  });
+  $('#print').addEventListener('click',function(){window.print();});
+  $('#start-tour').addEventListener('click',function(){setTimeout(function(){var f=$('#chapters button.on');if(f)f.focus({preventScroll:true});},450);});
   $('#in-zeta').addEventListener('input',function(){var v=parseFloat(this.value);if(isFinite(v)){S.zeta=Math.max(0,Math.min(20,v));recompute();}});
   $('#in-ic').addEventListener('change',function(){S.ic=this.value;recompute();});
   $('#in-amp').addEventListener('input',function(){S.amp=+this.value;recompute();});
-  $('#reset').addEventListener('click',function(){S=freshState();recompute();toast('Back to the exam numbers');});
+  $('#reset').addEventListener('click',function(){S=freshState('sir');recompute();toast('Back to the class example');});
   $('#rerun').addEventListener('click',function(){setPlay(false);show(0,0);$('#tour').scrollIntoView({behavior:'smooth',block:'start'});});
 
   /* reveal + nav */

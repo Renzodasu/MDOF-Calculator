@@ -1,13 +1,14 @@
 <body>
+<a class="skip" href="#tour">Skip to the walkthrough</a>
 
 <header class="topbar">
   <div class="wrap in">
-    <div class="brand">
-      <span class="mark"><svg width="16" height="16" viewBox="0 0 32 32"><path d="M7 25V15M16 25V7M25 25v-7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg></span>
+    <a class="brand" href="#top" aria-label="MDOF Calculator, back to top">
+      <span class="mark"><svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 25V15M16 25V7M25 25v-7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg></span>
       <span>MDOF&nbsp;Calculator</span>
       <span class="byline"><i>·</i> by Nezzar</span>
-    </div>
-    <nav class="nav">
+    </a>
+    <nav class="nav" aria-label="Sections">
       <a href="#tour" class="on">Tour</a>
       <a href="#answers">Answers</a>
       <a href="#build">Build</a>
@@ -24,63 +25,66 @@
 <section class="wrap hero" id="top">
   <div>
     <div class="eyebrow">Structural dynamics · multiple degree of freedom</div>
-    <h1>A three-storey frame, <em>swaying in <span class="nw">slow motion.</span></em></h1>
-    <p class="lede">The MDOF (multiple degree of freedom) free-vibration problem, taken apart frame by frame: how stiff each storey is, why the eigenvalue problem appears, where the three mode shapes come from, and what the building actually does when you let go of it. Change any number below and the whole story re-solves.</p>
+    <h1>A <span id="hero-n">three</span>-storey frame, <em>swaying in <span class="nw">slow motion.</span></em></h1>
+    <p class="lede">The MDOF free-vibration problem, solved the way it is taught: column stiffness, then <b>[K]</b> and <b>[M]</b>, then <b>det[K − ω²M] = 0</b> by cofactor expansion, then the mode shapes, then the sketch. Every frame is computed from the problem you pick.</p>
+    <div class="picker" role="group" aria-label="Problem to solve">
+      <span class="picker-k">Problem</span>
+      <div class="picker-row" id="hero-presets"></div>
+    </div>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="#tour">▶&nbsp; Start the tour</a>
+      <a class="btn btn-primary" href="#tour" id="start-tour"><span class="ico-slot" data-ic="play"></span>Start the tour</a>
       <a class="btn" href="#answers">Jump to the answers</a>
     </div>
     <div class="stats">
       <div class="stat"><div class="k">First frequency</div><div class="v" id="h-f1">—</div><div class="u">Hz · f₁ = ω₁/2π</div></div>
       <div class="stat"><div class="k">First period</div><div class="v" id="h-t1">—</div><div class="u" id="h-t1u">s per sway</div></div>
-      <div class="stat"><div class="k">Softest storey</div><div class="v" id="h-k1">—</div><div class="u">kN/m · k₁ = 4·12EI/h₁³</div></div>
+      <div class="stat"><div class="k">Storey 1 k</div><div class="v" id="h-k1">—</div><div class="u" id="h-k1u">kN/m</div></div>
     </div>
   </div>
   <div class="hero-fig">
     <div class="card3d"><div id="hero-svg"></div></div>
-    <div class="float f1"><i style="width:7px;height:7px;border-radius:99px;background:#4f46e5;display:block"></i> ω₁ <b id="h-w1">—</b> rad/s</div>
-    <div class="float f2"><i style="width:7px;height:7px;border-radius:99px;background:#0d9488;display:block"></i> roof moves <b id="h-roof">—</b>× floor 1</div>
+    <div class="float f1"><i class="sw" style="background:#4f46e5"></i> ω₁ <b id="h-w1">—</b> rad/s</div>
+    <div class="float f2"><i class="sw" style="background:#0d9488"></i> roof moves <b id="h-roof">—</b>× floor 1</div>
   </div>
 </section>
 
-<section class="sec" id="tour">
+<section class="sec" id="tour" tabindex="-1">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="l">
         <div class="eyebrow">The walkthrough</div>
         <h2>Watch the solution build itself</h2>
-        <p><span id="chap-count">Ten</span> short chapters, one idea each. Press play and it advances on its own, or step through with the arrows. Everything on screen is computed from the numbers in the model — nothing is hard-coded.</p>
+        <p>The same five steps as the class notes, <span id="chap-count">twelve</span> short chapters, one idea each. Press play and it advances on its own, or step through with the arrows.</p>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <span class="chip mint"><i></i><span id="tour-live-chip">live model</span></span>
-      </div>
+      <span class="chip mint"><i></i><span id="tour-live-chip">live model</span></span>
     </div>
 
     <div class="tour-shell rv">
+      <ol class="steps" id="steps" aria-label="Solution steps"></ol>
       <div class="tour-top">
-        <div class="chapters" id="chapters"></div>
-        <div class="tour-prog"><i id="prog"></i></div>
-        <div class="seg" id="view-seg" aria-label="Figure view"><button data-v="2d">2D</button><button data-v="3d">3D</button><button data-v="both">Both</button></div>
+        <div class="chapters" id="chapters" role="tablist" aria-label="Chapters"></div>
+        <div class="tour-prog" aria-hidden="true"><i id="prog"></i></div>
+        <div class="seg" id="view-seg" role="group" aria-label="Figure view"><button data-v="2d">2D</button><button data-v="3d">3D</button><button data-v="both">Both</button></div>
       </div>
       <div class="tour-body">
         <div class="stage" id="stage">
           <div class="stage-views" id="stage-views"><div id="stage-svg"></div><div id="stage-3d" hidden><span class="v3-hint">drag to orbit · sway exaggerated</span></div></div>
           <div class="stage-cap"><span id="stage-k">Figure</span><span class="v3n" id="v3-note" hidden>flat figure · 3D returns for the frame &amp; motion</span><span class="live" id="stage-live" hidden><i></i>live animation</span></div>
         </div>
-        <div class="narr">
-          <div class="kicker"><span id="n-kicker">Step</span></div>
+        <div class="narr" aria-live="polite">
+          <div class="kicker"><span class="stepchip" id="n-step">Step</span><span id="n-kicker">Chapter</span></div>
           <h3 id="n-title"></h3>
           <div class="body" id="n-body"></div>
           <div class="formula" id="n-formula" hidden></div>
-          <div class="note" id="n-note" hidden><span class="ic">✳</span><span id="n-note-t"></span></div>
+          <div class="note" id="n-note" hidden><span class="ic ico-slot" data-ic="note"></span><span id="n-note-t"></span></div>
           <div class="spacer"></div>
           <div class="controls">
-            <button class="btn btn-icon" id="prev" aria-label="Previous frame" data-tip="Previous step&nbsp; ←">←</button>
-            <button class="btn btn-primary" id="play" aria-label="Play or pause" data-tip="Play / pause&nbsp; Space"><span id="play-ic">▶</span><span id="play-tx">Play</span></button>
-            <button class="btn btn-icon" id="next" aria-label="Next frame" data-tip="Next step&nbsp; →">→</button>
-            <button class="btn btn-icon" id="replay" aria-label="Replay this step" data-tip="Replay the animation&nbsp; R">↻</button>
+            <button class="btn btn-icon" id="prev" aria-label="Previous step" data-tip="Previous&nbsp; ←"><span class="ico-slot" data-ic="left"></span></button>
+            <button class="btn btn-primary" id="play" aria-label="Play"><span id="play-ic" class="ico-slot" data-ic="play"></span><span id="play-tx">Play</span></button>
+            <button class="btn btn-icon" id="next" aria-label="Next step" data-tip="Next&nbsp; →"><span class="ico-slot" data-ic="right"></span></button>
+            <button class="btn btn-icon" id="replay" aria-label="Replay this step's animation" data-tip="Replay&nbsp; R"><span class="ico-slot" data-ic="replay"></span></button>
             <button class="btn btn-ghost btn-sm" id="tspeed" aria-pressed="false" data-tip="Real period vs. readable slow motion" hidden>Slowed</button>
-            <div class="seg" id="speed"><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div>
+            <div class="seg" id="speed" role="group" aria-label="Autoplay speed"><button data-s="1" class="on">1×</button><button data-s="2">2×</button></div>
             <span class="fr" id="frame-count"></span>
           </div>
           <div class="kbdhint"><kbd>Space</kbd> play <span>·</span> <kbd>←</kbd><kbd>→</kbd> step <span>·</span> <kbd>R</kbd> replay</div>
@@ -96,35 +100,37 @@
       <div class="l">
         <div class="eyebrow">The answers</div>
         <h2>Everything the question asks for</h2>
-        <p>Same numbers as the tour, in one place — the stiffness of a column and of each storey, the natural frequencies and periods, and the mode shapes. They update the moment you change the model.</p>
+        <p>Numbered like the question: (1) stiffness, (2) frequencies and periods, (3) mode-shape factors, (4) the sketch. They update the moment you change the model.</p>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn btn-sm" id="share" data-tip="A link that opens with these exact numbers">↗ Share link</button>
-        <button class="btn btn-sm" id="copy" data-tip="Copy every number as plain text">⧉ Copy results</button>
-        <span class="chip"><i></i><span id="ans-tag">—</span></span>
+      <div class="head-actions">
+        <button class="btn btn-sm" id="share" data-tip="A link that opens with these exact numbers"><span class="ico-slot" data-ic="share"></span>Share link</button>
+        <button class="btn btn-sm" id="copy" data-tip="Copy every number as plain text"><span class="ico-slot" data-ic="copy"></span>Copy results</button>
+        <button class="btn btn-sm" id="print" data-tip="Print or save the answers as PDF"><span class="ico-slot" data-ic="print"></span>Print</button>
       </div>
     </div>
-    <div class="grid3">
+    <div class="ans-tag rv"><span class="chip"><i></i><span id="ans-tag">—</span></span></div>
+    <div class="grid2">
       <div class="card rv">
-        <h3>Storey stiffness</h3>
-        <div class="hint">Each column is a fixed-fixed member: k = 12EI/h³</div>
+        <div class="card-h"><span class="qn">1</span><div><h3>Stiffness, one column and each storey</h3><div class="hint" id="ans-k-hint">Each column is fixed at both ends: k = 12EI/h³</div></div></div>
         <div id="ans-k"></div>
       </div>
       <div class="card rv">
-        <h3>Frequencies &amp; periods</h3>
-        <div class="hint">From the roots of the characteristic equation</div>
+        <div class="card-h"><span class="qn">2</span><div><h3>Natural frequencies &amp; periods</h3><div class="hint">Roots of det[K − ω²M] = 0, with B = ω²</div></div></div>
         <div id="ans-f"></div>
       </div>
       <div class="card rv">
-        <h3>Mode shapes</h3>
-        <div class="hint">Roof normalised to 1.000 in every mode</div>
+        <div class="card-h"><span class="qn">3</span><div><h3>Mode-shape factors per floor</h3><div class="hint">Top floor (roof) set to 1.0000 in every mode</div></div></div>
         <div id="ans-modes"></div>
+      </div>
+      <div class="card rv">
+        <div class="card-h"><span class="qn">4</span><div><h3>Sketch of the mode shapes</h3><div class="hint">Factors from (3) drawn floor by floor; open circles are nodes</div></div></div>
+        <div id="ans-sketch" class="sketch"></div>
       </div>
     </div>
     <div class="grid2" style="margin-top:16px">
       <div class="card rv">
         <h3>Mass and stiffness matrices</h3>
-        <div class="hint">The two matrices the whole problem lives in</div>
+        <div class="hint">Step 1 of the notes: the two matrices the whole problem lives in</div>
         <div id="ans-mat"></div>
       </div>
       <div class="card rv">
@@ -147,65 +153,104 @@
       <div class="l">
         <div class="eyebrow">Your turn</div>
         <h2>Change anything, watch it re-solve</h2>
-        <p>The lesson only covers two- and three-storey frames, so those are the two you get — but every other number is yours: concrete strength, column size, number of columns, storey heights, floor masses, and how the building is set in motion.</p>
+        <p>Start from a worked problem or type your own: concrete or steel, solid or hollow columns, storey heights, floor masses — or skip the geometry and enter each storey's k directly.</p>
       </div>
-      <div class="chip amber"><i></i><span>live recompute</span></div>
+      <span class="chip amber"><i></i><span>live recompute</span></span>
     </div>
     <div class="builder rv">
       <div class="pane">
-        <div class="field">
-          <label>Storeys</label>
-          <div class="seg" id="floors-seg" style="width:100%">
-            <button data-n="2" style="flex:1">2 storeys</button>
-            <button data-n="3" class="on" style="flex:1">3 storeys</button>
-          </div>
-        </div>
+        <fieldset class="fs">
+          <legend>Start from</legend>
+          <div class="preset-grid" id="build-presets"></div>
+        </fieldset>
 
-        <div class="field">
-          <label>How are the storey stiffnesses given?</label>
-          <div class="seg" id="geom-seg" style="width:100%">
-            <button data-g="1" style="flex:1">From geometry</button>
-            <button data-g="0" style="flex:1">Enter k directly</button>
+        <fieldset class="fs">
+          <legend>Frame</legend>
+          <div class="field">
+            <span class="lbl" id="lbl-floors">Storeys</span>
+            <div class="seg seg-full" id="floors-seg" role="group" aria-labelledby="lbl-floors">
+              <button data-n="2">2 storeys</button>
+              <button data-n="3" class="on">3 storeys</button>
+            </div>
           </div>
-        </div>
+          <div class="field">
+            <span class="lbl" id="lbl-geom">Storey stiffness comes from</span>
+            <div class="seg seg-full" id="geom-seg" role="group" aria-labelledby="lbl-geom">
+              <button data-g="1">Geometry</button>
+              <button data-g="0">Typed k</button>
+            </div>
+          </div>
+        </fieldset>
 
-        <div id="geom-block">
+        <fieldset class="fs" id="geom-block">
+          <legend>Columns</legend>
+          <div class="field">
+            <span class="lbl" id="lbl-mat">Material</span>
+            <div class="seg seg-full" id="mat-seg" role="group" aria-labelledby="lbl-mat">
+              <button data-m="conc">Concrete</button>
+              <button data-m="steel">Steel</button>
+              <button data-m="custom">Given E</button>
+            </div>
+          </div>
           <div class="row-f">
-            <div class="field"><label>f′c (MPa)</label><input class="inp" id="in-fc" type="number" value="21" step="1" min="10"></div>
-            <div class="field"><label>Columns per floor</label><input class="inp" id="in-cols" type="number" value="4" step="1" min="1" max="12"></div>
+            <div class="field" data-for="conc"><label for="in-fc">f′c</label><div class="inp-u"><input class="inp" id="in-fc" type="number" inputmode="decimal" value="21" step="1" min="10" max="120" aria-describedby="h-fc"><span>MPa</span></div><div class="help" id="h-fc">E = 4700√f′c</div></div>
+            <div class="field" data-for="steel"><label for="in-es">E of steel</label><div class="inp-u"><input class="inp" id="in-es" type="number" inputmode="decimal" value="200" step="1" min="50" max="300" aria-describedby="h-es"><span>GPa</span></div><div class="help" id="h-es">A36 and other structural steel: 200 GPa</div></div>
+            <div class="field" data-for="custom"><label for="in-ex">E</label><div class="inp-u"><input class="inp" id="in-ex" type="number" inputmode="decimal" value="25" step="0.5" min="0.1" max="1000" aria-describedby="h-ex"><span>GPa</span></div><div class="help" id="h-ex">Any modulus the problem gives</div></div>
+            <div class="field"><label for="in-cols">Columns per floor</label><div class="inp-u"><input class="inp" id="in-cols" type="number" inputmode="numeric" value="4" step="1" min="1" max="12"><span>cols</span></div></div>
           </div>
-          <div class="row-f">
-            <div class="field"><label>Column side b = h (mm)</label><input class="inp" id="in-b" type="number" value="300" step="10" min="100"></div>
-            <div class="field"><label>E of concrete (MPa)</label><input class="inp" id="in-e" type="text" value="—" readonly style="color:#6b7280"></div>
-          </div>
-        </div>
 
-        <div class="field">
-          <label>Floor by floor</label>
+          <div class="field">
+            <span class="lbl" id="lbl-sec">Cross-section</span>
+            <div class="seg seg-full" id="sec-seg" role="group" aria-labelledby="lbl-sec">
+              <button data-s="solid">Solid</button>
+              <button data-s="hss">Hollow tube</button>
+              <button data-s="custom">Given I</button>
+            </div>
+          </div>
+          <div class="row-f" data-for="solid">
+            <div class="field"><label for="in-b">Width b</label><div class="inp-u"><input class="inp" id="in-b" type="number" inputmode="decimal" value="300" step="10" min="50" max="3000"><span>mm</span></div></div>
+            <div class="field"><label for="in-h">Depth h (sway direction)</label><div class="inp-u"><input class="inp" id="in-h" type="number" inputmode="decimal" value="300" step="10" min="50" max="3000"><span>mm</span></div></div>
+          </div>
+          <div class="row-f" data-for="hss">
+            <div class="field"><label for="in-B">Outside size B</label><div class="inp-u"><input class="inp" id="in-B" type="number" inputmode="decimal" value="350" step="5" min="20" max="3000"><span>mm</span></div></div>
+            <div class="field"><label for="in-t">Wall thickness t</label><div class="inp-u"><input class="inp" id="in-t" type="number" inputmode="decimal" value="12" step="1" min="1" max="500" aria-describedby="err-t"><span>mm</span></div><div class="err" id="err-t" role="alert" hidden></div></div>
+          </div>
+          <div class="row-f" data-for="custom-sec">
+            <div class="field"><label for="in-ix">I of one column</label><div class="inp-u"><input class="inp" id="in-ix" type="number" inputmode="decimal" value="675" step="1" min="0.001"><span>×10⁶ mm⁴</span></div></div>
+          </div>
+          <div class="derived" id="derived" aria-live="polite"></div>
+        </fieldset>
+
+        <fieldset class="fs">
+          <legend>Floor by floor</legend>
           <div class="storeys" id="storey-tbl"></div>
-        </div>
+        </fieldset>
 
-        <div class="row-f">
-          <div class="field"><label>Damping, all modes ζ (%)</label><input class="inp" id="in-zeta" type="number" value="0" step="0.5" min="0" max="20"></div>
-          <div class="field"><label>Release from</label>
-            <select class="inp" id="in-ic">
-              <option value="roof">Roof pulled sideways</option>
-              <option value="uniform">All floors pulled equally</option>
-              <option value="mode1">Shape of mode 1</option>
-            </select>
+        <details class="fs fs-more">
+          <summary>Motion settings <span class="muted">damping, release</span></summary>
+          <div class="row-f">
+            <div class="field"><label for="in-zeta">Damping, all modes ζ</label><div class="inp-u"><input class="inp" id="in-zeta" type="number" inputmode="decimal" value="0" step="0.5" min="0" max="20"><span>%</span></div></div>
+            <div class="field"><label for="in-ic">Release from</label>
+              <select class="inp" id="in-ic">
+                <option value="roof">Roof pulled sideways</option>
+                <option value="uniform">All floors pulled equally</option>
+                <option value="mode1">Shape of mode 1</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="field">
-          <label>Release amplitude <span class="muted" id="amp-lab">50 mm</span></label>
-          <div class="range"><input type="range" id="in-amp" min="5" max="120" value="50" step="5"><span class="val" id="amp-val">50 mm</span></div>
-        </div>
+          <div class="field">
+            <label for="in-amp">Release amplitude <span class="muted" id="amp-lab">50 mm</span></label>
+            <div class="range"><input type="range" id="in-amp" min="5" max="120" value="50" step="5"><span class="val" id="amp-val">50 mm</span></div>
+          </div>
+        </details>
         <div class="pane-actions">
-          <button class="btn btn-sm" id="reset">Reset to the exam problem</button>
+          <button class="btn btn-sm" id="reset">Reset to the class example</button>
           <button class="btn btn-sm btn-ghost" id="rerun">Restart the tour</button>
         </div>
       </div>
       <div class="pane">
         <div class="preview">
+          <div class="preview-tag" id="build-tag"></div>
           <div id="build-svg"></div>
           <div class="mini-tbl" id="build-tbl"></div>
         </div>
@@ -234,7 +279,7 @@
       Single file, no dependencies: open it anywhere, even offline.
     </div>
     <div class="fr">
-      Precise numbers: <a href="detailed.html">the technical page</a> · <a href="mdof_solver.py">NumPy solver</a> · <a href="mdof_eigen.c">C reference</a>
+      Class example in full precision: <a href="detailed.html">technical page</a> · <a href="mdof_solver.py">NumPy solver</a> · <a href="mdof_eigen.c">C reference</a>
     </div>
     <div class="credit">
       <b>Created by Nezzar</b>

@@ -47,43 +47,113 @@ function newtonRoot(c,x0){
 }
 
 /* ================= small figures ================= */
+/* the column cross-section, drawn from the inputs (solid rectangle or hollow tube) */
 function sectionSVG(m){
-  var s=svgOpen(520,340);
-  var x=190,y=90,sz=110;
-  s+=rect(x,y,sz,sz,4,{fill:'#fff',stroke:INK,sw:2});
-  s+=rect(x+8,y+8,sz-16,sz-16,2,{fill:'#f4f4fa',stroke:'#d7d7e2',sw:1});
-  for(var i=1;i<4;i++){
-    s+=line(x+i*sz/4,y,x+i*sz/4,y+sz,{stroke:'#e2e2ee',w:1});
-    s+=line(x,y+i*sz/4,x+sz,y+i*sz/4,{stroke:'#e2e2ee',w:1});
+  var s=svgOpen(520,340), p=m.p, cx=200, cy=150, i;
+  var eLine=m.mat==='conc'?'E = 4700\u221A f\u2032c':m.mat==='steel'?'E (steel, given)':'E (given)';
+  var iLine=m.sec==='hss'?'I = [B\u2074 \u2212 (B \u2212 2t)\u2074] / 12':m.sec==='custom'?'I (given)':'I = b h\u00B3 / 12';
+  if(m.sec==='custom'){
+    s+=rect(cx-60,cy-60,120,120,14,{fill:'#f6f6fb',stroke:'#d7d7e2',sw:1.2,dash:'4 4'});
+    s+=t(cx,cy-4,'any section',{fs:12,anchor:'middle',fill:MUTED,weight:600});
+    s+=t(cx,cy+14,'I given directly',{fs:11,anchor:'middle',fill:FAINT});
+  } else {
+    var bw=(m.sec==='hss'?p.B:p.b), bh=(m.sec==='hss'?p.B:p.h), sc=124/Math.max(bw,bh);
+    var w=bw*sc, h=bh*sc, x=cx-w/2, y=cy-h/2;
+    if(m.sec==='hss'){
+      var tw=Math.max(3,p.t*sc);
+      s+=rect(x,y,w,h,5,{fill:m.mat==='steel'?'#dfe3ee':'#ececf4',stroke:INK,sw:2});
+      s+=rect(x+tw,y+tw,w-2*tw,h-2*tw,2,{fill:'#fcfcfe',stroke:INK,sw:1.2});
+      s+=line(x+w+14,y,x+w+14,y+tw,{stroke:MUTED,w:1});
+      s+=t(x+w+20,y+tw/2+4,'t = '+fmt(p.t,0)+' mm',{fs:11,fill:MUTED});
+    } else {
+      s+=rect(x,y,w,h,4,{fill:m.mat==='steel'?'#dfe3ee':'#f4f4fa',stroke:INK,sw:2});
+      for(i=1;i<4;i++){
+        s+=line(x+i*w/4,y,x+i*w/4,y+h,{stroke:'#e2e2ee',w:1});
+        s+=line(x,y+i*h/4,x+w,y+i*h/4,{stroke:'#e2e2ee',w:1});
+      }
+    }
+    s+=line(x,y+h+18,x+w,y+h+18,{stroke:MUTED,w:1});
+    s+=t(x+w/2,y+h+34,(m.sec==='hss'?'B':'b')+' = '+fmt(bw,0)+' mm',{fs:11,anchor:'middle',fill:MUTED});
+    s+=line(x-18,y,x-18,y+h,{stroke:MUTED,w:1});
+    s+=t(x-26,y+h/2+4,(m.sec==='hss'?'B':'h')+' = '+fmt(bh,0)+' mm',{fs:11,anchor:'end',fill:MUTED});
   }
-  s+=line(x,y+sz+18,x+sz,y+sz+18,{stroke:MUTED,w:1});
-  s+=t(x+sz/2,y+sz+34,'b = 300 mm',{fs:11,anchor:'middle',fill:MUTED});
-  s+=line(x-18,y,x-18,y+sz,{stroke:MUTED,w:1});
-  s+=t(x-26,y+sz/2+4,'h = 300 mm',{fs:11,anchor:'end',fill:MUTED});
-  s+=t(360,110,'Ec = 4700\u221A f\u2032c',{fs:13,m:0});
-  s+=t(360,136,'= '+fmt(m.Ec,0)+' MPa',{fs:13,mono:1,fill:ACCENT,weight:600});
-  s+=t(360,180,'I = b h\u00B3 / 12',{fs:13});
-  s+=t(360,206,'= '+sci(m.I,3)+' m\u2074',{fs:13,mono:1,fill:ACCENT,weight:600});
-  s+=t(360,250,'EI = Ec I',{fs:13});
-  s+=t(360,276,'= '+fmt(m.EI,0)+' kN\u00B7m\u00B2',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+=t(352,104,eLine,{fs:13});
+  s+=t(352,130,'= '+fmt(m.Ec,0)+' MPa',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+=t(352,176,iLine,{fs:m.sec==='hss'?12:13});
+  s+=t(352,202,'= '+sci(m.I,4)+' m\u2074',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+=t(352,248,'EI = E \u00B7 I',{fs:13});
+  s+=t(352,274,'= '+fmt(m.EI,0)+' kN\u00B7m\u00B2',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+='</svg>';
+  return s;
+}
+/* SHIFT+SOLVE starting guesses: round each root to a "typeable" number that still lands on it */
+function solveGuesses(m,co){
+  return m.lam.map(function(L){
+    var d,g,r;
+    for(d=1;d<=4;d++){
+      var e=Math.pow(10,Math.floor(Math.log(Math.abs(L))/Math.LN10)-d+1);
+      g=Math.round(L/e)*e;r=newtonRoot(co,g);
+      if(Math.abs(r.x-L)<1e-6*Math.max(1,Math.abs(L)))return g;
+    }
+    return Math.round(L);
+  });
+}
+/* static sketch of every mode, as it would be drawn on the exam paper:
+   undeformed line, deflected shape, factor at each floor, nodes marked */
+function sketchSVG(m,o){
+  o=o||{};
+  var n=m.N, W=520, H=o.h||380, pw=W/n, top=70, base=H-62, i, r;
+  var hs=m.hs, tot=hs.reduce(function(a,b){return a+b;},0), ys=[base], acc=0;
+  for(i=0;i<n;i++){acc+=hs[i];ys.push(base-(base-top)*acc/tot);}
+  var s=svgOpen(W,H,'aria-label="Sketch of the '+n+' mode shapes"');
+  for(r=0;r<n;r++){
+    var ph=m.phi[r], mx=maxAbs(ph), cx=pw*r+pw/2, amp=Math.min(pw*0.2,56), col=MC[r%MC.length], colT=MCT[r%MCT.length];
+    var pts=[[cx,base]];for(i=0;i<n;i++)pts.push([cx+ph[i]/mx*amp,ys[i+1]]);
+    s+=t(cx,24,'Mode '+(r+1),{fs:13,anchor:'middle',weight:700,fill:colT});
+    s+=t(cx,42,'T = '+fmt(m.per[r],4)+' s',{fs:10.5,anchor:'middle',fill:MUTED,mono:1});
+    s+=rect(cx-38,base,76,8,0,{fill:'url(#hatchS)'});
+    s+=line(cx-40,base,cx+40,base,{w:2});
+    s+=line(cx,base,cx,ys[n]-6,{stroke:'#c4c6d2',w:1.3,dash:'4 5'});
+    for(i=1;i<=n;i++)s+=line(cx-5,ys[i],cx+5,ys[i],{stroke:'#c4c6d2',w:1.2});
+    var d=pts.map(function(p,ix){return (ix?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}).join(' ');
+    s+=path(d,{stroke:col,w:2.6,cap:1,draw:!o.still,delay:.15+.25*r});
+    for(i=0;i<n;i++){
+      /* node: the shape crosses the undeformed line between two levels */
+      var a=(i===0?0:ph[i-1]), b=ph[i];
+      if(i>0&&a*b<0){
+        var f=a/(a-b), ny=ys[i]+(ys[i+1]-ys[i])*f;
+        s+='<circle cx="'+cx+'" cy="'+ny.toFixed(1)+'" r="4.6" fill="#fff" stroke="'+INK+'" stroke-width="1.6"/>';
+        s+=t(cx-8,ny+4,'node',{fs:9.5,anchor:'end',fill:MUTED,weight:600});
+      }
+    }
+    for(i=0;i<n;i++){
+      var px=pts[i+1][0], py=pts[i+1][1], right=ph[i]>=0;
+      s+=dot(px,py,4.4,col);
+      s+=t(px+(right?8:-8),py+4,fmt(ph[i],4),{fs:10,mono:1,anchor:right?'start':'end',fill:INK,weight:600,halo:1});
+    }
+  }
+  s+='<defs><pattern id="hatchS" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="#c9c9d4" stroke-width="1.3"/></pattern></defs>';
+  s+=t(W/2,H-20,'roof factor = 1.0000 in every mode \u00B7 open circle = node (no movement)',{fs:10,anchor:'middle',fill:FAINT});
   s+='</svg>';
   return s;
 }
 function barsSVG(m){
   var W=520,H=380, x0=120, baseY=300, hMax=190, n=m.N, i;
-  var kmax=Math.max.apply(null,m.kf);
+  var kmax=Math.max.apply(null,m.k);
   var s=svgOpen(W,H);
   s+=line(60,baseY,470,baseY,{stroke:'#d5d5e0',w:1.4});
   var bw=52, gap=(m.N===2?110:64);
   for(i=0;i<n;i++){
-    var h=hMax*m.kf[i]/kmax, x=x0+i*(bw+gap);
+    var h=hMax*m.k[i]/kmax, x=x0+i*(bw+gap);
     s+=rect(x,baseY-h,bw,h,9,{fill:MC[i%MC.length],op:.14,stroke:MC[i%MC.length],sw:1.6,anim:'pop',delay:(0.1*i).toFixed(2)});
-    s+=t(x+bw/2,baseY-h-12,'k'+sub(i)+' = '+fmt(m.kf[i],0),{fs:11,anchor:'middle',fill:MC[i%MC.length],weight:700});
+    s+=t(x+bw/2,baseY-h-12,'k'+sub(i)+' = '+fmt(m.k[i],0),{fs:11,anchor:'middle',fill:MCT[i%MCT.length],weight:700});
     s+=t(x+bw/2,baseY+20,'storey '+(i+1),{fs:11,anchor:'middle',fill:MUTED});
-    s+=t(x+bw/2,baseY+36,'h = '+fmt(m.hs[i],2)+' m',{fs:10,anchor:'middle',fill:FAINT});
-    s+=t(x+bw/2,baseY+52,'k_col = '+fmt(m.kc[i],0),{fs:10,anchor:'middle',fill:FAINT,mono:1});
+    if(m.p.geom){
+      s+=t(x+bw/2,baseY+36,'h = '+fmt(m.hs[i],2)+' m',{fs:10,anchor:'middle',fill:FAINT});
+      s+=t(x+bw/2,baseY+52,'k_col = '+fmt(m.kc[i],0),{fs:10,anchor:'middle',fill:FAINT,mono:1});
+    }
   }
-  s+=t(60,44,'storey stiffness k = 4 \u00D7 12EI/h\u00B3  (kN/m)',{fs:12,fill:MUTED});
+  s+=t(60,44,m.p.geom?'storey stiffness k = '+m.cols+' \u00D7 12EI/h\u00B3  (kN/m)':'storey stiffness k, as given  (kN/m)',{fs:12,fill:MUTED});
   s+='</svg>';
   return s;
 }
@@ -112,6 +182,8 @@ function cellText(Kp,Mp,i,k){
   if(i!==k)return Kp[i][k]?fmt(Kp[i][k],0):'0';
   return fmt(Kp[i][k],0)+' \u2212 '+(Math.abs(Mp[i][i]-1)<1e-9?'B':fmt(Mp[i][i],2)+'B');
 }
+/* 1.1, 0.25, 1 — a ratio written the way you would write it by hand */
+function ratioTxt(v){var s=fmt(v,4);if(s.indexOf('.')>=0)s=s.replace(/0+$/,'').replace(/\.$/,'');return s;}
 /* ================= chapters ================= */
 var CHAPTERS=[], FI={ch:0,fr:0,playing:false,timer:null,speed:1,liveT:0,raf:null};
 
@@ -126,21 +198,58 @@ function buildTour(){
   var co=detPolyN(Kp,Mp), lead=co[0], mono=co.map(function(c){return c/lead;});
   var cls=[], i;
 
+  var NW=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
+  var hsTxt=m.hs.map(function(h,ix){return 'h'+sub(ix)+' = '+fmt(h,h%1?2:0)+' m';}).join(', ');
+  var sameH=m.hs.every(function(h){return h===m.hs[0];});
+  var sirH=n===3&&m.hs[0]===4&&m.hs[1]===3.2&&m.hs[2]===3;
+  var frameNote=sirH?"The sheet fixes the heights twice over: h\u2081 = 1.25h\u2082 = 1.3333h\u2083 = 4 m, which gives "+hsTxt+"."
+    :sameH?"Every storey has the same height, h = "+fmt(m.hs[0],2)+" m, so every storey will get the same stiffness."
+    :"Storey heights from the sketch: "+hsTxt+".";
+
   /* ---------- 1. the frame ---------- */
-  cls.push({id:"frame",name:"The frame",frames:[
-    {k:"01 \u00B7 the model",t:"A "+n+"-storey frame, four columns per floor",
+  cls.push({id:"frame",name:"The frame",step:0,frames:[
+    {t:"A "+n+"-storey frame, "+(NW[m.cols]||m.cols)+" column"+(m.cols>1?"s":"")+" per floor",
      b:"Before any maths: each floor can move sideways, so the building has <b>"+n+" unknown displacements</b> \u2014 one per floor. That is what \u201c"+n+"-DOF\u201d means, and it is the only thing we carry into the calculation.",
-     n:"The exam sheet fixes the geometry twice over: h\u2081 = 1.25h\u2082 = 1.3333h\u2083 = 4 m, which gives the column heights in the sketch.",
+     n:frameNote,
      svg:buildingSVG(m,{columns:true,masses:true})},
-    {k:"01 \u00B7 the model",t:"Idealise it: masses on springs",
+    {t:"Idealise it: masses on springs",
      b:"Beams are stiff compared with columns, so each floor stays flat and moves as a rigid slab. A column then behaves exactly like a spring between the floor above and the floor below. The whole building becomes <b>"+n+" masses on "+n+" springs</b> \u2014 the shear-frame model.",
      f:"x\u2081, x\u2082, x\u2083 = sideways displacement of each floor",
      svg:buildingSVG(m,{springs:true,masses:true,free:true,structColor:'#e5e5ee'})}
   ]});
 
   /* ---------- 2. stiffness ---------- */
-  cls.push({id:"stiff",name:"Stiffness",frames:[
-    {k:"02 \u00B7 stiffness",t:"One column is a spring: k = 12EI / h\u00B3",
+  var p=m.p, mm=function(v){return fmt(v/1000,3);};
+  var eRow, eBody, iRow;
+  if(m.mat==='conc'){
+    eBody="Concrete stiffness follows its strength, E = 4700\u221Af\u2032c (ACI 318).";
+    eRow=function(){var b=0;return GL('E',b)+OP('=')+GL('4700',b+0.14)+SQ(GL('f\u2032'+SUB('c'),b+0.36))+OP('=')+GL('4700',b+0.58)+SQ(GL(fmt(p.fc,0),b+0.76))+OP('=')+PI(fmt(m.Ec,0)+' MPa',b+1.0,'res');};
+  } else {
+    eBody=m.mat==='steel'?"Steel is given: every structural steel, A36 included, has E = "+fmt(p.Es,0)+" GPa. There is nothing to compute.":"E is given in the problem, so it goes straight in.";
+    eRow=function(){var b=0;return GL('E',b)+OP('=')+GL(fmt(m.mat==='steel'?p.Es:p.Ex,0)+' GPa',b+0.2)+OP('=')+PI(fmt(m.Ec,0)+' MPa',b+0.5,'res')+'<span class="hint-inline">'+(m.mat==='steel'?'A36 / structural steel':'as given')+'</span>';};
+  }
+  var iBody;
+  if(m.sec==='hss'){
+    iBody="A square hollow tube is the outer square minus the hole: I = [B\u2074 \u2212 (B \u2212 2t)\u2074]/12, with the hole B \u2212 2t = "+fmt(p.B-2*p.t,0)+" mm wide.";
+    iRow=function(){var b=0.95;return GL('I',b)+OP('=')+F(GL(mm(p.B),b+0.16)+SUP('4')+OP('\u2212')+GL(mm(p.B-2*p.t),b+0.40)+SUP('4'),GL('12',b+0.62),{lg:1})+OP('=')+PI(sci(m.I,4)+' m'+SUP('4'),b+0.9,'res');};
+  } else if(m.sec==='custom'){
+    iBody="I is given for the section, so it goes straight in (10\u2076 mm\u2074 = 10\u207B\u2076 m\u2074).";
+    iRow=function(){var b=0.95;return GL('I',b)+OP('=')+GL(fmt(p.Ix,2)+'\u00D710'+SUP('6')+' mm'+SUP('4'),b+0.2)+OP('=')+PI(sci(m.I,4)+' m'+SUP('4'),b+0.5,'res');};
+  } else {
+    iBody="A solid rectangular column has I = bh\u00B3/12, with h measured in the direction the floor sways.";
+    iRow=function(){var b=0.95;return GL('I',b)+OP('=')+F(GL('b',b+0.16)+OP('\u00B7')+GL('h',b+0.34)+SUP('3'),GL('12',b+0.58),{lg:1})+OP('=')+F(GL(mm(p.b),b+0.70)+OP('\u00D7')+GL(mm(p.h),b+0.84)+SUP('3'),GL('12',b+1.02),{lg:1})+OP('=')+PI(sci(m.I,4)+' m'+SUP('4'),b+1.14,'res');};
+  }
+  if(!p.geom){
+  cls.push({id:"stiff",name:"Stiffness",step:0,frames:[
+    {t:"The storey stiffnesses are given",
+     b:"In this problem each storey's stiffness k is typed in directly, so there is no column to size and no EI to find. The "+n+" numbers go straight into the stiffness matrix.",
+     fx:EQ(m.k.map(function(v,ix){return function(){var b=ix*0.45;return GL('k'+SUB(ix+1),b)+OP('=')+PI(fmt(v,1)+' kN/m',b+0.2,'res');};})),
+     n:"Switch the builder to \u201CFrom geometry\u201D to have k worked out from the material, the column section and the storey height.",
+     svg:barsSVG(m)}
+  ]});
+  } else
+  cls.push({id:"stiff",name:"Stiffness",step:0,frames:[
+    {t:"One column is a spring: k = 12EI / h\u00B3",
      b:"Push the top of a column sideways and it pushes back. Both ends are held by beams, so the ends cannot rotate \u2014 that double fixity is where the <b>12</b> comes from. Watch the top of the fraction fill first, then the bottom.",
      fx:EQ([
        function(){var b=0;return GL('k'+SUB('col'),b)+OP('=')+F(GL('12',b+0.18)+OP('\u00B7')+GL('E',b+0.36)+OP('\u00B7')+GL('I',b+0.54),GL('h',b+0.78)+SUP('3'),{lg:1});},
@@ -148,16 +257,17 @@ function buildTour(){
      ]),
      n:"A taller column is much softer: halve the height and it gets eight times stiffer, because h is cubed.",
      svg:columnSVG(m,{})},
-    {k:"02 \u00B7 stiffness",t:"Get E from the concrete, I from the section",
-     b:"Concrete stiffness follows its strength, E\u1D9C = 4700\u221Af\u2032c. A square column has I = bh\u00B3/12. The three numbers you multiply are highlighted in order.",
+    {t:"Get E from the "+matName(m)+", I from the section",
+     b:eBody+" "+iBody+" The numbers you multiply are highlighted in order.",
      fx:EQ([
-       function(){var b=0;return GL('E'+SUB('c'),b)+OP('=')+GL('4700',b+0.14)+SQ(GL('f\u2032'+SUB('c'),b+0.36))+OP('=')+GL('4700',b+0.58)+SQ(GL(fmt(m.p.fc,0),b+0.76))+OP('=')+PI(fmt(m.Ec,0)+' MPa',b+1.0,'res');},
-       function(){var b=0.95;return GL('I',b)+OP('=')+F(GL('b',b+0.16)+OP('\u00B7')+GL('h',b+0.34)+SUP('3'),GL('12',b+0.58),{lg:1})+OP('=')+F(GL('0.300',b+0.70)+OP('\u00D7')+GL('0.300',b+0.84)+SUP('3'),GL('12',b+1.02),{lg:1})+OP('=')+PI(sci(m.I,3)+' m'+SUP('4'),b+1.14,'res');},
-       function(){var b=1.95;return GL('EI',b)+OP('=')+GL(fmt(m.Ec,0),b+0.14)+OP('\u00D7')+GL(sci(m.I,3),b+0.34)+' MPa\u00B7m'+SUP('4')+OP('=')+PI(fmt(m.EI,0)+' kN\u00B7m'+SUP('2'),b+0.58,'res');}
+       eRow,
+       iRow,
+       function(){var b=1.95;return GL('EI',b)+OP('=')+GL(fmt(m.Ec,0),b+0.14)+OP('\u00D7')+GL(sci(m.I,4),b+0.34)+' MPa\u00B7m'+SUP('4')+OP('=')+PI(fmt(m.EI,0)+' kN\u00B7m'+SUP('2'),b+0.58,'res');}
      ]),
+     n:"Work in metres here: "+(m.sec==='hss'?fmt(p.B,0)+' mm = '+mm(p.B)+' m':m.sec==='solid'?fmt(p.b,0)+' mm = '+mm(p.b)+' m':'1 mm\u2074 = 10\u207B\u00B9\u00B2 m\u2074')+". MPa \u00D7 m\u2074 = MN\u00B7m\u00B2, so multiply by 1,000 for kN\u00B7m\u00B2.",
      svg:sectionSVG(m)},
-    {k:"02 \u00B7 stiffness",t:"Put the numbers in \u2014 this is the multiplication",
-     b:"Twelve times EI, divided by the cube of the height. Then four identical columns add up, and each storey gets its own value because the heights differ.",
+    {t:"Put the numbers in \u2014 this is the multiplication",
+     b:"Twelve times EI, divided by the cube of the height. Then "+(NW[m.cols]||m.cols)+" identical column"+(m.cols>1?"s":"")+" add up"+(sameH?" \u2014 and every storey is the same height, so every storey gets the same k.":", and each storey gets its own value because the heights differ."),
      fx:EQ((function(){
        var rows=[];
        rows.push(function(){var b=0;return GL('k'+SUB('col'),b)+OP('=')+F(GL('12',b+0.14)+OP('\u00B7')+GL(fmt(m.EI,1),b+0.32),GL(fmt(m.hs[0],3),b+0.54)+SUP('3'),{lg:1})+OP('=')+GL(fmt(Math.pow(m.hs[0],3),2),b+0.76)+OP('=')+PI(fmt(m.kc[0],1)+' kN/m',b+0.98,'res');});
@@ -168,16 +278,17 @@ function buildTour(){
        });
        return rows;
      })()),
-     n:"Bottom storey: "+fmt(m.kc[0],0)+" kN/m per column. Top storey: "+fmt(m.kc[n-1],0)+" kN/m \u2014 "+fmt(m.kc[n-1]/m.kc[0],2)+"\u00D7 stiffer.",
+     n:sameH?"One column: "+fmt(m.kc[0],1)+" kN/m. One storey ("+m.cols+" columns): "+fmt(m.kf[0],1)+" kN/m \u2014 the same for all "+n+" storeys."
+       :"Bottom storey: "+fmt(m.kc[0],0)+" kN/m per column. Top storey: "+fmt(m.kc[n-1],0)+" kN/m \u2014 "+fmt(m.kc[n-1]/m.kc[0],2)+"\u00D7 "+(m.kc[n-1]>=m.kc[0]?"stiffer":"as stiff")+".",
      svg:barsSVG(m)}
   ]});
 
-  /* ---------- 3. matrices ---------- */
-  cls.push({id:"mats",name:"Matrices",frames:[
+  /* ---------- 3. Step 1 of the notes: [K] and [M] ---------- */
+  cls.push({id:"km",name:"K and M",step:1,frames:[
     {k:"03 \u00B7 matrices",t:"Each spring writes into two corners",
-     b:"A spring between two floors puts <b>+k on both diagonal entries</b> and <b>\u2212k on the two off-diagonals joining them</b>. Read the diagonal: it collects every spring that touches that floor.",
+     b:"A spring between two floors puts <b>+k on both diagonal entries</b> and <b>\u2212k on the two off-diagonals joining them</b>. Read the diagonal: it collects every spring that touches that floor \u2014 exactly the k\u2081 + k\u2082, \u2212k\u2082 \u2026 pattern from the notes.",
      fx:EQ([
-       function(){var b=0;return TAG('diagonal')+GL('K'+SUB(11),b)+OP('=')+GL('k'+SUB(1),b+0.16)+OP('+')+GL('k'+SUB(2),b+0.36)+OP('=')+GL(fmt(m.kf[0],1),b+0.56)+OP('+')+GL(fmt(m.kf[1],1),b+0.70)+OP('=')+PI(fmt(m.k[0]+m.k[1],1),b+0.94,'res');},
+       function(){var b=0;return TAG('diagonal')+GL('K'+SUB(11),b)+OP('=')+GL('k'+SUB(1),b+0.16)+OP('+')+GL('k'+SUB(2),b+0.36)+OP('=')+GL(fmt(m.k[0],1),b+0.56)+OP('+')+GL(fmt(m.k[1],1),b+0.70)+OP('=')+PI(fmt(m.k[0]+m.k[1],1),b+0.94,'res');},
        function(){var b=0.95;return TAG('off-diagonal')+GL('K'+SUB(12),b)+OP('=')+OP('\u2212')+GL('k'+SUB(2),b+0.16)+OP('=')+PI(fmt(-m.k[1],1),b+0.40,'res');},
        function(){var b=1.9;return TAG('symmetry')+'every spring is shared by two floors, so '+GL('K = K'+SUP('T'),b+0.1);}
      ]),
@@ -192,6 +303,10 @@ function buildTour(){
        return rows;
      })()),
      svg:matBlockSVG(matRows(m.M,function(v){return v?fmt(v,0):'0';}),{stagger:0.05})},
+  ]});
+
+  /* ---------- 4. Step 2: [K \u2212 \u03C9\u00B2M] = 0, divide by m1, B = \u03C9\u00B2 ---------- */
+  cls.push({id:"kwm",name:"K \u2212 \u03C9\u00B2M",step:2,frames:[
     {k:"03 \u00B7 matrices",t:"Equilibrium of the swinging building",
      b:"Newton for each floor: inertia minus the springs pulling back equals zero. That gives the matrix equation. The zero vector on the right is why this is an eigenvalue problem and not a linear system.",
      fx:EQ([
@@ -200,27 +315,6 @@ function buildTour(){
        function(){var b=1.8;return TAG('note')+'a nonzero \u03C6 exists only when the bracket '+GL('cannot be inverted',b);}
      ]),
      svg:matBlockSVG(matRows(m.K,function(v){return fmt(v/1000,0);}),{stagger:0.05})},
-    {k:"03 \u00B7 matrices",t:"Divide everything by m\u2081",
-     b:"The stiffnesses are in the tens of thousands and the masses in the thousands. Divide <b>every entry of both matrices</b> by the same number, m\u2081, and the mass matrix collapses to 1, 0.5, 0.25 \u2014 something you can check at a glance. Nothing physical changes; the equations are only rescaled.",
-     fx:EQ([
-       function(){var b=0;return GL('K\u2032',b)+OP('=')+F(GL('K',b+0.16),GL('m'+SUB(1),b+0.34),{lg:1})+'\u2003\u2003'+GL('M\u2032',b+0.68)+OP('=')+F(GL('M',b+0.84),GL('m'+SUB(1),b+1.02),{lg:1});},
-       function(){var b=0.95;return GL('M\u2032',b)+OP('=')+'diag(1,\u2002'+fmt(m.ms[1]/m.ms[0],3)+',\u2002'+fmt(m.ms[n-1]/m.ms[0],3)+')';},
-       function(){var b=1.75;return TAG('why it works')+'every row is divided by the same number, so the roots do not move';}
-     ]),
-     n:"m\u2081 = "+fmt(m.ms[0],0)+" kg \u2014 the bottom floor of this problem.",
-     svg:divideSVG(m)},
-    {k:"03 \u00B7 matrices",t:"Now put B = \u03C9\u00B2 on the diagonal",
-     b:"B is the only unknown left. Because M\u2032 is diagonal, B lands on the diagonal and nowhere else: each diagonal cell becomes stiffness minus B times its mass ratio. The nine cells get letter names so the expansion can point at them.",
-     fx:EQ([
-       function(){var b=0;return GL('(K\u2032 \u2212 B M\u2032)',b)+GL('\u03C6',b+0.34)+OP('=')+GL('0',b+0.44);},
-       function(){var b=0.9;return TAG('diagonal')+GL('a',b)+OP('=')+GL(fmt(Kp[0][0],2),b+0.14)+OP('\u2212')+GL('B',b+0.40);},
-       function(){var b=1.8;return TAG('off-diagonal')+GL('b',b)+OP('=')+GL(fmt(Kp[0][1],2),b+0.14)+'\u2014 no B ever appears here';}
-     ]),
-     svg:cofactorSVG(m,0,-1)}
-  ]});
-
-  /* ---------- 4. eigenvalue form ---------- */
-  cls.push({id:"eig",name:"Eigenvalue",frames:[
     {k:"04 \u00B7 eigenvalue",t:"Guess a sway that repeats itself",
      b:"Try every floor moving together, sinusoidally: x = \u03C6 sin \u03C9t. Differentiate twice \u2014 the shape stays, a \u2212\u03C9\u00B2 appears. Substitute and the sine cancels, leaving a statement about shape and rate only.",
      fx:EQ([
@@ -230,22 +324,26 @@ function buildTour(){
      ]),
      n:"Only special \u03C9 make a nonzero \u03C6 possible \u2014 those are the building's natural frequencies.",
      svg:sineSVG(m)},
-    {k:"04 \u00B7 eigenvalue",t:"Read it one row at a time",
-     b:"Row 1 says: every stiffness on that row times the shape value of its floor, added up, must equal \u03C9\u00B2 m\u2081 \u03C6\u2081. Three products on the left, one on the right \u2014 this is the arithmetic behind the eigenvalue.",
+    {k:"03 \u00B7 matrices",t:"Divide everything by m\u2081",
+     b:"The stiffnesses are in the tens of thousands and the masses in the thousands. Divide <b>every entry of both matrices</b> by the same number, m\u2081, and the mass matrix collapses to "+m.ms.map(function(v){return ratioTxt(v/m.ms[0]);}).join(", ")+" \u2014 something you can check at a glance. Nothing physical changes; the equations are only rescaled.",
      fx:EQ([
-       function(){var b=0;return '\u03A3'+SUB('j')+GL('K'+SUB('1j'),b+0.10)+GL('\u03C6'+SUB('j'),b+0.24)+OP('=')+GL('\u03C9'+SUP('2'),b+0.42)+GL('m'+SUB(1),b+0.54)+GL('\u03C6'+SUB(1),b+0.66);},
-       function(){var b=0.85,s='',q,v,neg;
-         for(q=0;q<n;q++){v=m.K[0][q]/1000;neg=v<0;
-           s+=(q===0?(neg?OP('\u2212'):''):OP(neg?'\u2212':'+'))+GL(fmt(Math.abs(v),1),b+0.06+0.28*q)+OP('\u00D7')+GL(fmt(m.phi[0][q],4),b+0.14+0.28*q);}
-         var sums=0;for(q=0;q<n;q++){sums+=(m.K[0][q]/1000)*m.phi[0][q];}
-         return s+OP('=')+PI(fmt(sums,1)+' kN',b+0.10+0.28*n,'res');},
-       function(){var b=2.15;return GL('\u03C9'+SUP('2'),b)+GL('m'+SUB(1),b+0.12)+GL('\u03C6'+SUB(1),b+0.24)+OP('=')+GL(fmt(m.lam[0],1),b+0.40)+OP('\u00D7')+GL(fmt(m.ms[0],0),b+0.52)+OP('\u00D7')+GL(fmt(m.phi[0][0],4),b+0.66)+OP('=')+PI(fmt(m.lam[0]*m.ms[0]*m.phi[0][0]/1000,1)+' kN',b+0.92,'res');}
+       function(){var b=0;return GL('K\u2032',b)+OP('=')+F(GL('K',b+0.16),GL('m'+SUB(1),b+0.34),{lg:1})+'\u2003\u2003'+GL('M\u2032',b+0.68)+OP('=')+F(GL('M',b+0.84),GL('m'+SUB(1),b+1.02),{lg:1});},
+       function(){var b=0.95;return GL('M\u2032',b)+OP('=')+'diag('+m.ms.map(function(v){return ratioTxt(v/m.ms[0]);}).join(',\u2002')+')';},
+       function(){var b=1.75;return TAG('why it works')+'every row is divided by the same number, so the roots do not move';}
      ]),
-     n:"Units work because \u03C6 is read in metres (roof = 1.000 m), so K\u03C6 is a force in kN.",
-     svg:dotWalkSVG(m)}
+     n:"m\u2081 = "+fmt(m.ms[0],0)+" kg \u2014 the bottom floor. In the notes: \u201cdivide "+fmt(m.ms[0],0)+", \u03C9\u00B2 = B\u201d.",
+     svg:divideSVG(m)},
+    {k:"03 \u00B7 matrices",t:"Now put B = \u03C9\u00B2 on the diagonal",
+     b:"B is the only unknown left. Because M\u2032 is diagonal, B lands on the diagonal and nowhere else: each diagonal cell becomes stiffness minus B times its mass ratio. The "+(n===3?"nine":"four")+" cells get letter names so the expansion can point at them.",
+     fx:EQ([
+       function(){var b=0;return GL('(K\u2032 \u2212 B M\u2032)',b)+GL('\u03C6',b+0.34)+OP('=')+GL('0',b+0.44);},
+       function(){var b=0.9;return TAG('diagonal')+GL('a',b)+OP('=')+GL(fmt(Kp[0][0],2),b+0.14)+OP('\u2212')+GL('B',b+0.40);},
+       function(){var b=1.8;return TAG('off-diagonal')+GL('b',b)+OP('=')+GL(fmt(Kp[0][1],2),b+0.14)+'\u2014 no B ever appears here';}
+     ]),
+     svg:cofactorSVG(m,0,-1)}
   ]});
 
-  /* ---------- 5. determinant ---------- */
+  /* ---------- 5. Step 3: det[K \u2212 \u03C9\u00B2M] = 0 by cofactor expansion ---------- */
   var detFrames=[], i2;
   function tdata(j){
     var A=[],r,c2;
@@ -340,12 +438,12 @@ function buildTour(){
     ]),
     n:"Degree "+n+" \u2014 exactly "+n+" roots, hence "+n+" natural frequencies.",
     svg:curveSVG(m,{roots:false})});
-  cls.push({id:"det",name:"Determinant",frames:detFrames});
+  cls.push({id:"det",name:"Determinant",step:3,frames:detFrames});
 
   /* ---------- 6. frequencies ---------- */
   var modeRows=[];
   for(i=0;i<n;i++)modeRows.push('f'+sub(i)+' = '+fmt(m.freq[i],3)+' Hz');
-  cls.push({id:"roots",name:"Frequencies",frames:[
+  cls.push({id:"roots",name:"Frequencies",step:3,frames:[
     {k:"06 \u00B7 roots",t:"Where the curve crosses zero",
      b:"The determinant is a polynomial, so its roots are where the curve meets the axis. All "+n+" roots come out positive \u2014 that is what turns them into frequencies instead of nonsense.",
      n:"Read them off: B\u2081, B\u2082, B\u2083 \u2014 each is \u03C9\u00B2 for one mode.",
@@ -382,8 +480,22 @@ function buildTour(){
     })()
   ]});
 
-  /* ---------- 7. mode shapes ---------- */
-  for(i=0;i<n;i++)cls.push(modeChapter(m,i));
+  /* ---------- 7. Step 4: [K \u2212 \u03C9\u00B2M]{\u03C6} = 0, one chapter per mode ---------- */
+  var ROWCHECK=
+    {k:"04 \u00B7 eigenvalue",t:"Check: read row 1 of K\u03C6 = \u03C9\u00B2M\u03C6",
+     b:"Put \u03C6\u2081 back into the original equation. Row 1 says: every stiffness on that row times the shape value of its floor, added up, must equal \u03C9\u00B2 m\u2081 \u03C6\u2081. Three products on the left, one on the right \u2014 this is the arithmetic behind the eigenvalue.",
+     fx:EQ([
+       function(){var b=0;return '\u03A3'+SUB('j')+GL('K'+SUB('1j'),b+0.10)+GL('\u03C6'+SUB('j'),b+0.24)+OP('=')+GL('\u03C9'+SUP('2'),b+0.42)+GL('m'+SUB(1),b+0.54)+GL('\u03C6'+SUB(1),b+0.66);},
+       function(){var b=0.85,s='',q,v,neg;
+         for(q=0;q<n;q++){v=m.K[0][q]/1000;neg=v<0;
+           s+=(q===0?(neg?OP('\u2212'):''):OP(neg?'\u2212':'+'))+GL(fmt(Math.abs(v),1),b+0.06+0.28*q)+OP('\u00D7')+GL(fmt(m.phi[0][q],4),b+0.14+0.28*q);}
+         var sums=0;for(q=0;q<n;q++){sums+=(m.K[0][q]/1000)*m.phi[0][q];}
+         return s+OP('=')+PI(fmt(sums,1)+' kN',b+0.10+0.28*n,'res');},
+       function(){var b=2.15;return GL('\u03C9'+SUP('2'),b)+GL('m'+SUB(1),b+0.12)+GL('\u03C6'+SUB(1),b+0.24)+OP('=')+GL(fmt(m.lam[0],1),b+0.40)+OP('\u00D7')+GL(fmt(m.ms[0],0),b+0.52)+OP('\u00D7')+GL(fmt(m.phi[0][0],4),b+0.66)+OP('=')+PI(fmt(m.lam[0]*m.ms[0]*m.phi[0][0]/1000,1)+' kN',b+0.92,'res');}
+     ]),
+     n:"Units work because \u03C6 is read in metres (roof = 1.000 m), so K\u03C6 is a force in kN.",
+     svg:dotWalkSVG(m)};
+  for(i=0;i<n;i++){var mc=modeChapter(m,i);if(i===0)mc.frames.push(ROWCHECK);cls.push(mc);}
 
   /* ---------- 8. motion ---------- */
   var motion=[], mno=("0"+(7+n)).slice(-2);
@@ -407,10 +519,31 @@ function buildTour(){
     f:"x(t) = \u03A3 \u03C6\u0302\u1D63 q\u1D63(t)\nq\u1D63(t) = q\u1D63(0) cos(\u03C9\u1D63 t) + q\u0307\u1D63(0)/\u03C9\u1D63 \u00B7 sin(\u03C9\u1D63 t)",
     n:'The '+n+' modal periods are far apart \u2014 '+ratios+'. Start the building in its first-mode shape instead and the ripple vanishes: it would ring cleanly at T'+sub(0)+' = '+fmt(m.per[0],3)+' s.',
     hold:8200, live:"total",svg:""});
-  cls.push({id:"motion",name:"In motion",frames:motion});
+  cls.push({id:"sketch",name:"Sketch",step:5,frames:[
+    {t:"Sketch the mode shapes",
+     b:"This is the drawing the question asks for. For each mode, draw the undeformed building as a straight line, then mark every floor at its mode-shape factor \u2014 positive to one side, negative to the other \u2014 and join the points from the ground up. Where the line crosses the undeformed axis there is a <b>node</b>: a level that does not move in that mode.",
+     fx:EQ(m.phi.map(function(ph,r){return function(){var b=r*0.5;return TAG('mode '+(r+1))+'{\u03C6'+SUB(r+1)+'}'+OP('=')+PI('{ '+ph.map(function(v){return fmt(v,4);}).join(',  ')+' }',b+0.2,'res')+'<span class="hint-inline">'+(r===0?'no node':r+' node'+(r>1?'s':''))+'</span>';};})),
+     n:"Mode r has r \u2212 1 nodes: mode 1 leans one way, mode 2 bends once, mode 3 bends twice. If your sketch breaks that rule, recheck a sign.",
+     hold:7200,svg:sketchSVG(m)}
+  ]});
+  cls.push({id:"motion",name:"In motion",step:5,frames:motion});
 
+  cls.forEach(function(c,ci){
+    var lab=('0'+(ci+1)).slice(-2)+' \u00B7 '+c.name;
+    c.frames.forEach(function(f){f.k=lab;});
+  });
   return cls;
 }
+
+/* the five steps from the class notes; a chapter's .step points into this list */
+var STEPS=[
+  {n:'Given',t:'Column stiffness k = 12EI/h\u00B3'},
+  {n:'Step 1',t:'[K] and [M]'},
+  {n:'Step 2',t:'[K \u2212 \u03C9\u00B2M] = 0'},
+  {n:'Step 3',t:'det[K \u2212 \u03C9\u00B2M] = 0'},
+  {n:'Step 4',t:'[K \u2212 \u03C9\u00B2M]{\u03C6} = 0'},
+  {n:'Step 5',t:'Sketch the mode shapes'}
+];
 
 function polyTerm(m,r){
   var S2=scaledMat(m),Kp=S2.Kp,Mp=S2.Mp;
@@ -702,9 +835,9 @@ function freqSVG(m){
 /* ---------- Newton: three guesses, three roots ---------- */
 function newtonSVG(m){
   var W=520,H=360,n=m.N,S2=scaledMat(m);
-  var co=detPolyN(S2.Kp,S2.Mp), gs=[1000,10000,35000].slice(0,n);
+  var co=detPolyN(S2.Kp,S2.Mp), gs=solveGuesses(m,co);
   var s=svgOpen(W,H),i;
-  s+=t(W/2,28,'one equation  \u00B7  three starting guesses',{fs:11,fill:MUTED,anchor:'middle',weight:600});
+  s+=t(W/2,28,'one equation  \u00B7  '+(n===3?'three':'two')+' starting guesses',{fs:11,fill:MUTED,anchor:'middle',weight:600});
   for(i=0;i<n;i++){
     var y=86+i*86, r=newtonRoot(co,gs[i]), col=MC[i%MC.length];
     var xa=166, xb=352;
@@ -715,7 +848,7 @@ function newtonSVG(m){
     s+=t((xa+xb)/2,y-9,r.it+' steps',{fs:9,fill:FAINT,anchor:'middle'});
     s+=rect(360,y-19,132,38,11,{fill:col,op:.1});
     s+=rect(360,y-19,132,38,11,{stroke:col,sw:1.1,op:.55});
-    s+=t(426,y+4,'X = '+fmt(r.x,4),{fs:11,anchor:'middle',mono:1,fill:col,weight:700});
+    s+=t(426,y+4,'X = '+fmt(r.x,4),{fs:11,anchor:'middle',mono:1,fill:MCT[i%MCT.length],weight:700});
   }
   s+=t(W/2,H-16,'X = B = \u03C9\u00B2   \u00B7   the solver stops when the answer stops moving',{fs:9.5,fill:FAINT,anchor:'middle'});
   s+='</svg>';
@@ -812,7 +945,7 @@ function modeChapter(m,r){
 
   var heads1=[];
   for(i=0;i<n;i++)heads1.push('\u03C6'+SUB(i+1));
-  return {id:"mode"+r,name:"Mode "+(r+1),frames:[
+  return {id:"mode"+r,name:"Mode "+(r+1),step:4,frames:[
     {k:mno+" \u00B7 mode "+(r+1),t:"Substitute B"+sub(r)+" = "+fmt(lam,2)+" into the matrix",
      b:"Put the root back in [K\u2032 \u2212 B M\u2032]. The matrix is now singular, which is the whole point: one row is redundant, so we are free to set the roof to 1.0000.",
      fx:EQ([

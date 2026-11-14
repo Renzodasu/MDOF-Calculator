@@ -1,45 +1,68 @@
-/* Headless smoke test: node src/verify.js   (needs playwright + chrome)
-   Walks every frame of both floor counts and fails on any console/page error or
-   any "undefined"/"NaN" leaking into the rendered narration. */
+/* Headless check of the built page:  node src/verify.js
+   For each worked problem: loads it, walks every tour frame of every chapter, and
+   fails on a console/page error, on "undefined"/"NaN" leaking into the narration,
+   on answers that drift from the reference values below, or on sideways scroll on
+   a phone. Needs Playwright with Chromium (npm i -g playwright). */
 const path = require('path');
-const { chromium } = require('C:/Users/Administrator/AppData/Local/npm-cache/_npx/13ab0715f9f30c2e/node_modules/playwright');
-const url = 'file:///' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
+const { chromium } = require('playwright');
+const url = 'file://' + path.resolve(__dirname, '..', 'index.html').replace(/\\/g, '/');
+
+/* reference values: independent NumPy solution (scipy-free, eig of M^-1 K) */
+const REF = {
+  sir:   { k1: 10903.666, f: [5.314945, 15.782566, 29.785571], phi1: [0.756750, 0.946064, 1] },
+  quiz1: { k1: 46395.8,   f: [6.70631, 19.01471, 26.94345], phi1: [0.44710, 0.80865, 1],
+           phi2: [-1.16574, -0.53826, 1], phi3: [1.91863, -2.08857, 1], kcol: 11598.9 }
+};
+const close = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
+
 (async () => {
-  const b = await chromium.launch({ channel: 'chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
   p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
-  await p.goto(url);
-  await p.waitForTimeout(700);
-  let bad = 0;
-  for (const floors of [3, 2]) {
-    await p.evaluate(n => document.querySelector('#floors-seg').querySelectorAll('button')[n === 3 ? 1 : 0].click(), floors);
-    await p.waitForTimeout(500);
-    const info = await p.evaluate(() => ({ names: CHAPTERS.map(c => c.name), frames: CHAPTERS.map(c => c.frames.length) }));
-    let fx = 0, fr = 0, gq = 0, frames = 0;
-    for (let c = 0; c < info.frames.length; c++) for (let f = 0; f < info.frames[c]; f++) {
-      await p.evaluate(([c, f]) => show(c, f), [c, f]);
-      await p.waitForTimeout(45);
-      frames++;
-      const r = await p.evaluate(() => {
-        const t = document.querySelector('#n-formula');
-        return { math: t.classList.contains('math'), fr: t.querySelectorAll('.fr').length, gq: t.querySelectorAll('.gq').length,
-          bad: /undefined|NaN/.test(t.textContent + (document.querySelector('#stage-svg') || {}).textContent) };
-      });
-      if (r.math) fx++;
-      fr += r.fr; gq += r.gq;
-      if (r.bad) { bad++; console.log('  BAD TEXT at', c, f); }
+  let fail = 0;
+  for (const key of ['sir', 'quiz1']) {
+    await p.goto(url + '?p=' + key);
+    await p.waitForTimeout(600);
+    for (const floors of key === 'sir' ? [3, 2] : [3]) {
+      await p.evaluate(n => { S.n = n; recompute(); }, floors);
+      await p.waitForTimeout(250);
+      const info = await p.evaluate(() => ({ names: CHAPTERS.map(c => c.name), frames: CHAPTERS.map(c => c.frames.length), steps: CHAPTERS.map(c => c.step) }));
+      let frames = 0, bad = 0;
+      for (let c = 0; c < info.frames.length; c++) for (let f = 0; f < info.frames[c]; f++) {
+        await p.evaluate(([c, f]) => show(c, f), [c, f]);
+        frames++;
+        const r = await p.evaluate(() => /undefined|NaN|Infinity/.test(
+          document.querySelector('.narr').textContent + (document.querySelector('#stage-svg') || {}).textContent));
+        if (r) { bad++; console.log('  BAD TEXT', key, floors + 'S', 'chapter', c, 'frame', f); }
+      }
+      fail += bad;
+      console.log(key.padEnd(6), floors + 'S', 'chapters=' + info.frames.length, 'frames=' + frames,
+        'steps=[' + info.steps.join('') + ']', bad ? 'BAD=' + bad : 'text ok');
+      console.log('        ' + info.names.join(' | '));
     }
-    const chip = await p.evaluate(() => document.querySelector('#top-chip').textContent.replace(/\s+/g, ' ').trim());
-    console.log(floors + 'S  tabs=' + info.frames.length + '  frames=' + frames + '  chapters=[' + info.names.join(', ') + ']');
-    console.log('    typeset frames=' + fx + '  fractions=' + fr + '  glow spans=' + gq + '  chip="' + chip + '"');
+    await p.evaluate(() => { S.n = 3; recompute(); });
+    const m = await p.evaluate(() => ({ k1: model.k[0], kc: model.kc[0], f: model.freq, phi: model.phi,
+      ans: document.querySelector('#ans-modes').textContent, sk: document.querySelectorAll('#ans-sketch circle').length,
+      tag: document.querySelector('#top-chip').textContent, preset: presetOf(S) }));
+    const R = REF[key];
+    const checks = [['k storey 1', m.k1, R.k1, 1e-4], ...R.f.map((v, i) => ['f' + (i + 1), m.f[i], v, 1e-4]),
+      ...R.phi1.map((v, i) => ['phi1[' + i + ']', m.phi[0][i], v, 1e-4])];
+    if (R.phi2) checks.push(...R.phi2.map((v, i) => ['phi2[' + i + ']', m.phi[1][i], v, 1e-4]), ...R.phi3.map((v, i) => ['phi3[' + i + ']', m.phi[2][i], v, 1e-4]), ['k column', m.kc, R.kcol, 1e-4]);
+    const off = checks.filter(c => !close(c[1], c[2], c[3]));
+    off.forEach(c => console.log('  MISMATCH', key, c[0], c[1], 'expected', c[2]));
+    fail += off.length;
+    console.log('        numbers', off.length ? 'MISMATCH' : 'match reference (' + checks.length + ' values)', '· chip "' + m.tag.trim() + '" · preset=' + m.preset);
   }
-  await p.setViewportSize({ width: 390, height: 844 });
-  await p.waitForTimeout(400);
-  const m = await p.evaluate(() => ({ doc: document.documentElement.scrollWidth, win: window.innerWidth }));
-  console.log('mobile  scrollWidth=' + m.doc + ' viewport=' + m.win + (m.doc > m.win ? '  OVERFLOW' : '  ok'));
+  for (const w of [390, 768]) {
+    await p.setViewportSize({ width: w, height: 844 });
+    await p.goto(url + '?p=quiz1'); await p.waitForTimeout(500);
+    const o = await p.evaluate(() => ({ doc: document.documentElement.scrollWidth, win: window.innerWidth }));
+    console.log('width ' + w + '  scrollWidth=' + o.doc + (o.doc > o.win ? '  OVERFLOW' : '  ok'));
+    if (o.doc > o.win) fail++;
+  }
   console.log(errs.length ? 'ERRORS\n' + errs.slice(0, 8).join('\n') : 'no console errors');
   await b.close();
-  process.exit(errs.length || bad || m.doc > m.win ? 1 : 0);
+  process.exit(errs.length || fail ? 1 : 0);
 })();
