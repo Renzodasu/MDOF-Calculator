@@ -45,7 +45,8 @@ const close = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
     await p.evaluate(() => { S.n = 3; recompute(); });
     const m = await p.evaluate(() => ({ k1: model.k[0], kc: model.kc[0], f: model.freq, phi: model.phi,
       ans: document.querySelector('#ans-modes').textContent, sk: document.querySelectorAll('#ans-sketch circle').length,
-      tag: document.querySelector('#top-chip').textContent, preset: presetOf(S) }));
+      tag: (document.querySelector('#prob-seg button.on')||{textContent:'(own problem)'}).textContent, preset: presetOf(S),
+      f4: document.querySelector('#ans-f').textContent }));
     const R = REF[key];
     const checks = [['k storey 1', m.k1, R.k1, 1e-4], ...R.f.map((v, i) => ['f' + (i + 1), m.f[i], v, 1e-4]),
       ...R.phi1.map((v, i) => ['phi1[' + i + ']', m.phi[0][i], v, 1e-4])];
@@ -53,7 +54,8 @@ const close = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
     const off = checks.filter(c => !close(c[1], c[2], c[3]));
     off.forEach(c => console.log('  MISMATCH', key, c[0], c[1], 'expected', c[2]));
     fail += off.length;
-    console.log('        numbers', off.length ? 'MISMATCH' : 'match reference (' + checks.length + ' values)', '· chip "' + m.tag.trim() + '" · preset=' + m.preset);
+    if (!/\d\.\d{4}\b/.test(m.f4) || /\d\.\d{1,3}(?!\d)/.test(m.f4)) { console.log('  PRECISION: frequency table is not 4 dp'); fail++; }
+    console.log('        numbers', off.length ? 'MISMATCH' : 'match reference (' + checks.length + ' values)', '· switch "' + m.tag.trim() + '" · preset=' + m.preset);
   }
   for (const w of [390, 768]) {
     await p.setViewportSize({ width: w, height: 844 });

@@ -117,7 +117,7 @@ function reportText(){
   L.push('(1) Stiffness');
   if(m.p.geom){
     L.push('  E = '+fmt(m.Ec,1)+' MPa, I = '+sci(m.I,4)+' m4, EI = '+fmt(m.EI,1)+' kN.m2 per column');
-    for(i=0;i<n;i++)L.push('  storey '+(i+1)+' (h = '+fmt(m.hs[i],2)+' m): k column = 12EI/h3 = '+fmt(m.kc[i],1)+' kN/m, k storey = '+m.cols+' x '+fmt(m.kc[i],1)+' = '+fmt(m.kf[i],1)+' kN/m');
+    for(i=0;i<n;i++)L.push('  storey '+(i+1)+' (h = '+gnum(m.hs[i])+' m): k column = 12EI/h3 = '+fmt(m.kc[i],1)+' kN/m, k storey = '+m.cols+' x '+fmt(m.kc[i],1)+' = '+fmt(m.kf[i],1)+' kN/m');
   } else for(i=0;i<n;i++)L.push('  storey '+(i+1)+': k = '+fmt(m.k[i],1)+' kN/m (given)');
   L.push('(2) Natural frequencies and periods');
   for(i=0;i<n;i++)L.push('  mode '+(i+1)+': w = '+fmt(m.omega[i],4)+' rad/s, f = '+fmt(m.freq[i],4)+' Hz, T = '+fmt(m.per[i],5)+' s');
@@ -201,7 +201,7 @@ function liveSVG(disp,o){
   s+=line(250,baseY-6,250,topY-14,{stroke:'#dedee8',w:1,dash:'4 6'});
   if(o.cap)s+=t(30,26,o.cap,{fs:10.5,fill:MUTED,weight:600});
   if(o.warn)s+=t(30,42,o.warn,{fs:9.4,fill:AMBER,weight:700});
-  if(o.roof!=null)s+=t(508,26,'roof '+fmt(o.roof,1)+' mm',{fs:10.5,fill:ACCENT,anchor:'end',weight:700});
+  if(o.roof!=null)s+=t(508,26,'roof '+fmtRaw(o.roof,1)+' mm',{fs:10.5,fill:ACCENT,anchor:'end',weight:700});
   var i;
   for(i=0;i<n;i++){
     var y1=baseY-i*stepY,y2=baseY-(i+1)*stepY;
@@ -247,8 +247,8 @@ function liveSVG(disp,o){
     s+=line(mxp,346,mxp,sy+6,{stroke:ACCENT,w:1,dash:'3 4',op:.45});
     s+=dot(mxp,myp,4.2,ACCENT);
     s+=t(sx0,sy+18,'0 s',{fs:9,fill:FAINT});
-    s+=t(sx1,sy+18,fmt(st.tMax,2)+' s',{fs:9,fill:FAINT,anchor:'end'});
-    s+=t(sx1,sy-amp-6,'peak \u00B1'+fmt(st.peak*1000,1)+' mm',{fs:9,fill:FAINT,anchor:'end'});
+    s+=t(sx1,sy+18,fmtRaw(st.tMax,2)+' s',{fs:9,fill:FAINT,anchor:'end'});
+    s+=t(sx1,sy-amp-6,'peak \u00B1'+fmtRaw(st.peak*1000,1)+' mm',{fs:9,fill:FAINT,anchor:'end'});
   }
   s+='</svg>';
   return s;
@@ -308,7 +308,7 @@ function drawLive(el){
     var xr=responseAt(model,ic.x0,ic.v0,ic.zeta,tNow);
     var mm=[];
     for(i=0;i<n;i++){disp.push(xr[i]/st.peak*46);mm.push(xr[i]*1000);}
-    $('#stage-svg').innerHTML=liveSVG(disp,{cap:'all modes superimposed \u00B7 t = '+fmt(tNow,3)+' s',roof:xr[n-1]*1000,mm:mm,mmPeak:st.peak*1000,strip:{hist:st.hist,tMax:st.tMax,peak:st.peak,tNow:tNow,nowX:xr[n-1]}});
+    $('#stage-svg').innerHTML=liveSVG(disp,{cap:'all modes superimposed \u00B7 t = '+fmtRaw(tNow,3)+' s',roof:xr[n-1]*1000,mm:mm,mmPeak:st.peak*1000,strip:{hist:st.hist,tMax:st.tMax,peak:st.peak,tNow:tNow,nowX:xr[n-1]}});
   }
   LIVE.disp=disp.map(function(v){return v/46;});
 }
@@ -333,16 +333,15 @@ function renderHero(){
   var m=model,n=m.N;
   var W=['zero','one','two','three'];
   $('#hero-n').textContent=W[n]||n;
-  $('#top-chip').innerHTML='<i></i><span>'+escapeHTML(modelTag(m))+'</span>';
   countTo($('#h-f1'),fmt(m.freq[0],3));
   countTo($('#h-t1'),fmt(m.per[0],4));
-  countTo($('#h-k1'),fmt(m.k[0],0));
+  countTo($('#h-k1'),fmt(m.k[0],4));
   $('#h-k1u').textContent=m.p.geom?'kN/m \u00B7 '+m.cols+' \u00D7 12EI/h\u2081\u00B3':'kN/m \u00B7 given';
-  $('#h-w1').textContent=fmt(m.omega[0],2);
-  $('#h-roof').textContent=fmt(m.phi[0][n-1]/m.phi[0][0],2);
   $('#hero-svg').innerHTML=buildingSVG(m,{modeShape:m.phi[0],modeScale:56,modeColor:MC[0],masses:true,topY:70});
-  $('#tour-live-chip').textContent=n+' storeys \u00B7 '+modelTag(m);
-  renderPresets('#hero-presets,#build-presets');
+  renderPresets('#build-presets');
+  var cur=presetOf(S);
+  $$('#prob-seg button').forEach(function(b){var on=b.getAttribute('data-p')===cur;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
+  syncSeg($('#prob-seg'));
 }
 
 /* ================= 4. answers ================= */
@@ -356,8 +355,8 @@ function renderAnswers(){
     kh+='<div class="res-big"><div><div class="k">One column, storey 1</div><div class="v">'+fmt(m.kc[0],1)+'</div><div class="u">kN/m \u00B7 12EI/h\u2081\u00B3</div></div>'+
         '<div><div class="k">Storey 1 ('+m.cols+' cols)</div><div class="v">'+fmt(m.kf[0],1)+'</div><div class="u">kN/m \u00B7 equivalent stiffness</div></div></div>';
     kh+='<table class="t"><thead><tr><th>Storey</th><th>h (m)</th><th>k column</th><th>k storey</th></tr></thead><tbody>';
-    for(i=0;i<n;i++)kh+='<tr><td>'+(i+1)+'</td><td>'+fmt(m.hs[i],2)+'</td><td>'+fmt(m.kc[i],1)+'</td><td><b>'+fmt(m.kf[i],1)+'</b></td></tr>';
-    kh+='</tbody></table><div class="kv" style="margin-top:6px"><span class="k">E \u00B7 I \u00B7 EI</span><span class="v">'+fmt(m.Ec,0)+' MPa \u00B7 '+sci(m.I,4)+' m\u2074 \u00B7 '+fmt(m.EI,0)+' kN\u00B7m\u00B2</span></div>';
+    for(i=0;i<n;i++)kh+='<tr><td>'+(i+1)+'</td><td>'+gnum(m.hs[i])+'</td><td>'+fmt(m.kc[i],1)+'</td><td><b>'+fmt(m.kf[i],1)+'</b></td></tr>';
+    kh+='</tbody></table><div class="kv" style="margin-top:6px"><span class="k">E \u00B7 I \u00B7 EI</span><span class="v">'+fmt(m.Ec,4)+' MPa \u00B7 '+sci(m.I,4)+' m\u2074 \u00B7 '+fmt(m.EI,4)+' kN\u00B7m\u00B2</span></div>';
     kh+='<div class="kv"><span class="k">Units</span><span class="v">kN/m</span></div>';
   } else {
     $('#ans-k-hint').textContent='Storey stiffness typed directly in the builder.';
@@ -398,7 +397,7 @@ function renderAnswers(){
     for(j=0;j<n;j++){KA[i].push(fmt(m.K[i][j]/1000,1));MA[i].push(i===j?fmt(m.M[i][i],0):'0');}
   }
   var Kt=matText(KA),Mt=matText(MA);
-  $('#ans-mat').innerHTML='<div class="hint">K, kN/m</div><pre class="mat">'+Kt+'</pre><div class="hint" style="margin-top:8px">M, kg</div><pre class="mat">'+Mt+'</pre>';
+  if($('#ans-mat'))$('#ans-mat').innerHTML='<div class="hint">K, kN/m</div><pre class="mat">'+Kt+'</pre><div class="hint" style="margin-top:8px">M, kg</div><pre class="mat">'+Mt+'</pre>';
 
   /* checks */
   var ch='',ok;
@@ -541,7 +540,7 @@ function renderStoreys(){
     if(S.geom)h+='<input class="inp" data-h="'+i+'" type="number" inputmode="decimal" step="0.1" min="0.5" max="30" value="'+S.hs[i]+'" aria-label="Storey '+(i+1)+' height in metres">';
     else h+='<input class="inp" data-k="'+i+'" type="number" inputmode="decimal" step="100" min="1" value="'+S.ks[i]+'" aria-label="Storey '+(i+1)+' stiffness in kN per metre">';
     h+='<input class="inp" data-m="'+i+'" type="number" inputmode="decimal" step="100" min="1" value="'+S.ms[i]+'" aria-label="Floor '+(i+1)+' mass in kilograms">';
-    h+='<span class="sk">'+fmt(model.k[i],0)+'</span></div>';
+    h+='<span class="sk">'+fmt(model.k[i],4)+'</span></div>';
   }
   $('#storey-tbl').innerHTML=h;
   $$('#storey-tbl input').forEach(function(el){
@@ -563,9 +562,9 @@ function renderStoreys(){
   });
   var m=model, d='';
   if(S.geom){
-    d+='<div><div class="k">E</div><div class="v">'+fmt(m.Ec,0)+' MPa</div></div>';
+    d+='<div><div class="k">E</div><div class="v">'+fmt(m.Ec,4)+' MPa</div></div>';
     d+='<div><div class="k">I</div><div class="v">'+sci(m.I,4)+' m\u2074</div></div>';
-    d+='<div><div class="k">EI</div><div class="v">'+fmt(m.EI,0)+' kN\u00B7m\u00B2</div></div>';
+    d+='<div><div class="k">EI</div><div class="v">'+fmt(m.EI,4)+' kN\u00B7m\u00B2</div></div>';
     d+='<div><div class="k">k column, storey 1</div><div class="v">'+fmt(m.kc[0],1)+' kN/m</div></div>';
   }
   $('#derived').innerHTML=d;
@@ -589,7 +588,7 @@ function syncInputs(){
   $$('#mat-seg button').forEach(function(b){var on=b.getAttribute('data-m')===S.mat;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
   $$('#sec-seg button').forEach(function(b){var on=b.getAttribute('data-s')===S.sec;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});
   var bad=S.sec==='hss'&&!(S.t>0&&2*S.t<S.B), et=$('#err-t');
-  et.hidden=!bad;et.textContent=bad?'The wall must be thinner than half of B ('+fmt(S.B/2,1)+' mm).':'';
+  et.hidden=!bad;et.textContent=bad?'The wall must be thinner than half of B ('+gnum(S.B/2)+' mm).':'';
   if(bad)$('#in-t').setAttribute('aria-invalid','true');else $('#in-t').removeAttribute('aria-invalid');
 }
 function renderPreview(){
@@ -618,13 +617,13 @@ function renderMethod(){
   var Krows=[],Mrows=[],Kp=[];
   for(i=0;i<n;i++){Krows.push([]);Mrows.push([]);Kp.push([]);for(j=0;j<n;j++){Krows[i].push(fmt(m.K[i][j]/1000,1));Mrows[i].push(i===j?fmt(m.M[i][i],0):'0');Kp[i].push(fmt(m.K[i][j]/m.ms[0],1));}}
   var blocks=[];
-  var eL=m.mat==='conc'?'E  = 4700\u221Af\u2032c = 4700\u221A'+fmt(m.p.fc,0)+' = '+fmt(m.Ec,1)+' MPa':'E  = '+fmt(m.Ec,0)+' MPa ('+(m.mat==='steel'?'steel, given':'given')+')';
+  var eL=m.mat==='conc'?'E  = 4700\u221Af\u2032c = 4700\u221A'+fmt(m.p.fc,0)+' = '+fmt(m.Ec,1)+' MPa':'E  = '+fmt(m.Ec,4)+' MPa ('+(m.mat==='steel'?'steel, given':'given')+')';
   var iL=m.sec==='hss'?'I  = [B\u2074 \u2212 (B\u22122t)\u2074]/12 = ['+fmt(m.p.B/1000,3)+'\u2074 \u2212 '+fmt((m.p.B-2*m.p.t)/1000,3)+'\u2074]/12 = '+sci(m.I,4)+' m\u2074'
-    :m.sec==='custom'?'I  = '+fmt(m.p.Ix,2)+'\u00D710\u2076 mm\u2074 = '+sci(m.I,4)+' m\u2074 (given)':'I  = bh\u00B3/12 = '+fmt(m.p.b/1000,3)+'\u00D7'+fmt(m.p.h/1000,3)+'\u00B3/12 = '+sci(m.I,4)+' m\u2074';
+    :m.sec==='custom'?'I  = '+gnum(m.p.Ix)+'\u00D710\u2076 mm\u2074 = '+sci(m.I,4)+' m\u2074 (given)':'I  = bh\u00B3/12 = '+fmt(m.p.b/1000,3)+'\u00D7'+fmt(m.p.h/1000,3)+'\u00B3/12 = '+sci(m.I,4)+' m\u2074';
   blocks.push({t:'Model and assumptions',b:
     '<p>A '+n+'-storey shear frame: rigid floor slabs, axially rigid columns, all mass lumped at the floors. Each storey deforms only by shearing its columns, so one sideways displacement per floor \u2014 '+n+' degrees of freedom.</p>'+
     (m.p.geom?'<p>Columns are fixed against rotation at both ends (stiff beams), hence k = 12EI/h\u00B3 per column, and '+m.cols+' columns act in parallel.</p>'+
-    '<pre class="mat">'+eL+'\n'+iL+'\nEI = '+fmt(m.EI,1)+' kN\u00B7m\u00B2\n'+m.hs.map(function(hh,ix){return 'k'+(ix+1)+' = '+m.cols+'\u00B712EI/'+fmt(hh,3)+'\u00B3 = '+m.cols+' \u00D7 '+fmt(m.kc[ix],1)+' = '+fmt(m.kf[ix],1)+' kN/m';}).join('\n')+'</pre>'
+    '<pre class="mat">'+eL+'\n'+iL+'\nEI = '+fmt(m.EI,1)+' kN\u00B7m\u00B2\n'+m.hs.map(function(hh,ix){return 'k'+(ix+1)+' = '+m.cols+'\u00B712EI/'+gnum(hh)+'\u00B3 = '+m.cols+' \u00D7 '+fmt(m.kc[ix],1)+' = '+fmt(m.kf[ix],1)+' kN/m';}).join('\n')+'</pre>'
     :'<p>The storey stiffnesses are given directly:</p><pre class="mat">'+m.k.map(function(v,ix){return 'k'+(ix+1)+' = '+fmt(v,1)+' kN/m';}).join('\n')+'</pre>')});
   blocks.push({t:'Mass and stiffness matrices',b:
     '<p>Assembling each spring twice with opposite signs gives the tri-diagonal stiffness matrix; the masses sit only on the diagonal.</p>'+
@@ -645,27 +644,18 @@ function renderMethod(){
   for(i=0;i<n;i++)bs+='\u03C6'+(i+1)+' = [ '+m.phi[i].map(function(v){return fmt(v,4);}).join(',  ')+' ]\n';
   bs+='</pre>';
   blocks.push({t:'Mode shapes by back-substitution',b:bs});
-  blocks.push({t:'Checks that were run',b:
-    '<p>Every number on the page comes from these identities; they are recomputed live.</p>'+
-    '<ul style="margin:8px 0 0 18px;padding:0">'+
-    '<li><b>(K \u2212 \u03BB\u1D63M)\u03C6\u1D63 = 0</b> \u2014 the eigenvalue equation, residual near machine precision.</li>'+
-    '<li><b>\u03A3\u03BB\u1D63 = trace(M\u207B\u00B9K)</b> \u2014 the sum of the roots equals the trace.</li>'+
-    '<li><b>\u03C6\u1D63\u1D40M\u03C6\u209B = 0</b> for r \u2260 s \u2014 modes are orthogonal through the mass matrix.</li>'+
-    '<li><b>\u03A6\u03A6\u1D40M = I</b> with mass-normalised shapes \u2014 the modal basis is complete.</li>'+
-    '<li>The static shape under self weight gives a Rayleigh estimate of f\u2081 within a fraction of a percent.</li>'+
-    '</ul>'});
   blocks.push({t:'How the motion is computed',b:
     '<p>With x\u2080 and v\u2080 the initial displacement and velocity, each modal coordinate follows</p>'+
     '<pre class="mat">q\u1D63(t) = q\u1D63(0)\u00B7cos(\u03C9\u1D63t) + q\u0307\u1D63(0)/\u03C9\u1D63\u00B7sin(\u03C9\u1D63t)\nx(t) = \u03A3 \u03C6\u0302\u1D63 q\u1D63(t)</pre>'+
     '<p>where \u03C6\u0302 are mass-normalised. Damping (if you set \u03B6 &gt; 0) multiplies each mode by e^(\u2212\u03B6\u03C9t) and shortens its period to \u03C9\u221A(1\u2212\u03B6\u00B2).</p>'+
     '<p>The animation slows the real motion down by roughly 13\u201315\u00D7 so the eye can follow it; the relative speeds of the modes are kept exact \u2014 a mode with twice the frequency really does vibrate twice as fast on screen.</p>'});
   var h='';
-  for(i=0;i<blocks.length;i++)h+='<details class="mtd" '+(i===0?'open':'')+'><summary>'+blocks[i].t+'</summary><div class="mtd-body">'+blocks[i].b+'</div></details>';
+  for(i=0;i<blocks.length;i++)h+='<details class="mtd"><summary>'+blocks[i].t+'</summary><div class="mtd-body">'+blocks[i].b+'</div></details>';
   $('#method-list').innerHTML=h;
 }
 
 /* ================= 6b. calculator keys ================= */
-function calcNum(v){return Math.abs(v-1)<1e-12?'1':String(Number(v.toPrecision(10))).replace('-','\u2212');}
+function calcNum(v){return Math.abs(v-1)<1e-12?'1':v.toFixed(4).replace('-','\u2212');}
 function renderCalc(){
   var m=model,n=m.N,sm=scaledMat(m),P=detPolyN(sm.Kp,sm.Mp),lead=P[0],i,h='';
   function key(s){return '<kbd>'+s+'</kbd>';}
@@ -774,8 +764,8 @@ function boot(){
   +'.storeys .hd,.storeys .sr{grid-template-columns:52px 1fr 1fr 74px}'
   +'.storeys .sk{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right}'
   +'.chapters{overflow-x:auto;scrollbar-width:none}.chapters::-webkit-scrollbar{display:none}'
-  +'html{overflow-anchor:none}@media (min-width:981px){.narr .controls{position:sticky;bottom:-26px;margin-bottom:-26px;padding:12px 0 26px;background:linear-gradient(transparent,#fff 14px)}.narr .kbdhint{display:none}}.tour-body{height:640px}.stage{min-height:0;overflow:hidden}.narr{min-height:0;overflow-y:auto}.tour-body.wide{grid-template-columns:1.55fr .8fr}'
-  +'.stage-views{position:relative;flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}.stage-views.both{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}'
+  +'html{overflow-anchor:none}@media (min-width:981px){.narr .controls{position:sticky;bottom:-26px;margin-bottom:-26px;padding:12px 0 26px;background:linear-gradient(transparent,#fff 14px)}.narr .kbdhint{display:none}}.tour-body{height:640px;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}.stage{min-height:0;overflow:hidden}.narr{min-height:0;overflow-y:auto}.tour-body.wide{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}'
+  +'.stage-views{position:relative;flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}.stage-views.both{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr)}'
   +'#stage-svg{min-height:0;display:flex;align-items:center;justify-content:center}#stage-svg svg{width:100%;height:100%;max-height:100%}#stage-svg[hidden],#stage-3d[hidden]{display:none}'
   +'#stage-3d{position:relative;min-height:0;border-radius:18px;overflow:hidden;background:radial-gradient(90% 80% at 50% 30%,#fff,#f1f1f7)}'
   +'#stage-3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}#stage-3d canvas:active{cursor:grabbing}'
@@ -784,7 +774,7 @@ function boot(){
   +'#ans-calc kbd{display:inline-block;min-width:26px;padding:2px 7px;border:1px solid var(--line);border-bottom-width:2px;border-radius:7px;background:#fff;font:650 11.5px/1.4 var(--mono);text-align:center;color:var(--ink)}'
   +'.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.calc-h{font-size:12.5px;font-weight:700;margin-bottom:4px}'
   +'.calc-steps{margin:0;padding-left:18px;line-height:2.2;font-size:13px}.calc-steps span{color:var(--muted);font-size:12px}'
-  +'@media (max-width:980px){.tour-body,.tour-body.wide{height:auto;grid-template-columns:1fr}.stage{height:380px}.narr{overflow:visible}.stage-views.both{gap:8px}}@media (max-width:560px){.stage{height:350px}}'
+  +'@media (max-width:980px){.tour-body,.tour-body.wide{height:auto;grid-template-columns:1fr}.stage{height:300px}.stage-views.both{grid-template-columns:1fr 1fr;grid-template-rows:none}.narr{overflow:visible}.stage-views.both{gap:8px}}@media (max-width:560px){.stage{height:260px}}'
   +'@media (max-width:560px){.calc-grid{grid-template-columns:1fr}}'
   +'</style>');
   $$('.ico-slot[data-ic]').forEach(function(el){el.innerHTML=icon(el.getAttribute('data-ic'));});
@@ -875,6 +865,12 @@ function boot(){
     b.addEventListener('click',function(){S.sec=b.getAttribute('data-s');recompute();});
   });
   $('#print').addEventListener('click',function(){window.print();});
+  $$('#prob-seg button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var k=b.getAttribute('data-p');S=freshState(k);recompute();
+      toast('Now solving '+PRESETS[k].label+' \u2014 '+PRESETS[k].sub);
+    });
+  });
   $('#start-tour').addEventListener('click',function(){setTimeout(function(){var f=$('#chapters button.on');if(f)f.focus({preventScroll:true});},450);});
   $('#in-zeta').addEventListener('input',function(){var v=parseFloat(this.value);if(isFinite(v)){S.zeta=Math.max(0,Math.min(20,v));recompute();}});
   $('#in-ic').addEventListener('change',function(){S.ic=this.value;recompute();});

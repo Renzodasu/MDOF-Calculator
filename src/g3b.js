@@ -11,7 +11,7 @@ function pnum(c,d){
     var p=c.length-1-i, v=c[i];
     if(Math.abs(v)<1e-12)continue;
     var sign=v<0?" \u2212 ":" + ";
-    var av=Math.abs(v), txt=(Math.abs(av-1)<1e-9&&p>0)?"":fmt(av,(av>=1e5?0:(av>=1000?2:3)));
+    var av=Math.abs(v), txt=(Math.abs(av-1)<1e-9&&p>0)?"":fmt(av,4);
     var pw=p===0?"":p===1?"B":("B"+sup(p));
     s+=(s?sign:(v<0?"\u2212":""))+txt+pw;
   }
@@ -78,11 +78,11 @@ function sectionSVG(m){
     s+=t(x-26,y+h/2+4,(m.sec==='hss'?'B':'h')+' = '+fmt(bh,0)+' mm',{fs:11,anchor:'end',fill:MUTED});
   }
   s+=t(352,104,eLine,{fs:13});
-  s+=t(352,130,'= '+fmt(m.Ec,0)+' MPa',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+=t(352,130,'= '+fmt(m.Ec,4)+' MPa',{fs:13,mono:1,fill:ACCENT,weight:600});
   s+=t(352,176,iLine,{fs:m.sec==='hss'?12:13});
   s+=t(352,202,'= '+sci(m.I,4)+' m\u2074',{fs:13,mono:1,fill:ACCENT,weight:600});
   s+=t(352,248,'EI = E \u00B7 I',{fs:13});
-  s+=t(352,274,'= '+fmt(m.EI,0)+' kN\u00B7m\u00B2',{fs:13,mono:1,fill:ACCENT,weight:600});
+  s+=t(352,274,'= '+fmt(m.EI,4)+' kN\u00B7m\u00B2',{fs:13,mono:1,fill:ACCENT,weight:600});
   s+='</svg>';
   return s;
 }
@@ -146,11 +146,11 @@ function barsSVG(m){
   for(i=0;i<n;i++){
     var h=hMax*m.k[i]/kmax, x=x0+i*(bw+gap);
     s+=rect(x,baseY-h,bw,h,9,{fill:MC[i%MC.length],op:.14,stroke:MC[i%MC.length],sw:1.6,anim:'pop',delay:(0.1*i).toFixed(2)});
-    s+=t(x+bw/2,baseY-h-12,'k'+sub(i)+' = '+fmt(m.k[i],0),{fs:11,anchor:'middle',fill:MCT[i%MCT.length],weight:700});
+    s+=t(x+bw/2,baseY-h-12,'k'+sub(i)+' = '+fmt(m.k[i],4),{fs:11,anchor:'middle',fill:MCT[i%MCT.length],weight:700});
     s+=t(x+bw/2,baseY+20,'storey '+(i+1),{fs:11,anchor:'middle',fill:MUTED});
     if(m.p.geom){
-      s+=t(x+bw/2,baseY+36,'h = '+fmt(m.hs[i],2)+' m',{fs:10,anchor:'middle',fill:FAINT});
-      s+=t(x+bw/2,baseY+52,'k_col = '+fmt(m.kc[i],0),{fs:10,anchor:'middle',fill:FAINT,mono:1});
+      s+=t(x+bw/2,baseY+36,'h = '+gnum(m.hs[i])+' m',{fs:10,anchor:'middle',fill:FAINT});
+      s+=t(x+bw/2,baseY+52,'k_col = '+fmt(m.kc[i],4),{fs:10,anchor:'middle',fill:FAINT,mono:1});
     }
   }
   s+=t(60,44,m.p.geom?'storey stiffness k = '+m.cols+' \u00D7 12EI/h\u00B3  (kN/m)':'storey stiffness k, as given  (kN/m)',{fs:12,fill:MUTED});
@@ -199,11 +199,11 @@ function buildTour(){
   var cls=[], i;
 
   var NW=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
-  var hsTxt=m.hs.map(function(h,ix){return 'h'+sub(ix)+' = '+fmt(h,h%1?2:0)+' m';}).join(', ');
+  var hsTxt=m.hs.map(function(h,ix){return 'h'+sub(ix)+' = '+gnum(h)+' m';}).join(', ');
   var sameH=m.hs.every(function(h){return h===m.hs[0];});
   var sirH=n===3&&m.hs[0]===4&&m.hs[1]===3.2&&m.hs[2]===3;
   var frameNote=sirH?"Sample Problem 1 fixes the heights twice over: h\u2081 = 1.25h\u2082 = 1.3333h\u2083 = 4 m, which gives "+hsTxt+"."
-    :sameH?"Every storey has the same height, h = "+fmt(m.hs[0],2)+" m, so every storey will get the same stiffness."
+    :sameH?"Every storey has the same height, h = "+gnum(m.hs[0])+" m, so every storey will get the same stiffness."
     :"Storey heights from the sketch: "+hsTxt+".";
 
   /* ---------- 1. the frame ---------- */
@@ -223,10 +223,10 @@ function buildTour(){
   var eRow, eBody, iRow;
   if(m.mat==='conc'){
     eBody="Concrete stiffness follows its strength, E = 4700\u221Af\u2032c (ACI 318).";
-    eRow=function(){var b=0;return GL('E',b)+OP('=')+GL('4700',b+0.14)+SQ(GL('f\u2032'+SUB('c'),b+0.36))+OP('=')+GL('4700',b+0.58)+SQ(GL(fmt(p.fc,0),b+0.76))+OP('=')+PI(fmt(m.Ec,0)+' MPa',b+1.0,'res');};
+    eRow=function(){var b=0;return GL('E',b)+OP('=')+GL('4700',b+0.14)+SQ(GL('f\u2032'+SUB('c'),b+0.36))+OP('=')+GL('4700',b+0.58)+SQ(GL(fmt(p.fc,0),b+0.76))+OP('=')+PI(fmt(m.Ec,4)+' MPa',b+1.0,'res');};
   } else {
     eBody=m.mat==='steel'?"Steel is given: every structural steel, A36 included, has E = "+fmt(p.Es,0)+" GPa. There is nothing to compute.":"E is given in the problem, so it goes straight in.";
-    eRow=function(){var b=0;return GL('E',b)+OP('=')+GL(fmt(m.mat==='steel'?p.Es:p.Ex,0)+' GPa',b+0.2)+OP('=')+PI(fmt(m.Ec,0)+' MPa',b+0.5,'res')+'<span class="hint-inline">'+(m.mat==='steel'?'A36 / structural steel':'as given')+'</span>';};
+    eRow=function(){var b=0;return GL('E',b)+OP('=')+GL(fmt(m.mat==='steel'?p.Es:p.Ex,0)+' GPa',b+0.2)+OP('=')+PI(fmt(m.Ec,4)+' MPa',b+0.5,'res')+'<span class="hint-inline">'+(m.mat==='steel'?'A36 / structural steel':'as given')+'</span>';};
   }
   var iBody;
   if(m.sec==='hss'){
@@ -234,7 +234,7 @@ function buildTour(){
     iRow=function(){var b=0.95;return GL('I',b)+OP('=')+F(GL(mm(p.B),b+0.16)+SUP('4')+OP('\u2212')+GL(mm(p.B-2*p.t),b+0.40)+SUP('4'),GL('12',b+0.62),{lg:1})+OP('=')+PI(sci(m.I,4)+' m'+SUP('4'),b+0.9,'res');};
   } else if(m.sec==='custom'){
     iBody="I is given for the section, so it goes straight in (10\u2076 mm\u2074 = 10\u207B\u2076 m\u2074).";
-    iRow=function(){var b=0.95;return GL('I',b)+OP('=')+GL(fmt(p.Ix,2)+'\u00D710'+SUP('6')+' mm'+SUP('4'),b+0.2)+OP('=')+PI(sci(m.I,4)+' m'+SUP('4'),b+0.5,'res');};
+    iRow=function(){var b=0.95;return GL('I',b)+OP('=')+GL(gnum(p.Ix)+'\u00D710'+SUP('6')+' mm'+SUP('4'),b+0.2)+OP('=')+PI(sci(m.I,4)+' m'+SUP('4'),b+0.5,'res');};
   } else {
     iBody="A solid rectangular column has I = bh\u00B3/12, with h measured in the direction the floor sways.";
     iRow=function(){var b=0.95;return GL('I',b)+OP('=')+F(GL('b',b+0.16)+OP('\u00B7')+GL('h',b+0.34)+SUP('3'),GL('12',b+0.58),{lg:1})+OP('=')+F(GL(mm(p.b),b+0.70)+OP('\u00D7')+GL(mm(p.h),b+0.84)+SUP('3'),GL('12',b+1.02),{lg:1})+OP('=')+PI(sci(m.I,4)+' m'+SUP('4'),b+1.14,'res');};
@@ -262,7 +262,7 @@ function buildTour(){
      fx:EQ([
        eRow,
        iRow,
-       function(){var b=1.95;return GL('EI',b)+OP('=')+GL(fmt(m.Ec,0),b+0.14)+OP('\u00D7')+GL(sci(m.I,4),b+0.34)+' MPa\u00B7m'+SUP('4')+OP('=')+PI(fmt(m.EI,0)+' kN\u00B7m'+SUP('2'),b+0.58,'res');}
+       function(){var b=1.95;return GL('EI',b)+OP('=')+GL(fmt(m.Ec,4),b+0.14)+OP('\u00D7')+GL(sci(m.I,4),b+0.34)+' MPa\u00B7m'+SUP('4')+OP('=')+PI(fmt(m.EI,4)+' kN\u00B7m'+SUP('2'),b+0.58,'res');}
      ]),
      n:"Work in metres here: "+(m.sec==='hss'?fmt(p.B,0)+' mm = '+mm(p.B)+' m':m.sec==='solid'?fmt(p.b,0)+' mm = '+mm(p.b)+' m':'1 mm\u2074 = 10\u207B\u00B9\u00B2 m\u2074')+". MPa \u00D7 m\u2074 = MN\u00B7m\u00B2, so multiply by 1,000 for kN\u00B7m\u00B2.",
      svg:sectionSVG(m)},
@@ -270,16 +270,16 @@ function buildTour(){
      b:"Twelve times EI, divided by the cube of the height. Then "+(NW[m.cols]||m.cols)+" identical column"+(m.cols>1?"s":"")+" add up"+(sameH?" \u2014 and every storey is the same height, so every storey gets the same k.":", and each storey gets its own value because the heights differ."),
      fx:EQ((function(){
        var rows=[];
-       rows.push(function(){var b=0;return GL('k'+SUB('col'),b)+OP('=')+F(GL('12',b+0.14)+OP('\u00B7')+GL(fmt(m.EI,1),b+0.32),GL(fmt(m.hs[0],3),b+0.54)+SUP('3'),{lg:1})+OP('=')+GL(fmt(Math.pow(m.hs[0],3),2),b+0.76)+OP('=')+PI(fmt(m.kc[0],1)+' kN/m',b+0.98,'res');});
+       rows.push(function(){var b=0;return GL('k'+SUB('col'),b)+OP('=')+F(GL('12',b+0.14)+OP('\u00B7')+GL(fmt(m.EI,1),b+0.32),GL(gnum(m.hs[0]),b+0.54)+SUP('3'),{lg:1})+OP('=')+GL(fmt(Math.pow(m.hs[0],3),2),b+0.76)+OP('=')+PI(fmt(m.kc[0],1)+' kN/m',b+0.98,'res');});
        m.kf.forEach(function(v,ix){
          rows.push(function(){var b=0.75+ix*0.6;
-           return GL('k'+SUB(ix+1),b)+OP('=')+GL(fmt(m.cols,0),b+0.12)+OP('\u00D7')+GL(fmt(m.kc[ix],1),b+0.26)+OP('=')+PI(fmt(v,1)+' kN/m',b+0.46,'res')+'<span class="hint-inline">h'+SUB(ix+1)+' = '+fmt(m.hs[ix],2)+' m</span>';
+           return GL('k'+SUB(ix+1),b)+OP('=')+GL(fmt(m.cols,0),b+0.12)+OP('\u00D7')+GL(fmt(m.kc[ix],1),b+0.26)+OP('=')+PI(fmt(v,1)+' kN/m',b+0.46,'res')+'<span class="hint-inline">h'+SUB(ix+1)+' = '+gnum(m.hs[ix])+' m</span>';
          });
        });
        return rows;
      })()),
      n:sameH?"One column: "+fmt(m.kc[0],1)+" kN/m. One storey ("+m.cols+" columns): "+fmt(m.kf[0],1)+" kN/m \u2014 the same for all "+n+" storeys."
-       :"Bottom storey: "+fmt(m.kc[0],0)+" kN/m per column. Top storey: "+fmt(m.kc[n-1],0)+" kN/m \u2014 "+fmt(m.kc[n-1]/m.kc[0],2)+"\u00D7 "+(m.kc[n-1]>=m.kc[0]?"stiffer":"as stiff")+".",
+       :"Bottom storey: "+fmt(m.kc[0],4)+" kN/m per column. Top storey: "+fmt(m.kc[n-1],4)+" kN/m \u2014 "+fmt(m.kc[n-1]/m.kc[0],2)+"\u00D7 "+(m.kc[n-1]>=m.kc[0]?"stiffer":"as stiff")+".",
      svg:barsSVG(m)}
   ]});
 

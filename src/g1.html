@@ -124,7 +124,8 @@ body.truespeed .only-true{display:inline}
 .topmeta{display:flex;gap:8px;align-items:center}
 
 /* ---------- hero ---------- */
-.hero{padding:72px 0 40px;display:grid;grid-template-columns:1.06fr .94fr;gap:56px;align-items:center}
+.hero{padding:56px 0 24px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:48px;align-items:center}
+.hero-fig{max-width:340px;justify-self:end;width:100%}
 .hero .eyebrow{margin-bottom:18px}
 .hero h1{margin-bottom:20px}
 .hero h1 em{font-style:normal;background:linear-gradient(96deg,#4f46e5,#0d9488 110%);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -318,7 +319,7 @@ table.t td.hi{font-weight:700;color:var(--ink)}
 .pill-ok{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:650;color:#047857;background:#e7f7f0;border:1px solid #c9f0df;border-radius:999px;padding:4px 9px}
 
 /* ---------- builder ---------- */
-.builder{display:grid;grid-template-columns:.92fr 1.08fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-2);overflow:hidden}
+.builder{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-2);overflow:hidden}
 .builder .pane{padding:26px;min-width:0}
 .builder .pane + .pane{border-left:1px solid var(--line-2);background:var(--surface-2)}
 .field{display:grid;gap:6px;margin-bottom:14px}
@@ -399,6 +400,10 @@ footer .credit .soft a:hover{color:var(--muted);border-color:var(--muted)}
 
 
 /* ================= overhaul: shared pieces ================= */
+.prob-seg{margin-left:8px;flex:0 0 auto}
+.prob-seg button{padding:9px 13px;font-weight:650;color:var(--ink-2)}
+.prob-seg button.on{color:var(--ink)}
+.preview svg{max-width:360px;margin:0 auto}
 .skip{position:absolute;left:12px;top:-60px;z-index:300;background:var(--ink);color:#fff;padding:10px 14px;border-radius:10px;font-weight:650;font-size:14px;transition:top .15s}
 .skip:focus{top:12px}
 .ico{display:block;flex:0 0 auto}
@@ -507,7 +512,7 @@ details.fs-more[open] summary{margin-bottom:12px}
 /* ---------- responsive ---------- */
 @media (max-width:980px){
   .hero{grid-template-columns:1fr;gap:36px;padding-top:46px}
-  .hero-fig{order:-1;max-width:520px}
+  .hero-fig{order:-1;max-width:300px;justify-self:center}
   .tour-body{grid-template-columns:1fr}
   .stage{border-right:0;border-bottom:1px solid var(--line-2);min-height:360px}
   /* stacked layout: the figure keeps one height and the buttons sit above the
@@ -522,7 +527,6 @@ details.fs-more[open] summary{margin-bottom:12px}
   .nav{order:3;flex:1 0 100%;margin-left:0;overflow-x:auto;scrollbar-width:none;gap:4px}
   .nav::-webkit-scrollbar{display:none}
   .nav a{padding:9px 14px;min-height:40px;display:inline-flex;align-items:center}
-  .topmeta{margin-left:auto}
   .steps{grid-template-columns:repeat(6,minmax(132px,1fr));overflow-x:auto;scrollbar-width:none}
   .steps::-webkit-scrollbar{display:none}
   .sec{padding:52px 0}
@@ -540,6 +544,8 @@ details.fs-more[open] summary{margin-bottom:12px}
   .card{padding:18px 16px}
   .picker{align-items:flex-start;flex-direction:column;gap:8px}
   .brand .byline{display:none}
+  .brand>span:nth-child(2){display:none}
+  .prob-seg button{padding:9px 10px;font-size:13px}
   .sec-head{flex-wrap:wrap;align-items:flex-start;gap:14px}
   .btn{min-height:44px}
   .btn-sm{min-height:40px}

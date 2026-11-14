@@ -3,7 +3,13 @@
 var UNS="\u2212";
 function $(s,r){return (r||document).querySelector(s);}
 function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+/* Results are always shown to 4 decimal places (d > 0 or omitted -> 4).
+   d = 0 is kept for given data and whole numbers: masses, mm sizes, counts. */
 function fmt(x,d){
+  return fmtRaw(x,(d===0)?0:4);
+}
+/* exact control, for the animation clock only */
+function fmtRaw(x,d){
   if(x==null||!isFinite(x))return "\u2014";
   d=(d==null)?2:d;
   var s=Math.abs(x).toFixed(d),p=s.split("."),ip=p[0],o="",c=0,i;
@@ -17,12 +23,14 @@ function sup(n){var s=String(n),o="",i;for(i=0;i<s.length;i++)o+=SUPMAP[s.charAt
 function sci(x,d){
   if(!isFinite(x))return "\u2014";
   if(x===0)return "0";
-  d=(d==null)?2:d;
+  d=4;
   var a=Math.abs(x),e=Math.floor(Math.log(a)/Math.LN10),m=x/Math.pow(10,e);
-  if(Math.abs(m)>=9.995){m/=10;e+=1;}
+  if(Math.abs(m)>=9.99995){m/=10;e+=1;}
   return fmt(m,d)+"\u00D710"+sup(e);
 }
 function sub(i){return "\u2081\u2082\u2083\u2084\u2085".charAt(i)||("_"+i);}
+/* a given value, written the way the problem states it (4, 3.2, 5,500) */
+function gnum(x){var s=fmtRaw(x,4);if(s.indexOf('.')>=0)s=s.replace(/0+$/,'').replace(/\.$/,'');return s;}
 function escapeHTML(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
 /* ================= palette ================= */
@@ -78,7 +86,7 @@ function matName(m){return m.mat==='steel'?'steel':m.mat==='custom'?'given E':'c
 function secName(m,short){
   var p=m.p;
   if(m.sec==='hss')return fmt(p.B,0)+'×'+fmt(p.B,0)+'×'+fmt(p.t,0)+' mm'+(short?' tube':' hollow tube');
-  if(m.sec==='custom')return 'I = '+fmt(p.Ix,1)+'×10⁶ mm⁴';
+  if(m.sec==='custom')return 'I = '+gnum(p.Ix)+'×10⁶ mm⁴';
   return fmt(p.b,0)+'×'+fmt(p.h,0)+' mm'+(short?'':' solid');
 }
 function modelTag(m){

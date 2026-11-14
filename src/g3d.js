@@ -5,7 +5,7 @@ function reduced(){return !!(window.matchMedia&&window.matchMedia('(prefers-redu
 /* 3D only where the building is the subject; matrices and determinants stay flat */
 function v3Eligible(ch,fr){
   var c=CHAPTERS[ch];
-  return c.id==='frame'||!!c.frames[fr].live||(/^mode\d/.test(c.id)&&fr===c.frames.length-1);
+  return c.id==='frame'||!!c.frames[fr].live||/^mode\d/.test(c.id);
 }
 function loadThree(cb){
   if(window.THREE)return cb(true);
