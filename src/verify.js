@@ -10,8 +10,8 @@ const url = 'file://' + path.resolve(__dirname, '..', 'index.html').replace(/\\/
 /* reference values: independent NumPy solution (scipy-free, eig of M^-1 K) */
 const REF = {
   sir:   { k1: 10903.666, f: [5.314945, 15.782566, 29.785571], phi1: [0.756750, 0.946064, 1] },
-  quiz1: { k1: 46395.8,   f: [6.70631, 19.01471, 26.94345], phi1: [0.44710, 0.80865, 1],
-           phi2: [-1.16574, -0.53826, 1], phi3: [1.91863, -2.08857, 1], kcol: 11598.9 }
+  quiz1: { k1: 46395.7728, f: [6.822997, 19.117614, 27.625752], phi1: [0.445042, 0.801938, 1],
+           phi2: [-1.246980, -0.554958, 1], phi3: [1.801938, -2.246980, 1], kcol: 11598.9432 }
 };
 const close = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
 

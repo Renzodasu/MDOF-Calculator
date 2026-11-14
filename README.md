@@ -36,14 +36,13 @@ The page ships with two problems, one click apart (hero and builder):
 | Problem | Columns | Storeys | Masses (kg) | f₁ |
 |---|---|---|---|---|
 | **Class example** | concrete 300×300, f′c 21 MPa, E = 4700√f′c | h = 4, 3.2, 3 m | 5,000 · 2,500 · 1,250 | 5.315 Hz |
-| **Quiz 1** (CE425) | A36 steel tube 350×350×12, E = 200 GPa | h = 4, 4, 4 m | 5,000 · 5,500 · 5,000 | 6.706 Hz |
+| **Quiz 1** (CE425) | A36 steel tube 350×350×12, E = 200 GPa | h = 4, 4, 4 m | 5,000 · 5,000 · 5,000 | 6.8230 Hz |
 
 The builder takes **concrete (f′c), steel (E) or any given E**, and a **solid b×h,
 square hollow tube B×t, or any given I**: I = [B⁴ − (B − 2t)⁴]/12 for the tube.
-You can also type each storey's k directly. Quiz 1 gives k = 11,598.9 kN/m per
-column and 46,395.8 kN/m per storey, ω = 42.137 / 119.473 / 169.291 rad/s,
-φ₁ = {0.4471, 0.8087, 1}, φ₂ = {−1.1657, −0.5383, 1} and φ₃ = {1.9186, −2.0886, 1}.
-
+You can also type each storey's k directly. Quiz 1 gives k = 11,598.9432 kN/m per
+column and 46,395.7728 kN/m per storey, ω = 42.8702 / 120.1195 / 173.5777 rad/s,
+φ₁ = {0.4450, 0.8019, 1}, φ₂ = {−1.2470, −0.5550, 1} and φ₃ = {1.8019, −2.2470, 1}.
 The tour follows the five steps of the class notes, shown as a step bar above the
 chapters. "Given" is the column stiffness k = 12EI/h³. Step 1 is [K] and [M].
 Step 2 is [K − ω²M] = 0, dividing by m₁ and setting B = ω². Step 3 is

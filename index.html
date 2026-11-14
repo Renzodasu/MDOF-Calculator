@@ -1033,7 +1033,7 @@ function sci(x,d){
   return fmt(m,d)+"\u00D710"+sup(e);
 }
 function sub(i){return "\u2081\u2082\u2083\u2084\u2085".charAt(i)||("_"+i);}
-/* a given value, written the way the problem states it (4, 3.2, 5,500) */
+/* a given value, written the way the problem states it (4, 3.2, 5,000) */
 function gnum(x){var s=fmtRaw(x,4);if(s.indexOf('.')>=0)s=s.replace(/0+$/,'').replace(/\.$/,'');return s;}
 function escapeHTML(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
@@ -1049,7 +1049,7 @@ var MCT=["#4338ca","#0f766e","#b45309","#6d28d9"];
 var PRESETS={
   quiz1:{label:"Quiz 1",sub:"A36 steel tube 350×350×12",
     s:{n:3,geom:true,mat:"steel",fc:21,Es:200,Ex:25,sec:"hss",b:300,h:300,B:350,t:12,Ix:309.3,cols:4,
-       hs:[4,4,4],ms:[5000,5500,5000],ks:[46395.8,46395.8,46395.8]}},
+       hs:[4,4,4],ms:[5000,5000,5000],ks:[46395.8,46395.8,46395.8]}},
   sir:{label:"Sample Problem 1",sub:"Concrete 300×300 · f′c 21 MPa",
     s:{n:3,geom:true,mat:"conc",fc:21,Es:200,Ex:25,sec:"solid",b:300,h:300,B:350,t:12,Ix:675,cols:4,
        hs:[4,3.2,3],ms:[5000,2500,1250],ks:[10903.7,21296.2,25845.7]}}
